@@ -47,6 +47,10 @@ build/
 *.pidb
 *.log
 *.scc
+*.dll
+*.exe
+*.exp
+*.lib
 
 # Visual C++ cache files
 ipch/
@@ -62,6 +66,7 @@ ipch/
 *.psess
 *.vsp
 *.vspx
+.vs/
 
 # Guidance Automation Toolkit
 *.gpState
@@ -171,11 +176,3 @@ pip-log.txt
 *~
 .*.swp
 .*.swo
-
-#############
-## TFS / OT
-#############
-config.lua
-libmysql.dll
-lua51.dll
-theforgottenserver-AVX2.exe
