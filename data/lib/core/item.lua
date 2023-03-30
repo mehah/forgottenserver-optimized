@@ -1,51 +1,51 @@
 function Item.getType(self)
-	return ItemType(self:getId())
+    return ItemType(self:getId())
 end
 
 function Item.isContainer(self)
-	return false
+    return false
 end
 
 function Item.isCreature(self)
-	return false
+    return false
 end
 
 function Item.isMonster(self)
-	return false
+    return false
 end
 
 function Item.isNpc(self)
-	return false
+    return false
 end
 
 function Item.isPlayer(self)
-	return false
+    return false
 end
 
 function Item.isTeleport(self)
-	return false
+    return false
 end
 
 function Item.isTile(self)
-	return false
+    return false
 end
 
 function Item.managedAddItem(self, itemId, itemCount)
-	local parent = self:getParent()
-	if(parent and parent:isContainer()) then
-		local newitem = parent:addItem(itemId, itemCount)
-		if(not newitem) then
-			parent = self:getTopParent()
-			if(parent) then
-				newitem = parent:addItem(itemId, itemCount)
-				if(newitem) then
-					return
-				end
-			end
-		else
-			return
-		end
-	end
+    local parent = self:getParent()
+    if (parent and parent:isContainer()) then
+        local newitem = parent:addItem(itemId, itemCount)
+        if (not newitem) then
+            parent = self:getTopParent()
+            if (parent) then
+                newitem = parent:addItem(itemId, itemCount)
+                if (newitem) then
+                    return
+                end
+            end
+        else
+            return
+        end
+    end
 
-	Game.createItem(itemId, itemCount, self:getPosition())
+    Game.createItem(itemId, itemCount, self:getPosition())
 end

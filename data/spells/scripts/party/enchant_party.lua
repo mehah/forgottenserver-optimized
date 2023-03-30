@@ -8,5 +8,5 @@ condition:setParameter(CONDITION_PARAM_STAT_MAGICPOINTS, 1)
 condition:setParameter(CONDITION_PARAM_BUFF_SPELL, true)
 
 function onCastSpell(creature, variant)
-	return creature:addPartyCondition(combat, variant, condition, 120)
+    return creature:addPartyCondition(combat, variant, condition, 120)
 end

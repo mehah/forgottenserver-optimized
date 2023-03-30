@@ -15,5 +15,5 @@ speed:setFormula(-0.7, 56, -0.7, 56)
 combat:addCondition(speed)
 
 function onCastSpell(creature, variant)
-	return combat:execute(creature, variant)
+    return combat:execute(creature, variant)
 end
