@@ -27,124 +27,124 @@
 
 bool Ban::acceptConnection(uint32_t clientIP)
 {
-	std::lock_guard<std::recursive_mutex> lockClass(lock);
+    std::lock_guard<std::recursive_mutex> lockClass(lock);
 
-	uint64_t currentTime = OTSYS_TIME();
+    uint64_t currentTime = OTSYS_TIME();
 
-	auto it = ipConnectMap.find(clientIP);
-	if (it == ipConnectMap.end()) {
-		ipConnectMap.emplace(std::piecewise_construct, std::forward_as_tuple(clientIP), std::forward_as_tuple(currentTime, 0, 1));
-		return true;
-	}
+    auto it = ipConnectMap.find(clientIP);
+    if (it == ipConnectMap.end()) {
+        ipConnectMap.emplace(std::piecewise_construct, std::forward_as_tuple(clientIP), std::forward_as_tuple(currentTime, 0, 1));
+        return true;
+    }
 
-	ConnectBlock& connectBlock = it->second;
-	if (connectBlock.blockTime > currentTime) {
-		connectBlock.blockTime += 250;
-		return false;
-	}
+    ConnectBlock& connectBlock = it->second;
+    if (connectBlock.blockTime > currentTime) {
+        connectBlock.blockTime += 250;
+        return false;
+    }
 
-	int64_t timeDiff = currentTime - connectBlock.lastAttempt;
-	connectBlock.lastAttempt = currentTime;
-	if (timeDiff <= 5000) {
-		if (++connectBlock.count > 5) {
-			connectBlock.count = 0;
-			if (timeDiff <= 500) {
-				connectBlock.blockTime = currentTime + 3000;
-				return false;
-			}
-		}
-	} else {
-		connectBlock.count = 1;
-	}
-	return true;
+    int64_t timeDiff = currentTime - connectBlock.lastAttempt;
+    connectBlock.lastAttempt = currentTime;
+    if (timeDiff <= 5000) {
+        if (++connectBlock.count > 5) {
+            connectBlock.count = 0;
+            if (timeDiff <= 500) {
+                connectBlock.blockTime = currentTime + 3000;
+                return false;
+            }
+        }
+    } else {
+        connectBlock.count = 1;
+    }
+    return true;
 }
 
 bool IOBan::isAccountBanned(uint32_t accountId, BanInfo& banInfo)
 {
-	std::stringExtended query(256);
-	query << "SELECT `reason`, `expires_at`, `banned_at`, `banned_by`, (SELECT `name` FROM `players` WHERE `id` = `banned_by`) AS `name` FROM `account_bans` WHERE `account_id` = " << accountId << " LIMIT 1";
+    std::stringExtended query(256);
+    query << "SELECT `reason`, `expires_at`, `banned_at`, `banned_by`, (SELECT `name` FROM `players` WHERE `id` = `banned_by`) AS `name` FROM `account_bans` WHERE `account_id` = " << accountId << " LIMIT 1";
 
-	DBResult_ptr result = g_database.storeQuery(query);
-	if (!result) {
-		return false;
-	}
+    DBResult_ptr result = g_database.storeQuery(query);
+    if (!result) {
+        return false;
+    }
 
-	int64_t expiresAt = result->getNumber<int64_t>("expires_at");
-	if (expiresAt != 0 && time(nullptr) > expiresAt) {
-		// Move the ban to history if it has expired
-		query.clear();
-		query << "INSERT INTO `account_ban_history` (`account_id`, `reason`, `banned_at`, `expired_at`, `banned_by`) VALUES (" << accountId << ',' << g_database.escapeString(result->getString("reason")) << ',' << result->getNumber<time_t>("banned_at") << ',' << expiresAt << ',' << result->getNumber<uint32_t>("banned_by") << ')';
-		g_databaseTasks.addTask(query);
+    int64_t expiresAt = result->getNumber<int64_t>("expires_at");
+    if (expiresAt != 0 && time(nullptr) > expiresAt) {
+        // Move the ban to history if it has expired
+        query.clear();
+        query << "INSERT INTO `account_ban_history` (`account_id`, `reason`, `banned_at`, `expired_at`, `banned_by`) VALUES (" << accountId << ',' << g_database.escapeString(result->getString("reason")) << ',' << result->getNumber<time_t>("banned_at") << ',' << expiresAt << ',' << result->getNumber<uint32_t>("banned_by") << ')';
+        g_databaseTasks.addTask(query);
 
-		query.clear();
-		query << "DELETE FROM `account_bans` WHERE `account_id` = " << accountId;
-		g_databaseTasks.addTask(std::move(static_cast<std::string&>(query)));
-		return false;
-	}
+        query.clear();
+        query << "DELETE FROM `account_bans` WHERE `account_id` = " << accountId;
+        g_databaseTasks.addTask(std::move(static_cast<std::string&>(query)));
+        return false;
+    }
 
-	banInfo.expiresAt = expiresAt;
-	banInfo.reason = std::move(result->getString("reason"));
-	banInfo.bannedBy = std::move(result->getString("name"));
-	return true;
+    banInfo.expiresAt = expiresAt;
+    banInfo.reason = std::move(result->getString("reason"));
+    banInfo.bannedBy = std::move(result->getString("name"));
+    return true;
 }
 
 bool IOBan::isIpBanned(uint32_t clientIP, BanInfo& banInfo)
 {
-	if (clientIP == 0) {
-		return false;
-	}
+    if (clientIP == 0) {
+        return false;
+    }
 
-	std::stringExtended query(140);
-	query << "SELECT `reason`, `expires_at`, (SELECT `name` FROM `players` WHERE `id` = `banned_by`) AS `name` FROM `ip_bans` WHERE `ip` = " << clientIP << " LIMIT 1";
+    std::stringExtended query(140);
+    query << "SELECT `reason`, `expires_at`, (SELECT `name` FROM `players` WHERE `id` = `banned_by`) AS `name` FROM `ip_bans` WHERE `ip` = " << clientIP << " LIMIT 1";
 
-	DBResult_ptr result = g_database.storeQuery(query);
-	if (!result) {
-		return false;
-	}
+    DBResult_ptr result = g_database.storeQuery(query);
+    if (!result) {
+        return false;
+    }
 
-	int64_t expiresAt = result->getNumber<int64_t>("expires_at");
-	if (expiresAt != 0 && time(nullptr) > expiresAt) {
-		query.clear();
-		query << "DELETE FROM `ip_bans` WHERE `ip` = " << clientIP;
-		g_databaseTasks.addTask(std::move(static_cast<std::string&>(query)));
-		return false;
-	}
+    int64_t expiresAt = result->getNumber<int64_t>("expires_at");
+    if (expiresAt != 0 && time(nullptr) > expiresAt) {
+        query.clear();
+        query << "DELETE FROM `ip_bans` WHERE `ip` = " << clientIP;
+        g_databaseTasks.addTask(std::move(static_cast<std::string&>(query)));
+        return false;
+    }
 
-	banInfo.expiresAt = expiresAt;
-	banInfo.reason = std::move(result->getString("reason"));
-	banInfo.bannedBy = std::move(result->getString("name"));
-	return true;
+    banInfo.expiresAt = expiresAt;
+    banInfo.reason = std::move(result->getString("reason"));
+    banInfo.bannedBy = std::move(result->getString("name"));
+    return true;
 }
 
 bool IOBan::isPlayerNamelocked(uint32_t playerId)
 {
-	std::stringExtended query(128);
-	query << "SELECT 1 FROM `player_namelocks` WHERE `player_id` = " << playerId << " LIMIT 1";
-	return g_database.storeQuery(query).get() != nullptr;
+    std::stringExtended query(128);
+    query << "SELECT 1 FROM `player_namelocks` WHERE `player_id` = " << playerId << " LIMIT 1";
+    return g_database.storeQuery(query).get() != nullptr;
 }
 
 uint32_t IOBan::getAccountID(const std::string& playerName)
 {
-	const std::string& escapedName = g_database.escapeString(playerName);
-	std::stringExtended query(escapedName.length() + 64);
-	query << "SELECT `account_id` FROM `players` WHERE `name` = " << escapedName << " LIMIT 1";
+    const std::string& escapedName = g_database.escapeString(playerName);
+    std::stringExtended query(escapedName.length() + 64);
+    query << "SELECT `account_id` FROM `players` WHERE `name` = " << escapedName << " LIMIT 1";
 
-	DBResult_ptr result = g_database.storeQuery(query);
-	if (!result) {
-		return 0;
-	}
-	return result->getNumber<uint32_t>("account_id");
+    DBResult_ptr result = g_database.storeQuery(query);
+    if (!result) {
+        return 0;
+    }
+    return result->getNumber<uint32_t>("account_id");
 }
 
 uint32_t IOBan::getAccountLastIP(const std::string& playerName)
 {
-	const std::string& escapedName = g_database.escapeString(playerName);
-	std::stringExtended query(escapedName.length() + 64);
-	query << "SELECT `lastip` FROM `players` WHERE `name` = " << escapedName << " LIMIT 1";
+    const std::string& escapedName = g_database.escapeString(playerName);
+    std::stringExtended query(escapedName.length() + 64);
+    query << "SELECT `lastip` FROM `players` WHERE `name` = " << escapedName << " LIMIT 1";
 
-	DBResult_ptr result = g_database.storeQuery(query);
-	if (!result) {
-		return 0;
-	}
-	return result->getNumber<uint32_t>("lastip");
+    DBResult_ptr result = g_database.storeQuery(query);
+    if (!result) {
+        return 0;
+    }
+    return result->getNumber<uint32_t>("lastip");
 }

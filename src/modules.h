@@ -26,17 +26,17 @@ class NetworkMessage;
 
 class Modules
 {
-	public:
-		Modules();
+public:
+    Modules();
 
-		bool load();
-		
-		// Module
-		bool eventOnRecvByte(Player* player, uint8_t recvbyte, NetworkMessage& msg);
+    bool load();
 
-	private:
-		LuaScriptInterface scriptInterface;
-		std::map<uint8_t, int32_t> modules;
+    // Module
+    bool eventOnRecvByte(Player* player, uint8_t recvbyte, NetworkMessage& msg);
+
+private:
+    LuaScriptInterface scriptInterface;
+    std::map<uint8_t, int32_t> modules;
 };
 
 #endif

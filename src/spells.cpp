@@ -36,1247 +36,1247 @@ extern LuaEnvironment g_luaEnvironment;
 
 Spells::Spells()
 {
-	scriptInterface.initState();
-	instants.reserve(1000);
+    scriptInterface.initState();
+    instants.reserve(1000);
 }
 
 Spells::~Spells()
 {
-	clear(false);
+    clear(false);
 }
 
 TalkActionResult_t Spells::playerSaySpell(Player* player, std::string& words, const std::string& lowerWords)
 {
-	std::string param, instantWords = lowerWords;
-	if (instantWords.size() >= 4 && instantWords.front() != '"') {
-		size_t param_find = instantWords.find('"');
-		if (param_find != std::string::npos && instantWords[param_find - 1] == ' ') {
-			param = words.substr(param_find + 1);
-			instantWords = instantWords.substr(0, param_find);
-			trim_right(instantWords, ' ');
-			if (!param.empty() && param.back() == '"') {
-				param.pop_back();
-			}
-		}
-	}
+    std::string param, instantWords = lowerWords;
+    if (instantWords.size() >= 4 && instantWords.front() != '"') {
+        size_t param_find = instantWords.find('"');
+        if (param_find != std::string::npos && instantWords[param_find - 1] == ' ') {
+            param = words.substr(param_find + 1);
+            instantWords = instantWords.substr(0, param_find);
+            trim_right(instantWords, ' ');
+            if (!param.empty() && param.back() == '"') {
+                param.pop_back();
+            }
+        }
+    }
 
-	InstantSpell* instantSpell = getInstantSpell(instantWords);
-	if (!instantSpell || (!param.empty() && !instantSpell->getHasParam()) || (param.empty() && instantSpell->getHasParam())) {
-		return TALKACTION_CONTINUE;
-	}
+    InstantSpell* instantSpell = getInstantSpell(instantWords);
+    if (!instantSpell || (!param.empty() && !instantSpell->getHasParam()) || (param.empty() && instantSpell->getHasParam())) {
+        return TALKACTION_CONTINUE;
+    }
 
-	if (instantSpell->playerCastInstant(player, param)) {
-		words = instantSpell->getWords();
-		if (instantSpell->getHasParam() && !param.empty()) {
-			words += " \"" + param + "\"";
-		}
-		return TALKACTION_BREAK;
-	}
-	return TALKACTION_FAILED;
+    if (instantSpell->playerCastInstant(player, param)) {
+        words = instantSpell->getWords();
+        if (instantSpell->getHasParam() && !param.empty()) {
+            words += " \"" + param + "\"";
+        }
+        return TALKACTION_BREAK;
+    }
+    return TALKACTION_FAILED;
 }
 
 void Spells::clearMaps(bool fromLua)
 {
-	for (auto instant = instants.begin(); instant != instants.end(); ) {
-		if (fromLua == instant->second->fromLua) {
-			instant = instants.erase(instant);
-		} else {
-			++instant;
-		}
-	}
+    for (auto instant = instants.begin(); instant != instants.end(); ) {
+        if (fromLua == instant->second->fromLua) {
+            instant = instants.erase(instant);
+        } else {
+            ++instant;
+        }
+    }
 
-	for (auto rune = runes.begin(); rune != runes.end(); ) {
-		if (fromLua == rune->second.fromLua) {
-			rune = runes.erase(rune);
-		} else {
-			++rune;
-		}
-	}
+    for (auto rune = runes.begin(); rune != runes.end(); ) {
+        if (fromLua == rune->second.fromLua) {
+            rune = runes.erase(rune);
+        } else {
+            ++rune;
+        }
+    }
 }
 
 void Spells::clear(bool fromLua)
 {
-	clearMaps(fromLua);
+    clearMaps(fromLua);
 
-	reInitState(fromLua);
+    reInitState(fromLua);
 }
 
 LuaScriptInterface& Spells::getScriptInterface()
 {
-	return scriptInterface;
+    return scriptInterface;
 }
 
 std::string Spells::getScriptBaseName() const
 {
-	return "spells";
+    return "spells";
 }
 
 Event_ptr Spells::getEvent(const std::string& nodeName)
 {
-	if (strcasecmp(nodeName.c_str(), "rune") == 0) {
-		return Event_ptr(new RuneSpell(&scriptInterface));
-	} else if (strcasecmp(nodeName.c_str(), "instant") == 0) {
-		return Event_ptr(new InstantSpell(&scriptInterface));
-	}
-	return nullptr;
+    if (strcasecmp(nodeName.c_str(), "rune") == 0) {
+        return Event_ptr(new RuneSpell(&scriptInterface));
+    } else if (strcasecmp(nodeName.c_str(), "instant") == 0) {
+        return Event_ptr(new InstantSpell(&scriptInterface));
+    }
+    return nullptr;
 }
 
 bool Spells::registerEvent(Event_ptr event, const pugi::xml_node&)
 {
-	InstantSpell* instant = dynamic_cast<InstantSpell*>(event.get());
-	if (instant) {
-		InstantSpell_ptr instptr{ static_cast<InstantSpell*>(event.release()) };
+    InstantSpell* instant = dynamic_cast<InstantSpell*>(event.get());
+    if (instant) {
+        InstantSpell_ptr instptr{ static_cast<InstantSpell*>(event.release()) };
 
-		std::vector<std::string>& wordsMap = instant->getWordsMap();
-		if (!wordsMap.empty()) {
-			wordsMap.clear();
-			wordsMap.shrink_to_fit();
-		}
+        std::vector<std::string>& wordsMap = instant->getWordsMap();
+        if (!wordsMap.empty()) {
+            wordsMap.clear();
+            wordsMap.shrink_to_fit();
+        }
 
-		std::string words = instant->getWords();
-		auto result = instants.emplace(words, std::move(instptr));
-		if (!result.second) {
-			std::cout << "[Warning - Spells::registerEvent] Duplicate registered instant spell with words: " << words << std::endl;
-		}
-		return result.second;
-	}
+        std::string words = instant->getWords();
+        auto result = instants.emplace(words, std::move(instptr));
+        if (!result.second) {
+            std::cout << "[Warning - Spells::registerEvent] Duplicate registered instant spell with words: " << words << std::endl;
+        }
+        return result.second;
+    }
 
-	RuneSpell* rune = dynamic_cast<RuneSpell*>(event.get());
-	if (rune) {
-		uint16_t runeId = rune->getRuneItemId();
-		auto result = runes.emplace(runeId, std::move(*rune));
-		if (!result.second) {
-			std::cout << "[Warning - Spells::registerEvent] Duplicate registered rune with id: " << runeId << std::endl;
-		}
-		return result.second;
-	}
+    RuneSpell* rune = dynamic_cast<RuneSpell*>(event.get());
+    if (rune) {
+        uint16_t runeId = rune->getRuneItemId();
+        auto result = runes.emplace(runeId, std::move(*rune));
+        if (!result.second) {
+            std::cout << "[Warning - Spells::registerEvent] Duplicate registered rune with id: " << runeId << std::endl;
+        }
+        return result.second;
+    }
 
-	return false;
+    return false;
 }
 
 bool Spells::registerInstantLuaEvent(InstantSpell* event)
 {
-	InstantSpell_ptr instant{ event };
-	if (instant) {
-		std::vector<std::string>& wordsMap = instant->getWordsMap();
-		if (!wordsMap.empty()) {
-			wordsMap.clear();
-			wordsMap.shrink_to_fit();
-		}
+    InstantSpell_ptr instant{ event };
+    if (instant) {
+        std::vector<std::string>& wordsMap = instant->getWordsMap();
+        if (!wordsMap.empty()) {
+            wordsMap.clear();
+            wordsMap.shrink_to_fit();
+        }
 
-		std::string words = instant->getWords();
-		auto result = instants.emplace(words, std::move(instant));
-		if (!result.second) {
-			std::cout << "[Warning - Spells::registerInstantLuaEvent] Duplicate registered instant spell with words: " << words << std::endl;
-		}
-		return result.second;
-	}
+        std::string words = instant->getWords();
+        auto result = instants.emplace(words, std::move(instant));
+        if (!result.second) {
+            std::cout << "[Warning - Spells::registerInstantLuaEvent] Duplicate registered instant spell with words: " << words << std::endl;
+        }
+        return result.second;
+    }
 
-	return false;
+    return false;
 }
 
 bool Spells::registerRuneLuaEvent(RuneSpell* event)
 {
-	RuneSpell_ptr rune{ event };
-	if (rune) {
-		uint16_t runeId = rune->getRuneItemId();
-		auto result = runes.emplace(runeId, std::move(*rune));
-		if (!result.second) {
-			std::cout << "[Warning - Spells::registerRuneLuaEvent] Duplicate registered rune with id: " << runeId << std::endl;
-		}
-		return result.second;
-	}
+    RuneSpell_ptr rune{ event };
+    if (rune) {
+        uint16_t runeId = rune->getRuneItemId();
+        auto result = runes.emplace(runeId, std::move(*rune));
+        if (!result.second) {
+            std::cout << "[Warning - Spells::registerRuneLuaEvent] Duplicate registered rune with id: " << runeId << std::endl;
+        }
+        return result.second;
+    }
 
-	return false;
+    return false;
 }
 
 std::vector<uint16_t> Spells::getSpellsByVocation(uint16_t vocationId)
 {
-	std::vector<uint16_t> spells;
-	spells.reserve(30);
-	for (const auto& it : instants) {
-		VocSpellMap map = it.second->getVocMap();
-		if (map.find(vocationId) != map.end()) {
-			spells.emplace_back(it.second->getId());
-		}
-	}
-	return spells;
+    std::vector<uint16_t> spells;
+    spells.reserve(30);
+    for (const auto& it : instants) {
+        VocSpellMap map = it.second->getVocMap();
+        if (map.find(vocationId) != map.end()) {
+            spells.emplace_back(it.second->getId());
+        }
+    }
+    return spells;
 }
 
 Spell* Spells::getSpellByName(const std::string& name)
 {
-	Spell* spell = getRuneSpellByName(name);
-	if (!spell) {
-		spell = getInstantSpellByName(name);
-	}
-	return spell;
+    Spell* spell = getRuneSpellByName(name);
+    if (!spell) {
+        spell = getInstantSpellByName(name);
+    }
+    return spell;
 }
 
 RuneSpell* Spells::getRuneSpell(uint16_t id)
 {
-	auto it = runes.find(id);
-	if (it == runes.end()) {
-		return nullptr;
-	}
-	return &it->second;
+    auto it = runes.find(id);
+    if (it == runes.end()) {
+        return nullptr;
+    }
+    return &it->second;
 }
 
 RuneSpell* Spells::getRuneSpellById(uint8_t id)
 {
-	for (auto& rune : runes) {
-		if (rune.second.getId() == id) {
-			return &rune.second;
-		}
-	}
-	return nullptr;
+    for (auto& rune : runes) {
+        if (rune.second.getId() == id) {
+            return &rune.second;
+        }
+    }
+    return nullptr;
 }
 
 RuneSpell* Spells::getRuneSpellByName(const std::string& name)
 {
-	for (auto& it : runes) {
-		if (strcasecmp(it.second.getName().c_str(), name.c_str()) == 0) {
-			return &it.second;
-		}
-	}
-	return nullptr;
+    for (auto& it : runes) {
+        if (strcasecmp(it.second.getName().c_str(), name.c_str()) == 0) {
+            return &it.second;
+        }
+    }
+    return nullptr;
 }
 
 InstantSpell* Spells::getInstantSpell(const std::string& words)
 {
-	auto it = instants.find(words);
-	if (it != instants.end()) {
-		return it->second.get();
-	}
-	return nullptr;
+    auto it = instants.find(words);
+    if (it != instants.end()) {
+        return it->second.get();
+    }
+    return nullptr;
 }
 
 InstantSpell* Spells::getInstantSpellById(uint8_t spellId)
 {
-	for (auto& it : instants) {
-		if (it.second->getId() == spellId) {
-			return it.second.get();
-		}
-	}
-	return nullptr;
+    for (auto& it : instants) {
+        if (it.second->getId() == spellId) {
+            return it.second.get();
+        }
+    }
+    return nullptr;
 }
 
 InstantSpell* Spells::getInstantSpellByName(const std::string& name)
 {
-	for (auto& it : instants) {
-		if (strcasecmp(it.second->getName().c_str(), name.c_str()) == 0) {
-			return it.second.get();
-		}
-	}
-	return nullptr;
+    for (auto& it : instants) {
+        if (strcasecmp(it.second->getName().c_str(), name.c_str()) == 0) {
+            return it.second.get();
+        }
+    }
+    return nullptr;
 }
 
 Position Spells::getCasterPosition(Creature* creature, Direction dir)
 {
-	return getNextPosition(dir, creature->getPosition());
+    return getNextPosition(dir, creature->getPosition());
 }
 
 CombatSpell::CombatSpell(Combat* combat, bool needTarget, bool needDirection) :
-	Event(&g_spells->getScriptInterface()),
-	combat(combat),
-	needDirection(needDirection),
-	needTarget(needTarget)
+    Event(&g_spells->getScriptInterface()),
+    combat(combat),
+    needDirection(needDirection),
+    needTarget(needTarget)
 {}
 
 CombatSpell::~CombatSpell()
 {
-	if (!scripted) {
-		delete combat;
-	} else if (combat) {
-		combat->decrementReferenceCounter();
-	}
+    if (!scripted) {
+        delete combat;
+    } else if (combat) {
+        combat->decrementReferenceCounter();
+    }
 }
 
 bool CombatSpell::loadScriptCombat()
 {
-	combat = g_luaEnvironment.getCombatObject(g_luaEnvironment.lastCombatId);
-	if (combat) {
-		combat->incrementReferenceCounter();
-	}
-	return combat != nullptr;
+    combat = g_luaEnvironment.getCombatObject(g_luaEnvironment.lastCombatId);
+    if (combat) {
+        combat->incrementReferenceCounter();
+    }
+    return combat != nullptr;
 }
 
 bool CombatSpell::castSpell(Creature* creature)
 {
-	if (scripted) {
-		LuaVariant var;
-		var.type = VARIANT_POSITION;
+    if (scripted) {
+        LuaVariant var;
+        var.type = VARIANT_POSITION;
 
-		if (needDirection) {
-			var.pos = Spells::getCasterPosition(creature, creature->getDirection());
-			var.directionalArea = true;
-		} else {
-			var.pos = creature->getPosition();
-		}
+        if (needDirection) {
+            var.pos = Spells::getCasterPosition(creature, creature->getDirection());
+            var.directionalArea = true;
+        } else {
+            var.pos = creature->getPosition();
+        }
 
-		return executeCastSpell(creature, var);
-	}
+        return executeCastSpell(creature, var);
+    }
 
-	Position pos;
-	if (needDirection) {
-		pos = Spells::getCasterPosition(creature, creature->getDirection());
-		combat->setDirectionArea(true);
-		combat->doCombat(creature, pos);
-		combat->setDirectionArea(false);
-	} else {
-		pos = creature->getPosition();
-		combat->doCombat(creature, pos);
-	}
+    Position pos;
+    if (needDirection) {
+        pos = Spells::getCasterPosition(creature, creature->getDirection());
+        combat->setDirectionArea(true);
+        combat->doCombat(creature, pos);
+        combat->setDirectionArea(false);
+    } else {
+        pos = creature->getPosition();
+        combat->doCombat(creature, pos);
+    }
 
-	return true;
+    return true;
 }
 
 bool CombatSpell::castSpell(Creature* creature, Creature* target)
 {
-	if (scripted) {
-		LuaVariant var;
+    if (scripted) {
+        LuaVariant var;
 
-		if (combat->hasArea()) {
-			var.type = VARIANT_POSITION;
+        if (combat->hasArea()) {
+            var.type = VARIANT_POSITION;
 
-			if (needTarget) {
-				var.pos = target->getPosition();
-			} else if (needDirection) {
-				var.pos = Spells::getCasterPosition(creature, creature->getDirection());
-				var.directionalArea = true;
-			} else {
-				var.pos = creature->getPosition();
-			}
-		} else {
-			var.type = VARIANT_NUMBER;
-			var.number = target->getID();
-		}
-		return executeCastSpell(creature, var);
-	}
+            if (needTarget) {
+                var.pos = target->getPosition();
+            } else if (needDirection) {
+                var.pos = Spells::getCasterPosition(creature, creature->getDirection());
+                var.directionalArea = true;
+            } else {
+                var.pos = creature->getPosition();
+            }
+        } else {
+            var.type = VARIANT_NUMBER;
+            var.number = target->getID();
+        }
+        return executeCastSpell(creature, var);
+    }
 
-	if (combat->hasArea()) {
-		if (needTarget) {
-			combat->doCombat(creature, target->getPosition());
-		} else {
-			return castSpell(creature);
-		}
-	} else {
-		combat->doCombat(creature, target);
-	}
-	return true;
+    if (combat->hasArea()) {
+        if (needTarget) {
+            combat->doCombat(creature, target->getPosition());
+        } else {
+            return castSpell(creature);
+        }
+    } else {
+        combat->doCombat(creature, target);
+    }
+    return true;
 }
 
 bool CombatSpell::executeCastSpell(Creature* creature, const LuaVariant& var)
 {
-	//onCastSpell(creature, var)
-	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - CombatSpell::executeCastSpell] Call stack overflow" << std::endl;
-		return false;
-	}
+    //onCastSpell(creature, var)
+    if (!scriptInterface->reserveScriptEnv()) {
+        std::cout << "[Error - CombatSpell::executeCastSpell] Call stack overflow" << std::endl;
+        return false;
+    }
 
-	ScriptEnvironment* env = scriptInterface->getScriptEnv();
-	env->setScriptId(scriptId, scriptInterface);
+    ScriptEnvironment* env = scriptInterface->getScriptEnv();
+    env->setScriptId(scriptId, scriptInterface);
 
-	lua_State* L = scriptInterface->getLuaState();
+    lua_State* L = scriptInterface->getLuaState();
 
-	scriptInterface->pushFunction(scriptId);
+    scriptInterface->pushFunction(scriptId);
 
-	LuaScriptInterface::pushUserdata<Creature>(L, creature);
-	LuaScriptInterface::setCreatureMetatable(L, -1, creature);
+    LuaScriptInterface::pushUserdata<Creature>(L, creature);
+    LuaScriptInterface::setCreatureMetatable(L, -1, creature);
 
-	LuaScriptInterface::pushVariant(L, var);
+    LuaScriptInterface::pushVariant(L, var);
 
-	return scriptInterface->callFunction(2);
+    return scriptInterface->callFunction(2);
 }
 
 bool Spell::configureSpell(const pugi::xml_node& node)
 {
-	pugi::xml_attribute nameAttribute = node.attribute("name");
-	if (!nameAttribute) {
-		std::cout << "[Error - Spell::configureSpell] Spell without name" << std::endl;
-		return false;
-	}
+    pugi::xml_attribute nameAttribute = node.attribute("name");
+    if (!nameAttribute) {
+        std::cout << "[Error - Spell::configureSpell] Spell without name" << std::endl;
+        return false;
+    }
 
-	name = nameAttribute.as_string();
+    name = nameAttribute.as_string();
 
-	static const char* reservedList[] = {
-		"melee",
-		"physical",
-		"poison",
-		"fire",
-		"energy",
-		"drown",
-		"lifedrain",
-		"manadrain",
-		"healing",
-		"speed",
-		"outfit",
-		"invisible",
-		"drunk",
-		"firefield",
-		"poisonfield",
-		"energyfield",
-		"firecondition",
-		"poisoncondition",
-		"energycondition",
-		"drowncondition",
-		"freezecondition",
-		"cursecondition",
-		"dazzlecondition"
-	};
+    static const char* reservedList[] = {
+        "melee",
+        "physical",
+        "poison",
+        "fire",
+        "energy",
+        "drown",
+        "lifedrain",
+        "manadrain",
+        "healing",
+        "speed",
+        "outfit",
+        "invisible",
+        "drunk",
+        "firefield",
+        "poisonfield",
+        "energyfield",
+        "firecondition",
+        "poisoncondition",
+        "energycondition",
+        "drowncondition",
+        "freezecondition",
+        "cursecondition",
+        "dazzlecondition"
+    };
 
-	for (const char* reserved : reservedList) {
-		if (strcasecmp(reserved, name.c_str()) == 0) {
-			std::cout << "[Error - Spell::configureSpell] Spell is using a reserved name: " << reserved << std::endl;
-			return false;
-		}
-	}
+    for (const char* reserved : reservedList) {
+        if (strcasecmp(reserved, name.c_str()) == 0) {
+            std::cout << "[Error - Spell::configureSpell] Spell is using a reserved name: " << reserved << std::endl;
+            return false;
+        }
+    }
 
-	pugi::xml_attribute attr;
-	if ((attr = node.attribute("spellid"))) {
-		spellId = pugi::cast<uint16_t>(attr.value());
-	}
+    pugi::xml_attribute attr;
+    if ((attr = node.attribute("spellid"))) {
+        spellId = pugi::cast<uint16_t>(attr.value());
+    }
 
-	if ((attr = node.attribute("group"))) {
-		std::string tmpStr = asLowerCaseString(attr.as_string());
-		if (!tfs_strcmp(tmpStr.c_str(), "none") || !tfs_strcmp(tmpStr.c_str(), "0")) {
-			group = SPELLGROUP_NONE;
-		} else if (!tfs_strcmp(tmpStr.c_str(), "attack") || !tfs_strcmp(tmpStr.c_str(), "1")) {
-			group = SPELLGROUP_ATTACK;
-		} else if (!tfs_strcmp(tmpStr.c_str(), "healing") || !tfs_strcmp(tmpStr.c_str(), "2")) {
-			group = SPELLGROUP_HEALING;
-		} else if (!tfs_strcmp(tmpStr.c_str(), "support") || !tfs_strcmp(tmpStr.c_str(), "3")) {
-			group = SPELLGROUP_SUPPORT;
-		} else if (!tfs_strcmp(tmpStr.c_str(), "special") || !tfs_strcmp(tmpStr.c_str(), "4")) {
-			group = SPELLGROUP_SPECIAL;
-		} else {
-			std::cout << "[Warning - Spell::configureSpell] Unknown group: " << attr.as_string() << std::endl;
-		}
-	}
+    if ((attr = node.attribute("group"))) {
+        std::string tmpStr = asLowerCaseString(attr.as_string());
+        if (!tfs_strcmp(tmpStr.c_str(), "none") || !tfs_strcmp(tmpStr.c_str(), "0")) {
+            group = SPELLGROUP_NONE;
+        } else if (!tfs_strcmp(tmpStr.c_str(), "attack") || !tfs_strcmp(tmpStr.c_str(), "1")) {
+            group = SPELLGROUP_ATTACK;
+        } else if (!tfs_strcmp(tmpStr.c_str(), "healing") || !tfs_strcmp(tmpStr.c_str(), "2")) {
+            group = SPELLGROUP_HEALING;
+        } else if (!tfs_strcmp(tmpStr.c_str(), "support") || !tfs_strcmp(tmpStr.c_str(), "3")) {
+            group = SPELLGROUP_SUPPORT;
+        } else if (!tfs_strcmp(tmpStr.c_str(), "special") || !tfs_strcmp(tmpStr.c_str(), "4")) {
+            group = SPELLGROUP_SPECIAL;
+        } else {
+            std::cout << "[Warning - Spell::configureSpell] Unknown group: " << attr.as_string() << std::endl;
+        }
+    }
 
-	if ((attr = node.attribute("groupcooldown"))) {
-		groupCooldown = pugi::cast<uint32_t>(attr.value());
-	}
+    if ((attr = node.attribute("groupcooldown"))) {
+        groupCooldown = pugi::cast<uint32_t>(attr.value());
+    }
 
-	if ((attr = node.attribute("secondarygroup"))) {
-		std::string tmpStr = asLowerCaseString(attr.as_string());
-		if (!tfs_strcmp(tmpStr.c_str(), "none") || !tfs_strcmp(tmpStr.c_str(), "0")) {
-			secondaryGroup = SPELLGROUP_NONE;
-		} else if (!tfs_strcmp(tmpStr.c_str(), "attack") || !tfs_strcmp(tmpStr.c_str(), "1")) {
-			secondaryGroup = SPELLGROUP_ATTACK;
-		} else if (!tfs_strcmp(tmpStr.c_str(), "healing") || !tfs_strcmp(tmpStr.c_str(), "2")) {
-			secondaryGroup = SPELLGROUP_HEALING;
-		} else if (!tfs_strcmp(tmpStr.c_str(), "support") || !tfs_strcmp(tmpStr.c_str(), "3")) {
-			secondaryGroup = SPELLGROUP_SUPPORT;
-		} else if (!tfs_strcmp(tmpStr.c_str(), "special") || !tfs_strcmp(tmpStr.c_str(), "4")) {
-			secondaryGroup = SPELLGROUP_SPECIAL;
-		} else {
-			std::cout << "[Warning - Spell::configureSpell] Unknown secondarygroup: " << attr.as_string() << std::endl;
-		}
-	}
+    if ((attr = node.attribute("secondarygroup"))) {
+        std::string tmpStr = asLowerCaseString(attr.as_string());
+        if (!tfs_strcmp(tmpStr.c_str(), "none") || !tfs_strcmp(tmpStr.c_str(), "0")) {
+            secondaryGroup = SPELLGROUP_NONE;
+        } else if (!tfs_strcmp(tmpStr.c_str(), "attack") || !tfs_strcmp(tmpStr.c_str(), "1")) {
+            secondaryGroup = SPELLGROUP_ATTACK;
+        } else if (!tfs_strcmp(tmpStr.c_str(), "healing") || !tfs_strcmp(tmpStr.c_str(), "2")) {
+            secondaryGroup = SPELLGROUP_HEALING;
+        } else if (!tfs_strcmp(tmpStr.c_str(), "support") || !tfs_strcmp(tmpStr.c_str(), "3")) {
+            secondaryGroup = SPELLGROUP_SUPPORT;
+        } else if (!tfs_strcmp(tmpStr.c_str(), "special") || !tfs_strcmp(tmpStr.c_str(), "4")) {
+            secondaryGroup = SPELLGROUP_SPECIAL;
+        } else {
+            std::cout << "[Warning - Spell::configureSpell] Unknown secondarygroup: " << attr.as_string() << std::endl;
+        }
+    }
 
-	if ((attr = node.attribute("secondarygroupcooldown"))) {
-		secondaryGroupCooldown = pugi::cast<uint32_t>(attr.value());
-	}
+    if ((attr = node.attribute("secondarygroupcooldown"))) {
+        secondaryGroupCooldown = pugi::cast<uint32_t>(attr.value());
+    }
 
-	if ((attr = node.attribute("level")) || (attr = node.attribute("lvl"))) {
-		level = pugi::cast<uint32_t>(attr.value());
-	}
+    if ((attr = node.attribute("level")) || (attr = node.attribute("lvl"))) {
+        level = pugi::cast<uint32_t>(attr.value());
+    }
 
-	if ((attr = node.attribute("magiclevel")) || (attr = node.attribute("maglv"))) {
-		magLevel = pugi::cast<uint32_t>(attr.value());
-	}
+    if ((attr = node.attribute("magiclevel")) || (attr = node.attribute("maglv"))) {
+        magLevel = pugi::cast<uint32_t>(attr.value());
+    }
 
-	if ((attr = node.attribute("mana"))) {
-		mana = pugi::cast<uint32_t>(attr.value());
-	}
+    if ((attr = node.attribute("mana"))) {
+        mana = pugi::cast<uint32_t>(attr.value());
+    }
 
-	if ((attr = node.attribute("manapercent"))) {
-		manaPercent = pugi::cast<uint32_t>(attr.value());
-	}
+    if ((attr = node.attribute("manapercent"))) {
+        manaPercent = pugi::cast<uint32_t>(attr.value());
+    }
 
-	if ((attr = node.attribute("soul"))) {
-		soul = pugi::cast<uint32_t>(attr.value());
-	}
+    if ((attr = node.attribute("soul"))) {
+        soul = pugi::cast<uint32_t>(attr.value());
+    }
 
-	if ((attr = node.attribute("range"))) {
-		range = pugi::cast<int32_t>(attr.value());
-	}
+    if ((attr = node.attribute("range"))) {
+        range = pugi::cast<int32_t>(attr.value());
+    }
 
-	if ((attr = node.attribute("cooldown")) || (attr = node.attribute("exhaustion"))) {
-		cooldown = pugi::cast<uint32_t>(attr.value());
-	}
+    if ((attr = node.attribute("cooldown")) || (attr = node.attribute("exhaustion"))) {
+        cooldown = pugi::cast<uint32_t>(attr.value());
+    }
 
-	if ((attr = node.attribute("premium")) || (attr = node.attribute("prem"))) {
-		premium = attr.as_bool();
-	}
+    if ((attr = node.attribute("premium")) || (attr = node.attribute("prem"))) {
+        premium = attr.as_bool();
+    }
 
-	if ((attr = node.attribute("enabled"))) {
-		enabled = attr.as_bool();
-	}
+    if ((attr = node.attribute("enabled"))) {
+        enabled = attr.as_bool();
+    }
 
-	if ((attr = node.attribute("needtarget"))) {
-		needTarget = attr.as_bool();
-	}
+    if ((attr = node.attribute("needtarget"))) {
+        needTarget = attr.as_bool();
+    }
 
-	if ((attr = node.attribute("needweapon"))) {
-		needWeapon = attr.as_bool();
-	}
+    if ((attr = node.attribute("needweapon"))) {
+        needWeapon = attr.as_bool();
+    }
 
-	if ((attr = node.attribute("selftarget"))) {
-		selfTarget = attr.as_bool();
-	}
+    if ((attr = node.attribute("selftarget"))) {
+        selfTarget = attr.as_bool();
+    }
 
-	if ((attr = node.attribute("needlearn"))) {
-		learnable = attr.as_bool();
-	}
+    if ((attr = node.attribute("needlearn"))) {
+        learnable = attr.as_bool();
+    }
 
-	if ((attr = node.attribute("blocking"))) {
-		blockingSolid = attr.as_bool();
-		blockingCreature = blockingSolid;
-	}
+    if ((attr = node.attribute("blocking"))) {
+        blockingSolid = attr.as_bool();
+        blockingCreature = blockingSolid;
+    }
 
-	if ((attr = node.attribute("blocktype"))) {
-		std::string tmpStrValue = asLowerCaseString(attr.as_string());
-		if (!tfs_strcmp(tmpStrValue.c_str(), "all")) {
-			blockingSolid = true;
-			blockingCreature = true;
-		} else if (!tfs_strcmp(tmpStrValue.c_str(), "solid")) {
-			blockingSolid = true;
-		} else if (!tfs_strcmp(tmpStrValue.c_str(), "creature")) {
-			blockingCreature = true;
-		} else {
-			std::cout << "[Warning - Spell::configureSpell] Blocktype \"" << attr.as_string() << "\" does not exist." << std::endl;
-		}
-	}
+    if ((attr = node.attribute("blocktype"))) {
+        std::string tmpStrValue = asLowerCaseString(attr.as_string());
+        if (!tfs_strcmp(tmpStrValue.c_str(), "all")) {
+            blockingSolid = true;
+            blockingCreature = true;
+        } else if (!tfs_strcmp(tmpStrValue.c_str(), "solid")) {
+            blockingSolid = true;
+        } else if (!tfs_strcmp(tmpStrValue.c_str(), "creature")) {
+            blockingCreature = true;
+        } else {
+            std::cout << "[Warning - Spell::configureSpell] Blocktype \"" << attr.as_string() << "\" does not exist." << std::endl;
+        }
+    }
 
-	if ((attr = node.attribute("aggressive"))) {
-		aggressive = booleanString(attr.as_string());
-	}
+    if ((attr = node.attribute("aggressive"))) {
+        aggressive = booleanString(attr.as_string());
+    }
 
-	if (group == SPELLGROUP_NONE) {
-		group = (aggressive ? SPELLGROUP_ATTACK : SPELLGROUP_HEALING);
-	}
+    if (group == SPELLGROUP_NONE) {
+        group = (aggressive ? SPELLGROUP_ATTACK : SPELLGROUP_HEALING);
+    }
 
-	for (auto vocationNode : node.children()) {
-		if (!(attr = vocationNode.attribute("name"))) {
-			continue;
-		}
+    for (auto vocationNode : node.children()) {
+        if (!(attr = vocationNode.attribute("name"))) {
+            continue;
+        }
 
-		int32_t vocationId = g_vocations.getVocationId(attr.as_string());
-		if (vocationId != -1) {
-			attr = vocationNode.attribute("showInDescription");
-			vocSpellMap[vocationId] = !attr || attr.as_bool();
-		} else {
-			std::cout << "[Warning - Spell::configureSpell] Wrong vocation name: " << attr.as_string() << std::endl;
-		}
-	}
-	return true;
+        int32_t vocationId = g_vocations.getVocationId(attr.as_string());
+        if (vocationId != -1) {
+            attr = vocationNode.attribute("showInDescription");
+            vocSpellMap[vocationId] = !attr || attr.as_bool();
+        } else {
+            std::cout << "[Warning - Spell::configureSpell] Wrong vocation name: " << attr.as_string() << std::endl;
+        }
+    }
+    return true;
 }
 
 bool Spell::playerSpellCheck(Player* player) const
 {
-	if (player->hasFlag(PlayerFlag_CannotUseSpells)) {
-		return false;
-	}
+    if (player->hasFlag(PlayerFlag_CannotUseSpells)) {
+        return false;
+    }
 
-	if (player->hasFlag(PlayerFlag_IgnoreSpellCheck)) {
-		return true;
-	}
+    if (player->hasFlag(PlayerFlag_IgnoreSpellCheck)) {
+        return true;
+    }
 
-	if (!enabled) {
-		return false;
-	}
+    if (!enabled) {
+        return false;
+    }
 
-	if (aggressive && (range < 1 || (range > 0 && !player->getAttackedCreature())) && player->getSkull() == SKULL_BLACK) {
-		player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
-		return false;
-	}
+    if (aggressive && (range < 1 || (range > 0 && !player->getAttackedCreature())) && player->getSkull() == SKULL_BLACK) {
+        player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
+        return false;
+    }
 
-	if (aggressive && player->hasCondition(CONDITION_PACIFIED)) {
-		player->sendCancelMessage(RETURNVALUE_YOUAREEXHAUSTED);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    if (aggressive && player->hasCondition(CONDITION_PACIFIED)) {
+        player->sendCancelMessage(RETURNVALUE_YOUAREEXHAUSTED);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	if (aggressive && !player->hasFlag(PlayerFlag_IgnoreProtectionZone) && player->getZone() == ZONE_PROTECTION) {
-		player->sendCancelMessage(RETURNVALUE_ACTIONNOTPERMITTEDINPROTECTIONZONE);
-		return false;
-	}
+    if (aggressive && !player->hasFlag(PlayerFlag_IgnoreProtectionZone) && player->getZone() == ZONE_PROTECTION) {
+        player->sendCancelMessage(RETURNVALUE_ACTIONNOTPERMITTEDINPROTECTIONZONE);
+        return false;
+    }
 
-	if (player->hasCondition(CONDITION_SPELLGROUPCOOLDOWN, group) || player->hasCondition(CONDITION_SPELLCOOLDOWN, spellId) || (secondaryGroup != SPELLGROUP_NONE && player->hasCondition(CONDITION_SPELLGROUPCOOLDOWN, secondaryGroup))) {
-		player->sendCancelMessage(RETURNVALUE_YOUAREEXHAUSTED);
+    if (player->hasCondition(CONDITION_SPELLGROUPCOOLDOWN, group) || player->hasCondition(CONDITION_SPELLCOOLDOWN, spellId) || (secondaryGroup != SPELLGROUP_NONE && player->hasCondition(CONDITION_SPELLGROUPCOOLDOWN, secondaryGroup))) {
+        player->sendCancelMessage(RETURNVALUE_YOUAREEXHAUSTED);
 
-		if (isInstant()) {
-			g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		}
+        if (isInstant()) {
+            g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	if (player->getLevel() < level) {
-		player->sendCancelMessage(RETURNVALUE_NOTENOUGHLEVEL);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    if (player->getLevel() < level) {
+        player->sendCancelMessage(RETURNVALUE_NOTENOUGHLEVEL);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	if (player->getMagicLevel() < magLevel) {
-		player->sendCancelMessage(RETURNVALUE_NOTENOUGHMAGICLEVEL);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    if (player->getMagicLevel() < magLevel) {
+        player->sendCancelMessage(RETURNVALUE_NOTENOUGHMAGICLEVEL);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	if (player->getMana() < getManaCost(player) && !player->hasFlag(PlayerFlag_HasInfiniteMana)) {
-		player->sendCancelMessage(RETURNVALUE_NOTENOUGHMANA);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    if (player->getMana() < getManaCost(player) && !player->hasFlag(PlayerFlag_HasInfiniteMana)) {
+        player->sendCancelMessage(RETURNVALUE_NOTENOUGHMANA);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	if (player->getSoul() < soul && !player->hasFlag(PlayerFlag_HasInfiniteSoul)) {
-		player->sendCancelMessage(RETURNVALUE_NOTENOUGHSOUL);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    if (player->getSoul() < soul && !player->hasFlag(PlayerFlag_HasInfiniteSoul)) {
+        player->sendCancelMessage(RETURNVALUE_NOTENOUGHSOUL);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	if (isInstant() && isLearnable()) {
-		if (!player->hasLearnedInstantSpell(getName())) {
-			player->sendCancelMessage(RETURNVALUE_YOUNEEDTOLEARNTHISSPELL);
-			g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-			return false;
-		}
-	} else if (!vocSpellMap.empty() && vocSpellMap.find(player->getVocationId()) == vocSpellMap.end()) {
-		player->sendCancelMessage(RETURNVALUE_YOURVOCATIONCANNOTUSETHISSPELL);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    if (isInstant() && isLearnable()) {
+        if (!player->hasLearnedInstantSpell(getName())) {
+            player->sendCancelMessage(RETURNVALUE_YOUNEEDTOLEARNTHISSPELL);
+            g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+            return false;
+        }
+    } else if (!vocSpellMap.empty() && vocSpellMap.find(player->getVocationId()) == vocSpellMap.end()) {
+        player->sendCancelMessage(RETURNVALUE_YOURVOCATIONCANNOTUSETHISSPELL);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	if (needWeapon) {
-		switch (player->getWeaponType()) {
-			case WEAPON_SWORD:
-			case WEAPON_CLUB:
-			case WEAPON_AXE:
-				break;
+    if (needWeapon) {
+        switch (player->getWeaponType()) {
+            case WEAPON_SWORD:
+            case WEAPON_CLUB:
+            case WEAPON_AXE:
+                break;
 
-			default: {
-				player->sendCancelMessage(RETURNVALUE_YOUNEEDAWEAPONTOUSETHISSPELL);
-				g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-				return false;
-			}
-		}
-	}
+            default: {
+                player->sendCancelMessage(RETURNVALUE_YOUNEEDAWEAPONTOUSETHISSPELL);
+                g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+                return false;
+            }
+        }
+    }
 
-	if (isPremium() && !player->isPremium()) {
-		player->sendCancelMessage(RETURNVALUE_YOUNEEDPREMIUMACCOUNT);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    if (isPremium() && !player->isPremium()) {
+        player->sendCancelMessage(RETURNVALUE_YOUNEEDPREMIUMACCOUNT);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 bool Spell::playerInstantSpellCheck(Player* player, const Position& toPos)
 {
-	if (toPos.x == 0xFFFF) {
-		return true;
-	}
+    if (toPos.x == 0xFFFF) {
+        return true;
+    }
 
-	const Position& playerPos = player->getPosition();
-	if (playerPos.z > toPos.z) {
-		player->sendCancelMessage(RETURNVALUE_FIRSTGOUPSTAIRS);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	} else if (playerPos.z < toPos.z) {
-		player->sendCancelMessage(RETURNVALUE_FIRSTGODOWNSTAIRS);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    const Position& playerPos = player->getPosition();
+    if (playerPos.z > toPos.z) {
+        player->sendCancelMessage(RETURNVALUE_FIRSTGOUPSTAIRS);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    } else if (playerPos.z < toPos.z) {
+        player->sendCancelMessage(RETURNVALUE_FIRSTGODOWNSTAIRS);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	Tile* tile = g_game.map.getTile(toPos);
-	if (!tile) {
-		tile = new StaticTile(toPos.x, toPos.y, toPos.z);
-		g_game.map.setTile(toPos, tile);
-	}
+    Tile* tile = g_game.map.getTile(toPos);
+    if (!tile) {
+        tile = new StaticTile(toPos.x, toPos.y, toPos.z);
+        g_game.map.setTile(toPos, tile);
+    }
 
-	if (aggressive && tile->hasFlag(TILESTATE_PROTECTIONZONE) && !player->hasFlag(PlayerFlag_IgnoreProtectionZone)) {
-		player->sendCancelMessage(RETURNVALUE_ACTIONNOTPERMITTEDINPROTECTIONZONE);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    if (aggressive && tile->hasFlag(TILESTATE_PROTECTIONZONE) && !player->hasFlag(PlayerFlag_IgnoreProtectionZone)) {
+        player->sendCancelMessage(RETURNVALUE_ACTIONNOTPERMITTEDINPROTECTIONZONE);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	if (blockingCreature && tile->getBottomVisibleCreature(player) != nullptr) {
-		player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    if (blockingCreature && tile->getBottomVisibleCreature(player) != nullptr) {
+        player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	if (blockingSolid && tile->hasFlag(TILESTATE_BLOCKSOLID)) {
-		player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    if (blockingSolid && tile->hasFlag(TILESTATE_BLOCKSOLID)) {
+        player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	return true;
+    return true;
 }
 
 bool Spell::playerRuneSpellCheck(Player* player, const Position& toPos)
 {
-	if (!playerSpellCheck(player)) {
-		return false;
-	}
+    if (!playerSpellCheck(player)) {
+        return false;
+    }
 
-	if (toPos.x == 0xFFFF) {
-		return true;
-	}
+    if (toPos.x == 0xFFFF) {
+        return true;
+    }
 
-	const Position& playerPos = player->getPosition();
-	if (playerPos.z > toPos.z) {
-		player->sendCancelMessage(RETURNVALUE_FIRSTGOUPSTAIRS);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	} else if (playerPos.z < toPos.z) {
-		player->sendCancelMessage(RETURNVALUE_FIRSTGODOWNSTAIRS);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    const Position& playerPos = player->getPosition();
+    if (playerPos.z > toPos.z) {
+        player->sendCancelMessage(RETURNVALUE_FIRSTGOUPSTAIRS);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    } else if (playerPos.z < toPos.z) {
+        player->sendCancelMessage(RETURNVALUE_FIRSTGODOWNSTAIRS);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	Tile* tile = g_game.map.getTile(toPos);
-	if (!tile) {
-		player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    Tile* tile = g_game.map.getTile(toPos);
+    if (!tile) {
+        player->sendCancelMessage(RETURNVALUE_NOTPOSSIBLE);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	if (range != -1 && !g_game.canThrowObjectTo(playerPos, toPos, SightLine_CheckSightLineAndFloor, range, range)) {
-		player->sendCancelMessage(RETURNVALUE_DESTINATIONOUTOFREACH);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    if (range != -1 && !g_game.canThrowObjectTo(playerPos, toPos, SightLine_CheckSightLineAndFloor, range, range)) {
+        player->sendCancelMessage(RETURNVALUE_DESTINATIONOUTOFREACH);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	ReturnValue ret = Combat::canDoCombat(player, tile, aggressive);
-	if (ret != RETURNVALUE_NOERROR) {
-		player->sendCancelMessage(ret);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    ReturnValue ret = Combat::canDoCombat(player, tile, aggressive);
+    if (ret != RETURNVALUE_NOERROR) {
+        player->sendCancelMessage(ret);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	const Creature* topVisibleCreature = tile->getBottomVisibleCreature(player);
-	if (blockingCreature && topVisibleCreature) {
-		player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	} else if (blockingSolid && tile->hasFlag(TILESTATE_BLOCKSOLID)) {
-		player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    const Creature* topVisibleCreature = tile->getBottomVisibleCreature(player);
+    if (blockingCreature && topVisibleCreature) {
+        player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    } else if (blockingSolid && tile->hasFlag(TILESTATE_BLOCKSOLID)) {
+        player->sendCancelMessage(RETURNVALUE_NOTENOUGHROOM);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	if (needTarget && !topVisibleCreature) {
-		player->sendCancelMessage(RETURNVALUE_CANONLYUSETHISRUNEONCREATURES);
-		g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-		return false;
-	}
+    if (needTarget && !topVisibleCreature) {
+        player->sendCancelMessage(RETURNVALUE_CANONLYUSETHISRUNEONCREATURES);
+        g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+        return false;
+    }
 
-	if (aggressive && needTarget && topVisibleCreature && player->hasSecureMode()) {
-		const Player* targetPlayer = topVisibleCreature->getPlayer();
-		if (targetPlayer && targetPlayer != player && player->getSkullClient(targetPlayer) == SKULL_NONE && !Combat::isInPvpZone(player, targetPlayer)) {
-			player->sendCancelMessage(RETURNVALUE_TURNSECUREMODETOATTACKUNMARKEDPLAYERS);
-			g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-			return false;
-		}
-	}
-	return true;
+    if (aggressive && needTarget && topVisibleCreature && player->hasSecureMode()) {
+        const Player* targetPlayer = topVisibleCreature->getPlayer();
+        if (targetPlayer && targetPlayer != player && player->getSkullClient(targetPlayer) == SKULL_NONE && !Combat::isInPvpZone(player, targetPlayer)) {
+            player->sendCancelMessage(RETURNVALUE_TURNSECUREMODETOATTACKUNMARKEDPLAYERS);
+            g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+            return false;
+        }
+    }
+    return true;
 }
 
 void Spell::postCastSpell(Player* player, bool finishedCast /*= true*/, bool payCost /*= true*/) const
 {
-	if (finishedCast) {
-		if (!player->hasFlag(PlayerFlag_HasNoExhaustion)) {
-			if (cooldown > 0) {
-				Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLCOOLDOWN, cooldown, 0, false, spellId);
-				player->addCondition(condition);
-			}
+    if (finishedCast) {
+        if (!player->hasFlag(PlayerFlag_HasNoExhaustion)) {
+            if (cooldown > 0) {
+                Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLCOOLDOWN, cooldown, 0, false, spellId);
+                player->addCondition(condition);
+            }
 
-			if (groupCooldown > 0) {
-				Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, groupCooldown, 0, false, group);
-				player->addCondition(condition);
-			}
+            if (groupCooldown > 0) {
+                Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, groupCooldown, 0, false, group);
+                player->addCondition(condition);
+            }
 
-			if (secondaryGroupCooldown > 0) {
-				Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, secondaryGroupCooldown, 0, false, secondaryGroup);
-				player->addCondition(condition);
-			}
-		}
+            if (secondaryGroupCooldown > 0) {
+                Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, secondaryGroupCooldown, 0, false, secondaryGroup);
+                player->addCondition(condition);
+            }
+        }
 
-		if (aggressive) {
-			player->addInFightTicks();
-		}
-	}
+        if (aggressive) {
+            player->addInFightTicks();
+        }
+    }
 
-	if (payCost) {
-		Spell::postCastSpell(player, getManaCost(player), getSoulCost());
-	}
+    if (payCost) {
+        Spell::postCastSpell(player, getManaCost(player), getSoulCost());
+    }
 }
 
 void Spell::postCastSpell(Player* player, uint32_t manaCost, uint32_t soulCost)
 {
-	if (manaCost > 0) {
-		player->addManaSpent(manaCost);
-		player->changeMana(-static_cast<int32_t>(manaCost));
-	}
+    if (manaCost > 0) {
+        player->addManaSpent(manaCost);
+        player->changeMana(-static_cast<int32_t>(manaCost));
+    }
 
-	if (!player->hasFlag(PlayerFlag_HasInfiniteSoul)) {
-		if (soulCost > 0) {
-			player->changeSoul(-static_cast<int32_t>(soulCost));
-		}
-	}
+    if (!player->hasFlag(PlayerFlag_HasInfiniteSoul)) {
+        if (soulCost > 0) {
+            player->changeSoul(-static_cast<int32_t>(soulCost));
+        }
+    }
 }
 
 uint32_t Spell::getManaCost(const Player* player) const
 {
-	uint32_t manaCost = mana;
-	if (manaPercent != 0) {
-		manaCost += (player->getMaxMana() * manaPercent) / 100;
-	}
+    uint32_t manaCost = mana;
+    if (manaPercent != 0) {
+        manaCost += (player->getMaxMana() * manaPercent) / 100;
+    }
 
-	return manaCost;
+    return manaCost;
 }
 
 std::string InstantSpell::getScriptEventName() const
 {
-	return "onCastSpell";
+    return "onCastSpell";
 }
 
 bool InstantSpell::configureEvent(const pugi::xml_node& node)
 {
-	if (!Spell::configureSpell(node)) {
-		return false;
-	}
+    if (!Spell::configureSpell(node)) {
+        return false;
+    }
 
-	if (!TalkAction::configureEvent(node)) {
-		return false;
-	}
+    if (!TalkAction::configureEvent(node)) {
+        return false;
+    }
 
-	spellType = SPELL_INSTANT;
+    spellType = SPELL_INSTANT;
 
-	pugi::xml_attribute attr;
-	if ((attr = node.attribute("params"))) {
-		hasParam = attr.as_bool();
-	}
+    pugi::xml_attribute attr;
+    if ((attr = node.attribute("params"))) {
+        hasParam = attr.as_bool();
+    }
 
-	if ((attr = node.attribute("playernameparam"))) {
-		hasPlayerNameParam = attr.as_bool();
-	}
+    if ((attr = node.attribute("playernameparam"))) {
+        hasPlayerNameParam = attr.as_bool();
+    }
 
-	if ((attr = node.attribute("direction"))) {
-		needDirection = attr.as_bool();
-	} else if ((attr = node.attribute("casterTargetOrDirection"))) {
-		casterTargetOrDirection = attr.as_bool();
-	}
+    if ((attr = node.attribute("direction"))) {
+        needDirection = attr.as_bool();
+    } else if ((attr = node.attribute("casterTargetOrDirection"))) {
+        casterTargetOrDirection = attr.as_bool();
+    }
 
-	if ((attr = node.attribute("blockwalls"))) {
-		checkLineOfSight = attr.as_bool();
-	}
-	return true;
+    if ((attr = node.attribute("blockwalls"))) {
+        checkLineOfSight = attr.as_bool();
+    }
+    return true;
 }
 
 bool InstantSpell::playerCastInstant(Player* player, std::string& param)
 {
-	if (!playerSpellCheck(player)) {
-		return false;
-	}
+    if (!playerSpellCheck(player)) {
+        return false;
+    }
 
-	LuaVariant var;
+    LuaVariant var;
 
-	if (selfTarget) {
-		var.type = VARIANT_NUMBER;
-		var.number = player->getID();
-	} else if (needTarget || casterTargetOrDirection) {
-		Creature* target = nullptr;
-		bool useDirection = false;
+    if (selfTarget) {
+        var.type = VARIANT_NUMBER;
+        var.number = player->getID();
+    } else if (needTarget || casterTargetOrDirection) {
+        Creature* target = nullptr;
+        bool useDirection = false;
 
-		if (hasParam) {
-			Player* playerTarget = nullptr;
-			ReturnValue ret = g_game.getPlayerByNameWildcard(param, playerTarget);
+        if (hasParam) {
+            Player* playerTarget = nullptr;
+            ReturnValue ret = g_game.getPlayerByNameWildcard(param, playerTarget);
 
-			if (playerTarget && playerTarget->isAccessPlayer() && !player->isAccessPlayer()) {
-				playerTarget = nullptr;
-			}
+            if (playerTarget && playerTarget->isAccessPlayer() && !player->isAccessPlayer()) {
+                playerTarget = nullptr;
+            }
 
-			target = playerTarget;
-			if (!target || target->getHealth() <= 0) {
-				if (!casterTargetOrDirection) {
-					if (cooldown > 0) {
-						Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLCOOLDOWN, cooldown, 0, false, spellId);
-						player->addCondition(condition);
-					}
+            target = playerTarget;
+            if (!target || target->getHealth() <= 0) {
+                if (!casterTargetOrDirection) {
+                    if (cooldown > 0) {
+                        Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLCOOLDOWN, cooldown, 0, false, spellId);
+                        player->addCondition(condition);
+                    }
 
-					if (groupCooldown > 0) {
-						Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, groupCooldown, 0, false, group);
-						player->addCondition(condition);
-					}
+                    if (groupCooldown > 0) {
+                        Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, groupCooldown, 0, false, group);
+                        player->addCondition(condition);
+                    }
 
-					if (secondaryGroupCooldown > 0) {
-						Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, secondaryGroupCooldown, 0, false, secondaryGroup);
-						player->addCondition(condition);
-					}
+                    if (secondaryGroupCooldown > 0) {
+                        Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, secondaryGroupCooldown, 0, false, secondaryGroup);
+                        player->addCondition(condition);
+                    }
 
-					player->sendCancelMessage(ret);
-					g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-					return false;
-				}
+                    player->sendCancelMessage(ret);
+                    g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+                    return false;
+                }
 
-				useDirection = true;
-			}
+                useDirection = true;
+            }
 
-			if (playerTarget) {
-				param = playerTarget->getName();
-			}
-		} else {
-			target = player->getAttackedCreature();
-			if (!target || target->getHealth() <= 0) {
-				if (!casterTargetOrDirection) {
-					player->sendCancelMessage(RETURNVALUE_YOUCANONLYUSEITONCREATURES);
-					g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-					return false;
-				}
+            if (playerTarget) {
+                param = playerTarget->getName();
+            }
+        } else {
+            target = player->getAttackedCreature();
+            if (!target || target->getHealth() <= 0) {
+                if (!casterTargetOrDirection) {
+                    player->sendCancelMessage(RETURNVALUE_YOUCANONLYUSEITONCREATURES);
+                    g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+                    return false;
+                }
 
-				useDirection = true;
-			}
-		}
+                useDirection = true;
+            }
+        }
 
-		if (!useDirection) {
-			if (!canThrowSpell(player, target)) {
-				player->sendCancelMessage(RETURNVALUE_CREATUREISNOTREACHABLE);
-				g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-				return false;
-			}
+        if (!useDirection) {
+            if (!canThrowSpell(player, target)) {
+                player->sendCancelMessage(RETURNVALUE_CREATUREISNOTREACHABLE);
+                g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+                return false;
+            }
 
-			var.type = VARIANT_NUMBER;
-			var.number = target->getID();
-		} else {
-			var.type = VARIANT_POSITION;
-			var.pos = Spells::getCasterPosition(player, player->getDirection());
-			var.directionalArea = true;
+            var.type = VARIANT_NUMBER;
+            var.number = target->getID();
+        } else {
+            var.type = VARIANT_POSITION;
+            var.pos = Spells::getCasterPosition(player, player->getDirection());
+            var.directionalArea = true;
 
-			if (!playerInstantSpellCheck(player, var.pos)) {
-				return false;
-			}
-		}
-	} else if (hasParam) {
-		var.type = VARIANT_STRING;
+            if (!playerInstantSpellCheck(player, var.pos)) {
+                return false;
+            }
+        }
+    } else if (hasParam) {
+        var.type = VARIANT_STRING;
 
-		if (getHasPlayerNameParam()) {
-			Player* playerTarget = nullptr;
-			ReturnValue ret = g_game.getPlayerByNameWildcard(param, playerTarget);
+        if (getHasPlayerNameParam()) {
+            Player* playerTarget = nullptr;
+            ReturnValue ret = g_game.getPlayerByNameWildcard(param, playerTarget);
 
-			if (ret != RETURNVALUE_NOERROR) {
-				if (cooldown > 0) {
-					Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLCOOLDOWN, cooldown, 0, false, spellId);
-					player->addCondition(condition);
-				}
+            if (ret != RETURNVALUE_NOERROR) {
+                if (cooldown > 0) {
+                    Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLCOOLDOWN, cooldown, 0, false, spellId);
+                    player->addCondition(condition);
+                }
 
-				if (groupCooldown > 0) {
-					Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, groupCooldown, 0, false, group);
-					player->addCondition(condition);
-				}
+                if (groupCooldown > 0) {
+                    Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, groupCooldown, 0, false, group);
+                    player->addCondition(condition);
+                }
 
-				if (secondaryGroupCooldown > 0) {
-					Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, secondaryGroupCooldown, 0, false, secondaryGroup);
-					player->addCondition(condition);
-				}
+                if (secondaryGroupCooldown > 0) {
+                    Condition* condition = Condition::createCondition(CONDITIONID_DEFAULT, CONDITION_SPELLGROUPCOOLDOWN, secondaryGroupCooldown, 0, false, secondaryGroup);
+                    player->addCondition(condition);
+                }
 
-				player->sendCancelMessage(ret);
-				g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
-				return false;
-			}
+                player->sendCancelMessage(ret);
+                g_game.addMagicEffect(player->getPosition(), CONST_ME_POFF);
+                return false;
+            }
 
-			if (playerTarget && (!playerTarget->isAccessPlayer() || player->isAccessPlayer())) {
-				param = playerTarget->getName();
-			}
-		}
+            if (playerTarget && (!playerTarget->isAccessPlayer() || player->isAccessPlayer())) {
+                param = playerTarget->getName();
+            }
+        }
 
-		var.text = param;
-	} else {
-		var.type = VARIANT_POSITION;
+        var.text = param;
+    } else {
+        var.type = VARIANT_POSITION;
 
-		if (needDirection) {
-			var.pos = Spells::getCasterPosition(player, player->getDirection());
-			var.directionalArea = true;
-		} else {
-			var.pos = player->getPosition();
-		}
+        if (needDirection) {
+            var.pos = Spells::getCasterPosition(player, player->getDirection());
+            var.directionalArea = true;
+        } else {
+            var.pos = player->getPosition();
+        }
 
-		if (!playerInstantSpellCheck(player, var.pos)) {
-			return false;
-		}
-	}
+        if (!playerInstantSpellCheck(player, var.pos)) {
+            return false;
+        }
+    }
 
-	bool result = internalCastSpell(player, var);
-	if (result) {
-		postCastSpell(player);
-	}
+    bool result = internalCastSpell(player, var);
+    if (result) {
+        postCastSpell(player);
+    }
 
-	return result;
+    return result;
 }
 
 bool InstantSpell::canThrowSpell(const Creature* creature, const Creature* target) const
 {
-	const Position& fromPos = creature->getPosition();
-	const Position& toPos = target->getPosition();
-	if (fromPos.z != toPos.z ||
-	        (range == -1 && !g_game.canThrowObjectTo(fromPos, toPos, checkLineOfSight ? SightLine_CheckSightLineAndFloor : SightLine_NoCheck)) ||
-	        (range != -1 && !g_game.canThrowObjectTo(fromPos, toPos, checkLineOfSight ? SightLine_CheckSightLineAndFloor : SightLine_NoCheck, range, range))) {
-		return false;
-	}
-	return true;
+    const Position& fromPos = creature->getPosition();
+    const Position& toPos = target->getPosition();
+    if (fromPos.z != toPos.z ||
+            (range == -1 && !g_game.canThrowObjectTo(fromPos, toPos, checkLineOfSight ? SightLine_CheckSightLineAndFloor : SightLine_NoCheck)) ||
+            (range != -1 && !g_game.canThrowObjectTo(fromPos, toPos, checkLineOfSight ? SightLine_CheckSightLineAndFloor : SightLine_NoCheck, range, range))) {
+        return false;
+    }
+    return true;
 }
 
 bool InstantSpell::castSpell(Creature* creature)
 {
-	LuaVariant var;
+    LuaVariant var;
 
-	if (casterTargetOrDirection) {
-		Creature* target = creature->getAttackedCreature();
-		if (target && target->getHealth() > 0) {
-			if (!canThrowSpell(creature, target)) {
-				return false;
-			}
+    if (casterTargetOrDirection) {
+        Creature* target = creature->getAttackedCreature();
+        if (target && target->getHealth() > 0) {
+            if (!canThrowSpell(creature, target)) {
+                return false;
+            }
 
-			var.type = VARIANT_NUMBER;
-			var.number = target->getID();
-			return internalCastSpell(creature, var);
-		}
+            var.type = VARIANT_NUMBER;
+            var.number = target->getID();
+            return internalCastSpell(creature, var);
+        }
 
-		return false;
-	} else if (needDirection) {
-		var.type = VARIANT_POSITION;
-		var.pos = Spells::getCasterPosition(creature, creature->getDirection());
-		var.directionalArea = true;
-	} else {
-		var.type = VARIANT_POSITION;
-		var.pos = creature->getPosition();
-	}
+        return false;
+    } else if (needDirection) {
+        var.type = VARIANT_POSITION;
+        var.pos = Spells::getCasterPosition(creature, creature->getDirection());
+        var.directionalArea = true;
+    } else {
+        var.type = VARIANT_POSITION;
+        var.pos = creature->getPosition();
+    }
 
-	return internalCastSpell(creature, var);
+    return internalCastSpell(creature, var);
 }
 
 bool InstantSpell::castSpell(Creature* creature, Creature* target)
 {
-	if (needTarget) {
-		LuaVariant var;
-		var.type = VARIANT_NUMBER;
-		var.number = target->getID();
-		return internalCastSpell(creature, var);
-	} else {
-		return castSpell(creature);
-	}
+    if (needTarget) {
+        LuaVariant var;
+        var.type = VARIANT_NUMBER;
+        var.number = target->getID();
+        return internalCastSpell(creature, var);
+    } else {
+        return castSpell(creature);
+    }
 }
 
 bool InstantSpell::internalCastSpell(Creature* creature, const LuaVariant& var)
 {
-	return executeCastSpell(creature, var);
+    return executeCastSpell(creature, var);
 }
 
 bool InstantSpell::executeCastSpell(Creature* creature, const LuaVariant& var)
 {
-	//onCastSpell(creature, var)
-	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - InstantSpell::executeCastSpell] Call stack overflow" << std::endl;
-		return false;
-	}
+    //onCastSpell(creature, var)
+    if (!scriptInterface->reserveScriptEnv()) {
+        std::cout << "[Error - InstantSpell::executeCastSpell] Call stack overflow" << std::endl;
+        return false;
+    }
 
-	ScriptEnvironment* env = scriptInterface->getScriptEnv();
-	env->setScriptId(scriptId, scriptInterface);
+    ScriptEnvironment* env = scriptInterface->getScriptEnv();
+    env->setScriptId(scriptId, scriptInterface);
 
-	lua_State* L = scriptInterface->getLuaState();
+    lua_State* L = scriptInterface->getLuaState();
 
-	scriptInterface->pushFunction(scriptId);
+    scriptInterface->pushFunction(scriptId);
 
-	LuaScriptInterface::pushUserdata<Creature>(L, creature);
-	LuaScriptInterface::setCreatureMetatable(L, -1, creature);
+    LuaScriptInterface::pushUserdata<Creature>(L, creature);
+    LuaScriptInterface::setCreatureMetatable(L, -1, creature);
 
-	LuaScriptInterface::pushVariant(L, var);
+    LuaScriptInterface::pushVariant(L, var);
 
-	return scriptInterface->callFunction(2);
+    return scriptInterface->callFunction(2);
 }
 
 bool InstantSpell::canCast(const Player* player) const
 {
-	if (player->hasFlag(PlayerFlag_CannotUseSpells)) {
-		return false;
-	}
+    if (player->hasFlag(PlayerFlag_CannotUseSpells)) {
+        return false;
+    }
 
-	if (player->hasFlag(PlayerFlag_IgnoreSpellCheck)) {
-		return true;
-	}
+    if (player->hasFlag(PlayerFlag_IgnoreSpellCheck)) {
+        return true;
+    }
 
-	if (isLearnable()) {
-		if (player->hasLearnedInstantSpell(getName())) {
-			return true;
-		}
-	} else {
-		if (vocSpellMap.empty() || vocSpellMap.find(player->getVocationId()) != vocSpellMap.end()) {
-			return true;
-		}
-	}
+    if (isLearnable()) {
+        if (player->hasLearnedInstantSpell(getName())) {
+            return true;
+        }
+    } else {
+        if (vocSpellMap.empty() || vocSpellMap.find(player->getVocationId()) != vocSpellMap.end()) {
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 std::string RuneSpell::getScriptEventName() const
 {
-	return "onCastSpell";
+    return "onCastSpell";
 }
 
 bool RuneSpell::configureEvent(const pugi::xml_node& node)
 {
-	if (!Spell::configureSpell(node)) {
-		return false;
-	}
+    if (!Spell::configureSpell(node)) {
+        return false;
+    }
 
-	if (!Action::configureEvent(node)) {
-		return false;
-	}
+    if (!Action::configureEvent(node)) {
+        return false;
+    }
 
-	spellType = SPELL_RUNE;
+    spellType = SPELL_RUNE;
 
-	pugi::xml_attribute attr;
-	if (!(attr = node.attribute("id"))) {
-		std::cout << "[Error - RuneSpell::configureSpell] Rune spell without id." << std::endl;
-		return false;
-	}
-	runeId = pugi::cast<uint16_t>(attr.value());
+    pugi::xml_attribute attr;
+    if (!(attr = node.attribute("id"))) {
+        std::cout << "[Error - RuneSpell::configureSpell] Rune spell without id." << std::endl;
+        return false;
+    }
+    runeId = pugi::cast<uint16_t>(attr.value());
 
-	if ((attr = node.attribute("charges"))) {
-		charges = pugi::cast<uint32_t>(attr.value());
-	} else {
-		charges = 0;
-	}
+    if ((attr = node.attribute("charges"))) {
+        charges = pugi::cast<uint32_t>(attr.value());
+    } else {
+        charges = 0;
+    }
 
-	hasCharges = (charges > 0);
-	if (magLevel != 0 || level != 0) {
-		//Change information in the ItemType to get accurate description
-		ItemType& iType = Item::items.getItemType(runeId);
-		iType.runeMagLevel = magLevel;
-		iType.runeLevel = level;
-		iType.charges = charges;
-	}
+    hasCharges = (charges > 0);
+    if (magLevel != 0 || level != 0) {
+        //Change information in the ItemType to get accurate description
+        ItemType& iType = Item::items.getItemType(runeId);
+        iType.runeMagLevel = magLevel;
+        iType.runeLevel = level;
+        iType.charges = charges;
+    }
 
-	return true;
+    return true;
 }
 
 ReturnValue RuneSpell::canExecuteAction(const Player* player, const Position& toPos)
 {
-	if (player->hasFlag(PlayerFlag_CannotUseSpells)) {
-		return RETURNVALUE_CANNOTUSETHISOBJECT;
-	}
+    if (player->hasFlag(PlayerFlag_CannotUseSpells)) {
+        return RETURNVALUE_CANNOTUSETHISOBJECT;
+    }
 
-	ReturnValue ret = Action::canExecuteAction(player, toPos);
-	if (ret != RETURNVALUE_NOERROR) {
-		return ret;
-	}
+    ReturnValue ret = Action::canExecuteAction(player, toPos);
+    if (ret != RETURNVALUE_NOERROR) {
+        return ret;
+    }
 
-	if (toPos.x == 0xFFFF) {
-		if (needTarget) {
-			return RETURNVALUE_CANONLYUSETHISRUNEONCREATURES;
-		} else if (!selfTarget) {
-			return RETURNVALUE_NOTENOUGHROOM;
-		}
-	}
+    if (toPos.x == 0xFFFF) {
+        if (needTarget) {
+            return RETURNVALUE_CANONLYUSETHISRUNEONCREATURES;
+        } else if (!selfTarget) {
+            return RETURNVALUE_NOTENOUGHROOM;
+        }
+    }
 
-	return RETURNVALUE_NOERROR;
+    return RETURNVALUE_NOERROR;
 }
 
 bool RuneSpell::executeUse(Player* player, Item* item, const Position&, Thing* target, const Position& toPosition, bool isHotkey)
 {
-	if (!playerRuneSpellCheck(player, toPosition)) {
-		return false;
-	}
+    if (!playerRuneSpellCheck(player, toPosition)) {
+        return false;
+    }
 
-	if (!scripted) {
-		return false;
-	}
+    if (!scripted) {
+        return false;
+    }
 
-	LuaVariant var;
+    LuaVariant var;
 
-	if (needTarget) {
-		var.type = VARIANT_NUMBER;
+    if (needTarget) {
+        var.type = VARIANT_NUMBER;
 
-		if (target == nullptr) {
-			Tile* toTile = g_game.map.getTile(toPosition);
-			if (toTile) {
-				const Creature* visibleCreature = toTile->getBottomVisibleCreature(player);
-				if (visibleCreature) {
-					var.number = visibleCreature->getID();
-				}
-			}
-		} else {
-			var.number = target->getCreature()->getID();
-		}
-	} else {
-		var.type = VARIANT_POSITION;
-		var.pos = toPosition;
-	}
+        if (target == nullptr) {
+            Tile* toTile = g_game.map.getTile(toPosition);
+            if (toTile) {
+                const Creature* visibleCreature = toTile->getBottomVisibleCreature(player);
+                if (visibleCreature) {
+                    var.number = visibleCreature->getID();
+                }
+            }
+        } else {
+            var.number = target->getCreature()->getID();
+        }
+    } else {
+        var.type = VARIANT_POSITION;
+        var.pos = toPosition;
+    }
 
-	if (!internalCastSpell(player, var, isHotkey)) {
-		return false;
-	}
+    if (!internalCastSpell(player, var, isHotkey)) {
+        return false;
+    }
 
-	postCastSpell(player);
-	if (hasCharges && item && g_config.getBoolean(ConfigManager::REMOVE_RUNE_CHARGES)) {
-		int32_t newCount = std::max<int32_t>(0, item->getItemCount() - 1);
-		g_game.transformItem(item, item->getID(), newCount);
-	}
-	return true;
+    postCastSpell(player);
+    if (hasCharges && item && g_config.getBoolean(ConfigManager::REMOVE_RUNE_CHARGES)) {
+        int32_t newCount = std::max<int32_t>(0, item->getItemCount() - 1);
+        g_game.transformItem(item, item->getID(), newCount);
+    }
+    return true;
 }
 
 bool RuneSpell::castSpell(Creature* creature)
 {
-	LuaVariant var;
-	var.type = VARIANT_NUMBER;
-	var.number = creature->getID();
-	return internalCastSpell(creature, var, false);
+    LuaVariant var;
+    var.type = VARIANT_NUMBER;
+    var.number = creature->getID();
+    return internalCastSpell(creature, var, false);
 }
 
 bool RuneSpell::castSpell(Creature* creature, Creature* target)
 {
-	LuaVariant var;
-	var.type = VARIANT_NUMBER;
-	var.number = target->getID();
-	return internalCastSpell(creature, var, false);
+    LuaVariant var;
+    var.type = VARIANT_NUMBER;
+    var.number = target->getID();
+    return internalCastSpell(creature, var, false);
 }
 
 bool RuneSpell::internalCastSpell(Creature* creature, const LuaVariant& var, bool isHotkey)
 {
-	bool result;
-	if (scripted) {
-		result = executeCastSpell(creature, var, isHotkey);
-	} else {
-		result = false;
-	}
-	return result;
+    bool result;
+    if (scripted) {
+        result = executeCastSpell(creature, var, isHotkey);
+    } else {
+        result = false;
+    }
+    return result;
 }
 
 bool RuneSpell::executeCastSpell(Creature* creature, const LuaVariant& var, bool isHotkey)
 {
-	//onCastSpell(creature, var, isHotkey)
-	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - RuneSpell::executeCastSpell] Call stack overflow" << std::endl;
-		return false;
-	}
+    //onCastSpell(creature, var, isHotkey)
+    if (!scriptInterface->reserveScriptEnv()) {
+        std::cout << "[Error - RuneSpell::executeCastSpell] Call stack overflow" << std::endl;
+        return false;
+    }
 
-	ScriptEnvironment* env = scriptInterface->getScriptEnv();
-	env->setScriptId(scriptId, scriptInterface);
+    ScriptEnvironment* env = scriptInterface->getScriptEnv();
+    env->setScriptId(scriptId, scriptInterface);
 
-	lua_State* L = scriptInterface->getLuaState();
+    lua_State* L = scriptInterface->getLuaState();
 
-	scriptInterface->pushFunction(scriptId);
+    scriptInterface->pushFunction(scriptId);
 
-	LuaScriptInterface::pushUserdata<Creature>(L, creature);
-	LuaScriptInterface::setCreatureMetatable(L, -1, creature);
+    LuaScriptInterface::pushUserdata<Creature>(L, creature);
+    LuaScriptInterface::setCreatureMetatable(L, -1, creature);
 
-	LuaScriptInterface::pushVariant(L, var);
+    LuaScriptInterface::pushVariant(L, var);
 
-	LuaScriptInterface::pushBoolean(L, isHotkey);
+    LuaScriptInterface::pushBoolean(L, isHotkey);
 
-	return scriptInterface->callFunction(3);
+    return scriptInterface->callFunction(3);
 }

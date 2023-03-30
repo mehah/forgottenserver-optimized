@@ -46,7 +46,7 @@ using IntegerVector = std::vector<int32_t>;
 StringVector explodeString(const std::string& inString, const std::string& separator, int32_t limit = -1);
 IntegerVector vectorAtoi(const StringVector& stringVector);
 constexpr bool hasBitSet(uint32_t flag, uint32_t flags) {
-	return (flags & flag) != 0;
+    return (flags & flag) != 0;
 }
 
 std::mt19937& getRandomGenerator();
@@ -108,32 +108,32 @@ int tfs_strcmp(const char* s1, const char* s2);
 #endif
 
 static inline double fast_pow(double base, uint32_t exp) {
-	// Exponentiation by squaring algorithm - https://en.wikipedia.org/wiki/Exponentiation_by_squaring
-	double result = 1.0;
-	while (exp) {
-		if (exp & 1) {
-			result *= base;
-		}
-		exp >>= 1;
-		base *= base;
-	}
-	return result;
+    // Exponentiation by squaring algorithm - https://en.wikipedia.org/wiki/Exponentiation_by_squaring
+    double result = 1.0;
+    while (exp) {
+        if (exp & 1) {
+            result *= base;
+        }
+        exp >>= 1;
+        base *= base;
+    }
+    return result;
 }
 
 static inline Cipbia_Elementals_t getCipbiaElement(CombatType_t combatType) {
-	switch (combatType) {
-		case COMBAT_PHYSICALDAMAGE: return CIPBIA_ELEMENTAL_PHYSICAL;
-		case COMBAT_ENERGYDAMAGE: return CIPBIA_ELEMENTAL_ENERGY;
-		case COMBAT_EARTHDAMAGE: return CIPBIA_ELEMENTAL_EARTH;
-		case COMBAT_FIREDAMAGE: return CIPBIA_ELEMENTAL_FIRE;
-		case COMBAT_LIFEDRAIN: return CIPBIA_ELEMENTAL_LIFEDRAIN;
-		case COMBAT_HEALING: return CIPBIA_ELEMENTAL_HEALING;
-		case COMBAT_DROWNDAMAGE: return CIPBIA_ELEMENTAL_DROWN;
-		case COMBAT_ICEDAMAGE: return CIPBIA_ELEMENTAL_ICE;
-		case COMBAT_HOLYDAMAGE: return CIPBIA_ELEMENTAL_HOLY;
-		case COMBAT_DEATHDAMAGE: return CIPBIA_ELEMENTAL_DEATH;
-		default: return CIPBIA_ELEMENTAL_UNDEFINED;
-	}
+    switch (combatType) {
+        case COMBAT_PHYSICALDAMAGE: return CIPBIA_ELEMENTAL_PHYSICAL;
+        case COMBAT_ENERGYDAMAGE: return CIPBIA_ELEMENTAL_ENERGY;
+        case COMBAT_EARTHDAMAGE: return CIPBIA_ELEMENTAL_EARTH;
+        case COMBAT_FIREDAMAGE: return CIPBIA_ELEMENTAL_FIRE;
+        case COMBAT_LIFEDRAIN: return CIPBIA_ELEMENTAL_LIFEDRAIN;
+        case COMBAT_HEALING: return CIPBIA_ELEMENTAL_HEALING;
+        case COMBAT_DROWNDAMAGE: return CIPBIA_ELEMENTAL_DROWN;
+        case COMBAT_ICEDAMAGE: return CIPBIA_ELEMENTAL_ICE;
+        case COMBAT_HOLYDAMAGE: return CIPBIA_ELEMENTAL_HOLY;
+        case COMBAT_DEATHDAMAGE: return CIPBIA_ELEMENTAL_DEATH;
+        default: return CIPBIA_ELEMENTAL_UNDEFINED;
+    }
 }
 
 #endif

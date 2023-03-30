@@ -23,56 +23,56 @@
 #include "depotlocker.h"
 
 DepotLocker::DepotLocker(uint16_t type) :
-	#if GAME_FEATURE_STASH > 0
-	Container(type, 4), depotId(0) {}
-	#elif GAME_FEATURE_MARKET > 0
-	Container(type, 3), depotId(0) {}
-	#else
-	Container(type, 30), depotId(0) {}
-	#endif
+#if GAME_FEATURE_STASH > 0
+    Container(type, 4), depotId(0) {}
+#elif GAME_FEATURE_MARKET > 0
+    Container(type, 3), depotId(0) {}
+#else
+    Container(type, 30), depotId(0) {}
+#endif
 
 Attr_ReadValue DepotLocker::readAttr(AttrTypes_t attr, PropStream& propStream)
 {
-	if (attr == ATTR_DEPOT_ID) {
-		if (!propStream.read<uint16_t>(depotId)) {
-			return ATTR_READ_ERROR;
-		}
-		return ATTR_READ_CONTINUE;
-	}
-	return Item::readAttr(attr, propStream);
+    if (attr == ATTR_DEPOT_ID) {
+        if (!propStream.read<uint16_t>(depotId)) {
+            return ATTR_READ_ERROR;
+        }
+        return ATTR_READ_CONTINUE;
+    }
+    return Item::readAttr(attr, propStream);
 }
 
 #if GAME_FEATURE_MARKET > 0
 ReturnValue DepotLocker::queryAdd(int32_t, const Thing&, uint32_t, uint32_t, Creature*) const
 {
-	return RETURNVALUE_NOTENOUGHROOM;
+    return RETURNVALUE_NOTENOUGHROOM;
 }
 #else
 ReturnValue DepotLocker::queryAdd(int32_t index, const Thing& thing, uint32_t count, uint32_t flags, Creature* actor) const
 {
-	return Container::queryAdd(index, thing, count, flags, actor);
+    return Container::queryAdd(index, thing, count, flags, actor);
 }
 #endif
 
 void DepotLocker::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t index, cylinderlink_t)
 {
-	if (parent != nullptr) {
-		parent->postAddNotification(thing, oldParent, index, LINK_PARENT);
-	}
+    if (parent != nullptr) {
+        parent->postAddNotification(thing, oldParent, index, LINK_PARENT);
+    }
 }
 
 void DepotLocker::postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t)
 {
-	if (parent != nullptr) {
-		parent->postRemoveNotification(thing, newParent, index, LINK_PARENT);
-	}
+    if (parent != nullptr) {
+        parent->postRemoveNotification(thing, newParent, index, LINK_PARENT);
+    }
 }
 
 void DepotLocker::removeInbox(Inbox* inbox)
 {
-	auto cit = std::find(itemlist.begin(), itemlist.end(), inbox);
-	if (cit == itemlist.end()) {
-		return;
-	}
-	itemlist.erase(cit);
+    auto cit = std::find(itemlist.begin(), itemlist.end(), inbox);
+    if (cit == itemlist.end()) {
+        return;
+    }
+    itemlist.erase(cit);
 }

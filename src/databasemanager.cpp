@@ -28,139 +28,139 @@ extern ConfigManager g_config;
 
 bool DatabaseManager::optimizeTables()
 {
-	std::stringExtended query(256);
+    std::stringExtended query(256);
 
-	query << "SELECT `TABLE_NAME` FROM `information_schema`.`TABLES` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(g_config.getString(ConfigManager::MYSQL_DB)) << " AND `DATA_FREE` > 0";
-	DBResult_ptr result = g_database.storeQuery(query);
-	if (!result) {
-		return false;
-	}
+    query << "SELECT `TABLE_NAME` FROM `information_schema`.`TABLES` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(g_config.getString(ConfigManager::MYSQL_DB)) << " AND `DATA_FREE` > 0";
+    DBResult_ptr result = g_database.storeQuery(query);
+    if (!result) {
+        return false;
+    }
 
-	do {
-		std::string tableName = result->getString("TABLE_NAME");
-		std::cout << "> Optimizing table " << tableName << "..." << std::flush;
+    do {
+        std::string tableName = result->getString("TABLE_NAME");
+        std::cout << "> Optimizing table " << tableName << "..." << std::flush;
 
-		query.clear();
-		query << "OPTIMIZE TABLE `" << tableName << '`';
+        query.clear();
+        query << "OPTIMIZE TABLE `" << tableName << '`';
 
-		if (g_database.executeQuery(query)) {
-			std::cout << " [success]" << std::endl;
-		} else {
-			std::cout << " [failed]" << std::endl;
-		}
-	} while (result->next());
-	return true;
+        if (g_database.executeQuery(query)) {
+            std::cout << " [success]" << std::endl;
+        } else {
+            std::cout << " [failed]" << std::endl;
+        }
+    } while (result->next());
+    return true;
 }
 
 bool DatabaseManager::tableExists(const std::string& tableName)
 {
-	std::stringExtended query(256);
-	query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(g_config.getString(ConfigManager::MYSQL_DB)) << " AND `TABLE_NAME` = " << g_database.escapeString(tableName) << " LIMIT 1";
-	return g_database.storeQuery(query).get() != nullptr;
+    std::stringExtended query(256);
+    query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(g_config.getString(ConfigManager::MYSQL_DB)) << " AND `TABLE_NAME` = " << g_database.escapeString(tableName) << " LIMIT 1";
+    return g_database.storeQuery(query).get() != nullptr;
 }
 
 bool DatabaseManager::isDatabaseSetup()
 {
-	std::stringExtended query(256);
-	query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(g_config.getString(ConfigManager::MYSQL_DB));
-	return g_database.storeQuery(query).get() != nullptr;
+    std::stringExtended query(256);
+    query << "SELECT `TABLE_NAME` FROM `information_schema`.`tables` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(g_config.getString(ConfigManager::MYSQL_DB));
+    return g_database.storeQuery(query).get() != nullptr;
 }
 
 int32_t DatabaseManager::getDatabaseVersion()
 {
-	if (!tableExists("server_config")) {
-		g_database.executeQuery("CREATE TABLE `server_config` (`config` VARCHAR(50) NOT NULL, `value` VARCHAR(256) NOT NULL DEFAULT '', UNIQUE(`config`)) ENGINE = InnoDB");
-		g_database.executeQuery("INSERT INTO `server_config` VALUES ('db_version', 0)");
-		return 0;
-	}
+    if (!tableExists("server_config")) {
+        g_database.executeQuery("CREATE TABLE `server_config` (`config` VARCHAR(50) NOT NULL, `value` VARCHAR(256) NOT NULL DEFAULT '', UNIQUE(`config`)) ENGINE = InnoDB");
+        g_database.executeQuery("INSERT INTO `server_config` VALUES ('db_version', 0)");
+        return 0;
+    }
 
-	int32_t version = 0;
-	if (getDatabaseConfig("db_version", version)) {
-		return version;
-	}
-	return -1;
+    int32_t version = 0;
+    if (getDatabaseConfig("db_version", version)) {
+        return version;
+    }
+    return -1;
 }
 
 void DatabaseManager::updateDatabase()
 {
-	lua_State* L = luaL_newstate();
-	if (!L) {
-		return;
-	}
+    lua_State* L = luaL_newstate();
+    if (!L) {
+        return;
+    }
 
-	luaL_openlibs(L);
+    luaL_openlibs(L);
 
 #ifndef LUAJIT_VERSION
-	//bit operations for Lua, based on bitlib project release 24
-	//bit.bnot, bit.band, bit.bor, bit.bxor, bit.lshift, bit.rshift
-	luaL_register(L, "bit", LuaScriptInterface::luaBitReg);
+    //bit operations for Lua, based on bitlib project release 24
+    //bit.bnot, bit.band, bit.bor, bit.bxor, bit.lshift, bit.rshift
+    luaL_register(L, "bit", LuaScriptInterface::luaBitReg);
 #endif
 
-	//db table
-	luaL_register(L, "db", LuaScriptInterface::luaDatabaseTable);
+    //db table
+    luaL_register(L, "db", LuaScriptInterface::luaDatabaseTable);
 
-	//result table
-	luaL_register(L, "result", LuaScriptInterface::luaResultTable);
+    //result table
+    luaL_register(L, "result", LuaScriptInterface::luaResultTable);
 
-	int32_t version = getDatabaseVersion();
-	do {
-		std::stringExtended ss(32);
-		ss << "data/migrations/" << version << ".lua";
-		if (luaL_dofile(L, static_cast<std::string&>(ss).c_str()) != 0) {
-			std::cout << "[Error - DatabaseManager::updateDatabase - Version: " << version << "] " << lua_tostring(L, -1) << std::endl;
-			break;
-		}
+    int32_t version = getDatabaseVersion();
+    do {
+        std::stringExtended ss(32);
+        ss << "data/migrations/" << version << ".lua";
+        if (luaL_dofile(L, static_cast<std::string&>(ss).c_str()) != 0) {
+            std::cout << "[Error - DatabaseManager::updateDatabase - Version: " << version << "] " << lua_tostring(L, -1) << std::endl;
+            break;
+        }
 
-		if (!LuaScriptInterface::reserveScriptEnv()) {
-			break;
-		}
+        if (!LuaScriptInterface::reserveScriptEnv()) {
+            break;
+        }
 
-		lua_getglobal(L, "onUpdateDatabase");
-		if (lua_pcall(L, 0, 1, 0) != 0) {
-			LuaScriptInterface::resetScriptEnv();
-			std::cout << "[Error - DatabaseManager::updateDatabase - Version: " << version << "] " << lua_tostring(L, -1) << std::endl;
-			break;
-		}
+        lua_getglobal(L, "onUpdateDatabase");
+        if (lua_pcall(L, 0, 1, 0) != 0) {
+            LuaScriptInterface::resetScriptEnv();
+            std::cout << "[Error - DatabaseManager::updateDatabase - Version: " << version << "] " << lua_tostring(L, -1) << std::endl;
+            break;
+        }
 
-		if (!LuaScriptInterface::getBoolean(L, -1, false)) {
-			LuaScriptInterface::resetScriptEnv();
-			break;
-		}
+        if (!LuaScriptInterface::getBoolean(L, -1, false)) {
+            LuaScriptInterface::resetScriptEnv();
+            break;
+        }
 
-		++version;
-		std::cout << "> Database has been updated to version " << version << '.' << std::endl;
-		registerDatabaseConfig("db_version", version);
+        ++version;
+        std::cout << "> Database has been updated to version " << version << '.' << std::endl;
+        registerDatabaseConfig("db_version", version);
 
-		LuaScriptInterface::resetScriptEnv();
-	} while (true);
-	lua_close(L);
+        LuaScriptInterface::resetScriptEnv();
+    } while (true);
+    lua_close(L);
 }
 
 bool DatabaseManager::getDatabaseConfig(const std::string& config, int32_t& value)
 {
-	std::stringExtended query(256);
-	query << "SELECT `value` FROM `server_config` WHERE `config` = " << g_database.escapeString(config);
+    std::stringExtended query(256);
+    query << "SELECT `value` FROM `server_config` WHERE `config` = " << g_database.escapeString(config);
 
-	DBResult_ptr result = g_database.storeQuery(query);
-	if (!result) {
-		return false;
-	}
+    DBResult_ptr result = g_database.storeQuery(query);
+    if (!result) {
+        return false;
+    }
 
-	value = result->getNumber<int32_t>("value");
-	return true;
+    value = result->getNumber<int32_t>("value");
+    return true;
 }
 
 void DatabaseManager::registerDatabaseConfig(const std::string& config, int32_t value)
 {
-	std::stringExtended query(256);
+    std::stringExtended query(256);
 
-	int32_t tmp;
+    int32_t tmp;
 
-	if (!getDatabaseConfig(config, tmp)) {
-		query << "INSERT INTO `server_config` VALUES (" << g_database.escapeString(config) << ", '" << value << "')";
-	} else {
-		query << "UPDATE `server_config` SET `value` = '" << value << "' WHERE `config` = " << g_database.escapeString(config);
-	}
+    if (!getDatabaseConfig(config, tmp)) {
+        query << "INSERT INTO `server_config` VALUES (" << g_database.escapeString(config) << ", '" << value << "')";
+    } else {
+        query << "UPDATE `server_config` SET `value` = '" << value << "' WHERE `config` = " << g_database.escapeString(config);
+    }
 
-	g_database.executeQuery(query);
+    g_database.executeQuery(query);
 }

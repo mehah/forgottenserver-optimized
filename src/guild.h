@@ -23,61 +23,62 @@
 
 class Player;
 
-struct GuildRank {
-	uint32_t id;
-	std::string name;
-	uint8_t level;
+struct GuildRank
+{
+    uint32_t id;
+    std::string name;
+    uint8_t level;
 
-	GuildRank(uint32_t id, std::string name, uint8_t level) :
-		id(id), name(std::move(name)), level(level) {}
+    GuildRank(uint32_t id, std::string name, uint8_t level) :
+        id(id), name(std::move(name)), level(level) {}
 };
 
 class Guild
 {
-	public:
-		Guild(uint32_t id, std::string name) : name(std::move(name)), id(id) {}
+public:
+    Guild(uint32_t id, std::string name) : name(std::move(name)), id(id) {}
 
-		void addMember(Player* player);
-		void removeMember(Player* player);
+    void addMember(Player* player);
+    void removeMember(Player* player);
 
-		uint32_t getId() const {
-			return id;
-		}
-		const std::string& getName() const {
-			return name;
-		}
-		const std::list<Player*>& getMembersOnline() const {
-			return membersOnline;
-		}
-		uint32_t getMemberCount() const {
-			return memberCount;
-		}
-		void setMemberCount(uint32_t count) {
-			memberCount = count;
-		}
+    uint32_t getId() const {
+        return id;
+    }
+    const std::string& getName() const {
+        return name;
+    }
+    const std::list<Player*>& getMembersOnline() const {
+        return membersOnline;
+    }
+    uint32_t getMemberCount() const {
+        return memberCount;
+    }
+    void setMemberCount(uint32_t count) {
+        memberCount = count;
+    }
 
-		const std::forward_list<GuildRank>& getRanks() const {
-			return ranks;
-		}
-		GuildRank* getRankById(uint32_t rankId);
-		const GuildRank* getRankByName(const std::string& name) const;
-		const GuildRank* getRankByLevel(uint8_t level) const;
-		void addRank(uint32_t rankId, const std::string& rankName, uint8_t level);
+    const std::forward_list<GuildRank>& getRanks() const {
+        return ranks;
+    }
+    GuildRank* getRankById(uint32_t rankId);
+    const GuildRank* getRankByName(const std::string& name) const;
+    const GuildRank* getRankByLevel(uint8_t level) const;
+    void addRank(uint32_t rankId, const std::string& rankName, uint8_t level);
 
-		const std::string& getMotd() const {
-			return motd;
-		}
-		void setMotd(std::string motd) {
-			this->motd = std::move(motd);
-		}
+    const std::string& getMotd() const {
+        return motd;
+    }
+    void setMotd(std::string motd) {
+        this->motd = std::move(motd);
+    }
 
-	private:
-		std::list<Player*> membersOnline;
-		std::forward_list<GuildRank> ranks;
-		std::string name;
-		std::string motd;
-		uint32_t id;
-		uint32_t memberCount = 0;
+private:
+    std::list<Player*> membersOnline;
+    std::forward_list<GuildRank> ranks;
+    std::string name;
+    std::string motd;
+    uint32_t id;
+    uint32_t memberCount = 0;
 };
 
 #endif

@@ -322,8 +322,8 @@
 #define GAME_FEATURE_PODIUM 1
 #endif
 
-//robinhood hash map is faster variant of hash map than std::unordered_map but it depends on std::unordered_map implementation
-//compared with visual studio stl library it is at least 2x faster
+ //robinhood hash map is faster variant of hash map than std::unordered_map but it depends on std::unordered_map implementation
+ //compared with visual studio stl library it is at least 2x faster
 #define GAME_FEATURE_ROBINHOOD_HASH_MAP 0
 
 //Up-to 1000x faster map cleaning but since it omits lua script checks you might want to disable it when you use some systems

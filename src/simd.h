@@ -20,7 +20,7 @@
 #ifndef FS_SIMD_H_804B7A003F8416E220BA4D3F75F7FED6
 #define FS_SIMD_H_804B7A003F8416E220BA4D3F75F7FED6
 
-//#define __DISABLE_VECTORIZATION__ 1
+ //#define __DISABLE_VECTORIZATION__ 1
 
 #if defined(__DISABLE_VECTORIZATION__)
 //You might want to disable vectorization on some compilers
@@ -69,9 +69,9 @@
 #include <intrin.h>
 __forceinline unsigned int _mm_ctz(unsigned int value)
 {
-	unsigned long i = 0;
-	_BitScanForward(&i, value);
-	return static_cast<unsigned int>(i);
+    unsigned long i = 0;
+    _BitScanForward(&i, value);
+    return static_cast<unsigned int>(i);
 }
 #else
 #define _mm_ctz __builtin_ctz

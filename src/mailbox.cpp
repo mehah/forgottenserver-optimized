@@ -28,168 +28,168 @@ extern Game g_game;
 
 ReturnValue Mailbox::queryAdd(int32_t, const Thing& thing, uint32_t, uint32_t, Creature*) const
 {
-	const Item* item = thing.getItem();
-	if (item && Mailbox::canSend(item)) {
-		return RETURNVALUE_NOERROR;
-	}
-	return RETURNVALUE_NOTPOSSIBLE;
+    const Item* item = thing.getItem();
+    if (item && Mailbox::canSend(item)) {
+        return RETURNVALUE_NOERROR;
+    }
+    return RETURNVALUE_NOTPOSSIBLE;
 }
 
 ReturnValue Mailbox::queryMaxCount(int32_t, const Thing&, uint32_t count, uint32_t& maxQueryCount, uint32_t) const
 {
-	maxQueryCount = std::max<uint32_t>(1, count);
-	return RETURNVALUE_NOERROR;
+    maxQueryCount = std::max<uint32_t>(1, count);
+    return RETURNVALUE_NOERROR;
 }
 
 ReturnValue Mailbox::queryRemove(const Thing&, uint32_t, uint32_t) const
 {
-	return RETURNVALUE_NOTPOSSIBLE;
+    return RETURNVALUE_NOTPOSSIBLE;
 }
 
 Cylinder* Mailbox::queryDestination(int32_t&, const Thing&, Item**, uint32_t&)
 {
-	return this;
+    return this;
 }
 
 void Mailbox::addThing(Thing* thing)
 {
-	return addThing(0, thing);
+    return addThing(0, thing);
 }
 
 void Mailbox::addThing(int32_t, Thing* thing)
 {
-	Item* item = thing->getItem();
-	if (item && Mailbox::canSend(item)) {
-		sendItem(item);
-	}
+    Item* item = thing->getItem();
+    if (item && Mailbox::canSend(item)) {
+        sendItem(item);
+    }
 }
 
 void Mailbox::updateThing(Thing*, uint16_t, uint32_t)
 {
-	//
+    //
 }
 
 void Mailbox::replaceThing(uint32_t, Thing*)
 {
-	//
+    //
 }
 
 void Mailbox::removeThing(Thing*, uint32_t)
 {
-	//
+    //
 }
 
 void Mailbox::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t index, cylinderlink_t)
 {
-	getParent()->postAddNotification(thing, oldParent, index, LINK_PARENT);
+    getParent()->postAddNotification(thing, oldParent, index, LINK_PARENT);
 }
 
 void Mailbox::postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t)
 {
-	getParent()->postRemoveNotification(thing, newParent, index, LINK_PARENT);
+    getParent()->postRemoveNotification(thing, newParent, index, LINK_PARENT);
 }
 
 bool Mailbox::sendItem(Item* item) const
 {
-	std::string receiver;
-	uint32_t depotId = 0;
-	if (!getReceiver(item, receiver, depotId)) {
-		return false;
-	}
+    std::string receiver;
+    uint32_t depotId = 0;
+    if (!getReceiver(item, receiver, depotId)) {
+        return false;
+    }
 
-	/**No need to continue if its still empty**/
-	#if GAME_FEATURE_MARKET > 0
-	if (receiver.empty() || receiver.size() > NETWORKMESSAGE_PLAYERNAME_MAXLENGTH) {
-		return false;
-	}
-	#else
-	if (receiver.empty() || receiver.size() > NETWORKMESSAGE_PLAYERNAME_MAXLENGTH || depotId == 0) {
-		return false;
-	}
-	#endif
+    /**No need to continue if its still empty**/
+#if GAME_FEATURE_MARKET > 0
+    if (receiver.empty() || receiver.size() > NETWORKMESSAGE_PLAYERNAME_MAXLENGTH) {
+        return false;
+    }
+#else
+    if (receiver.empty() || receiver.size() > NETWORKMESSAGE_PLAYERNAME_MAXLENGTH || depotId == 0) {
+        return false;
+    }
+#endif
 
-	Player* player = g_game.getPlayerByName(receiver);
-	if (player) {
-		#if GAME_FEATURE_MARKET > 0
-		if (g_game.internalMoveItem(item->getParent(), player->getInbox(), INDEX_WHEREEVER, item, item->getItemCount(), nullptr, FLAG_NOLIMIT) == RETURNVALUE_NOERROR) {
-			g_game.transformItem(item, item->getID() + 1);
-			player->onReceiveMail();
-			return true;
-		}
-		#else
-		DepotLocker* depotLocker = player->getDepotLocker(depotId);
-		player->setLastDepotId(static_cast<int16_t>(depotId));
-		if (depotLocker) {
-			if (g_game.internalMoveItem(item->getParent(), depotLocker, INDEX_WHEREEVER, item, item->getItemCount(), nullptr, FLAG_NOLIMIT) == RETURNVALUE_NOERROR) {
-				g_game.transformItem(item, item->getID() + 1);
-				player->onReceiveMail();
-				return true;
-			}
-		}
-		#endif
-	} else {
-		Player tmpPlayer(nullptr);
-		if (!IOLoginData::loadPlayerByName(&tmpPlayer, receiver)) {
-			return false;
-		}
+    Player* player = g_game.getPlayerByName(receiver);
+    if (player) {
+#if GAME_FEATURE_MARKET > 0
+        if (g_game.internalMoveItem(item->getParent(), player->getInbox(), INDEX_WHEREEVER, item, item->getItemCount(), nullptr, FLAG_NOLIMIT) == RETURNVALUE_NOERROR) {
+            g_game.transformItem(item, item->getID() + 1);
+            player->onReceiveMail();
+            return true;
+        }
+#else
+        DepotLocker* depotLocker = player->getDepotLocker(depotId);
+        player->setLastDepotId(static_cast<int16_t>(depotId));
+        if (depotLocker) {
+            if (g_game.internalMoveItem(item->getParent(), depotLocker, INDEX_WHEREEVER, item, item->getItemCount(), nullptr, FLAG_NOLIMIT) == RETURNVALUE_NOERROR) {
+                g_game.transformItem(item, item->getID() + 1);
+                player->onReceiveMail();
+                return true;
+            }
+        }
+#endif
+    } else {
+        Player tmpPlayer(nullptr);
+        if (!IOLoginData::loadPlayerByName(&tmpPlayer, receiver)) {
+            return false;
+        }
 
-		#if GAME_FEATURE_MARKET > 0
-		if (g_game.internalMoveItem(item->getParent(), tmpPlayer.getInbox(), INDEX_WHEREEVER, item, item->getItemCount(), nullptr, FLAG_NOLIMIT) == RETURNVALUE_NOERROR) {
-			g_game.transformItem(item, item->getID() + 1);
-			IOLoginData::savePlayer(&tmpPlayer);
-			return true;
-		}
-		#else
-		DepotLocker* depotLocker = tmpPlayer.getDepotLocker(depotId);
-		tmpPlayer.setLastDepotId(static_cast<int16_t>(depotId));
-		if (depotLocker) {
-			if (g_game.internalMoveItem(item->getParent(), depotLocker, INDEX_WHEREEVER, item, item->getItemCount(), nullptr, FLAG_NOLIMIT) == RETURNVALUE_NOERROR) {
-				g_game.transformItem(item, item->getID() + 1);
-				IOLoginData::savePlayer(&tmpPlayer);
-				return true;
-			}
-		}
-		#endif
-	}
-	return false;
+#if GAME_FEATURE_MARKET > 0
+        if (g_game.internalMoveItem(item->getParent(), tmpPlayer.getInbox(), INDEX_WHEREEVER, item, item->getItemCount(), nullptr, FLAG_NOLIMIT) == RETURNVALUE_NOERROR) {
+            g_game.transformItem(item, item->getID() + 1);
+            IOLoginData::savePlayer(&tmpPlayer);
+            return true;
+        }
+#else
+        DepotLocker* depotLocker = tmpPlayer.getDepotLocker(depotId);
+        tmpPlayer.setLastDepotId(static_cast<int16_t>(depotId));
+        if (depotLocker) {
+            if (g_game.internalMoveItem(item->getParent(), depotLocker, INDEX_WHEREEVER, item, item->getItemCount(), nullptr, FLAG_NOLIMIT) == RETURNVALUE_NOERROR) {
+                g_game.transformItem(item, item->getID() + 1);
+                IOLoginData::savePlayer(&tmpPlayer);
+                return true;
+            }
+        }
+#endif
+    }
+    return false;
 }
 
 bool Mailbox::getReceiver(Item* item, std::string& name, uint32_t& depotId) const
 {
-	const Container* container = item->getContainer();
-	if (container) {
-		for (Item* containerItem : container->getItemList()) {
-			if (containerItem->getID() == ITEM_LABEL && getReceiver(containerItem, name, depotId)) {
-				return true;
-			}
-		}
-		return false;
-	}
+    const Container* container = item->getContainer();
+    if (container) {
+        for (Item* containerItem : container->getItemList()) {
+            if (containerItem->getID() == ITEM_LABEL && getReceiver(containerItem, name, depotId)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-	const std::string& text = item->getText();
-	if (text.empty()) {
-		return false;
-	}
+    const std::string& text = item->getText();
+    if (text.empty()) {
+        return false;
+    }
 
-	name.reserve(text.length());
-	std::string townName; townName.reserve(text.length());
-	getMailDetails(text, name, townName);
-	trimString(name);
+    name.reserve(text.length());
+    std::string townName; townName.reserve(text.length());
+    getMailDetails(text, name, townName);
+    trimString(name);
 
-	#if GAME_FEATURE_MARKET > 0
-	(void)townName;
-	return true;
-	#else
-	Town* town = g_game.map.towns.getTown(townName);
-	if (town) {
-		depotId = town->getID();
-		return true;
-	}
-	return false;
-	#endif
+#if GAME_FEATURE_MARKET > 0
+    (void)townName;
+    return true;
+#else
+    Town* town = g_game.map.towns.getTown(townName);
+    if (town) {
+        depotId = town->getID();
+        return true;
+    }
+    return false;
+#endif
 }
 
 bool Mailbox::canSend(const Item* item)
 {
-	return item->getID() == ITEM_PARCEL || item->getID() == ITEM_LETTER;
+    return item->getID() == ITEM_PARCEL || item->getID() == ITEM_LETTER;
 }

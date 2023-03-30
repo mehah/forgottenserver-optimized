@@ -25,22 +25,22 @@
 
 class RSA
 {
-	public:
-		RSA();
-		~RSA();
+public:
+    RSA();
+    ~RSA();
 
-		// non-copyable
-		RSA(const RSA&) = delete;
-		RSA& operator=(const RSA&) = delete;
+    // non-copyable
+    RSA(const RSA&) = delete;
+    RSA& operator=(const RSA&) = delete;
 
-		void setKey(const char* pString, const char* qString, int base = 10);
-		void decrypt(char* msg) const;
+    void setKey(const char* pString, const char* qString, int base = 10);
+    void decrypt(char* msg) const;
 
-		std::string base64Decrypt(const std::string& input);
-		bool loadPEM(const std::string& filename);
+    std::string base64Decrypt(const std::string& input);
+    bool loadPEM(const std::string& filename);
 
-	private:
-		mpz_t n, d;
+private:
+    mpz_t n, d;
 };
 
 #endif

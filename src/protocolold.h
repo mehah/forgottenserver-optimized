@@ -27,25 +27,25 @@ class NetworkMessage;
 
 class ProtocolOld final : public Protocol
 {
-	public:
-		// static protocol information
-		enum {server_sends_first = false};
-		enum {protocol_identifier = 0x01};
-		#if GAME_FEATURE_ADLER32_CHECKSUM > 0
-		enum {use_checksum = false};
-		#else
-		enum {use_checksum = true};
-		#endif
-		static const char* protocol_name() {
-			return "old login protocol";
-		}
+public:
+    // static protocol information
+    enum { server_sends_first = false };
+    enum { protocol_identifier = 0x01 };
+#if GAME_FEATURE_ADLER32_CHECKSUM > 0
+    enum { use_checksum = false };
+#else
+    enum { use_checksum = true };
+#endif
+    static const char* protocol_name() {
+        return "old login protocol";
+    }
 
-		explicit ProtocolOld(Connection_ptr connection) : Protocol(connection) {}
+    explicit ProtocolOld(Connection_ptr connection) : Protocol(connection) {}
 
-		void onRecvFirstMessage(NetworkMessage& msg) override;
+    void onRecvFirstMessage(NetworkMessage& msg) override;
 
-	private:
-		void disconnectClient(const std::string& message, uint16_t version);
+private:
+    void disconnectClient(const std::string& message, uint16_t version);
 };
 
 #endif

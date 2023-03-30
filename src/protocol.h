@@ -27,93 +27,94 @@
 
 class Protocol : public std::enable_shared_from_this<Protocol>
 {
-	public:
-		explicit Protocol(Connection_ptr connection) : connection(connection) {}
-		virtual ~Protocol();
+public:
+    explicit Protocol(Connection_ptr connection) : connection(connection) {}
+    virtual ~Protocol();
 
-		// non-copyable
-		Protocol(const Protocol&) = delete;
-		Protocol& operator=(const Protocol&) = delete;
+    // non-copyable
+    Protocol(const Protocol&) = delete;
+    Protocol& operator=(const Protocol&) = delete;
 
-		enum ChecksumMethods_t : uint8_t {
-			CHECKSUM_METHOD_NONE,
-			CHECKSUM_METHOD_ADLER32,
-			CHECKSUM_METHOD_SEQUENCE
-		};
+    enum ChecksumMethods_t : uint8_t
+    {
+        CHECKSUM_METHOD_NONE,
+        CHECKSUM_METHOD_ADLER32,
+        CHECKSUM_METHOD_SEQUENCE
+    };
 
-		virtual void parsePacket(NetworkMessage&) {}
+    virtual void parsePacket(NetworkMessage&) {}
 
-		virtual void onSendMessage(const OutputMessage_ptr& msg);
-		bool onRecvMessage(NetworkMessage& msg);
-		virtual void onRecvFirstMessage(NetworkMessage& msg) = 0;
-		virtual void onConnect() {}
+    virtual void onSendMessage(const OutputMessage_ptr& msg);
+    bool onRecvMessage(NetworkMessage& msg);
+    virtual void onRecvFirstMessage(NetworkMessage& msg) = 0;
+    virtual void onConnect() {}
 
-		bool isConnectionExpired() const {
-			return connection.expired();
-		}
+    bool isConnectionExpired() const {
+        return connection.expired();
+    }
 
-		Connection_ptr getConnection() const {
-			return connection.lock();
-		}
+    Connection_ptr getConnection() const {
+        return connection.lock();
+    }
 
-		uint32_t getIP() const;
+    uint32_t getIP() const;
 
-		//Use this function for autosend messages only
-		OutputMessage_ptr getOutputBuffer(int32_t size);
+    //Use this function for autosend messages only
+    OutputMessage_ptr getOutputBuffer(int32_t size);
 
-		OutputMessage_ptr& getCurrentBuffer() {
-			return outputBuffer;
-		}
+    OutputMessage_ptr& getCurrentBuffer() {
+        return outputBuffer;
+    }
 
-		void send(OutputMessage_ptr msg) const {
-			if (auto connection = getConnection()) {
-				connection->send(msg);
-			}
-		}
+    void send(OutputMessage_ptr msg) const {
+        if (auto connection = getConnection()) {
+            connection->send(msg);
+        }
+    }
 
-	protected:
-		void disconnect() const {
-			if (auto connection = getConnection()) {
-				connection->close();
-			}
-		}
-		void enableXTEAEncryption() {
-			encryptionEnabled = true;
-		}
-		void setXTEAKey(const uint32_t* key) {
-			memcpy(this->key, key, sizeof(*key) * 4);
-		}
-		void setChecksumMethod(ChecksumMethods_t method) {
-			checksumMethod = method;
-		}
-		void enableCompression();
+protected:
+    void disconnect() const {
+        if (auto connection = getConnection()) {
+            connection->close();
+        }
+    }
+    void enableXTEAEncryption() {
+        encryptionEnabled = true;
+    }
+    void setXTEAKey(const uint32_t* key) {
+        memcpy(this->key, key, sizeof(*key) * 4);
+    }
+    void setChecksumMethod(ChecksumMethods_t method) {
+        checksumMethod = method;
+    }
+    void enableCompression();
 
-		static bool RSA_decrypt(NetworkMessage& msg);
+    static bool RSA_decrypt(NetworkMessage& msg);
 
-		void setRawMessages(bool value) {
-			rawMessages = value;
-		}
+    void setRawMessages(bool value) {
+        rawMessages = value;
+    }
 
-		virtual void release() {}
+    virtual void release() {}
 
-	private:
-		void XTEA_encrypt(OutputMessage& msg) const;
-		bool XTEA_decrypt(NetworkMessage& msg) const;
-		bool compression(OutputMessage& msg);
+private:
+    void XTEA_encrypt(OutputMessage& msg) const;
+    bool XTEA_decrypt(NetworkMessage& msg) const;
+    bool compression(OutputMessage& msg);
 
-		friend class Connection;
+    friend class Connection;
 
-		OutputMessage_ptr outputBuffer;
-		std::unique_ptr<z_stream> defStream;
+    OutputMessage_ptr outputBuffer;
+    std::unique_ptr<z_stream> defStream;
 
-		const ConnectionWeak_ptr connection;
-		uint32_t key[4] = {};
-		uint32_t serverSequenceNumber = 0;
-		uint32_t clientSequenceNumber = 0;
-		std::underlying_type<ChecksumMethods_t>::type checksumMethod = CHECKSUM_METHOD_NONE;
-		bool encryptionEnabled = false;
-		bool rawMessages = false;
-		bool compreesionEnabled = false;
+    const ConnectionWeak_ptr connection;
+    uint32_t key[4] = {};
+    uint32_t serverSequenceNumber = 0;
+    uint32_t clientSequenceNumber = 0;
+    std::underlying_type<ChecksumMethods_t>::type checksumMethod = CHECKSUM_METHOD_NONE;
+    bool encryptionEnabled = false;
+    bool rawMessages = false;
+    bool compreesionEnabled = false;
 };
 
 #endif

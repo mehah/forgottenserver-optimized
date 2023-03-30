@@ -28,76 +28,77 @@
 class TalkAction;
 using TalkAction_ptr = std::shared_ptr<TalkAction>;
 
-enum TalkActionResult_t {
-	TALKACTION_CONTINUE,
-	TALKACTION_BREAK,
-	TALKACTION_FAILED,
+enum TalkActionResult_t
+{
+    TALKACTION_CONTINUE,
+    TALKACTION_BREAK,
+    TALKACTION_FAILED,
 };
 
 class TalkAction : public Event
 {
-	public:
-		explicit TalkAction(LuaScriptInterface* interface) : Event(interface) {}
+public:
+    explicit TalkAction(LuaScriptInterface* interface) : Event(interface) {}
 
-		bool configureEvent(const pugi::xml_node& node) override;
+    bool configureEvent(const pugi::xml_node& node) override;
 
-		std::vector<std::string>& getWordsMap() {
-			return wordsMap;
-		}
-		const std::string& getWords() const {
-			return words;
-		}
-		void setWords(std::string word) {
-			words = word;
-			wordsMap.emplace_back(std::move(word));
-		}
-		char getSeparator() const {
-			return separator;
-		}
-		void setSeparator(char sep) {
-			separator = sep;
-		}
+    std::vector<std::string>& getWordsMap() {
+        return wordsMap;
+    }
+    const std::string& getWords() const {
+        return words;
+    }
+    void setWords(std::string word) {
+        words = word;
+        wordsMap.emplace_back(std::move(word));
+    }
+    char getSeparator() const {
+        return separator;
+    }
+    void setSeparator(char sep) {
+        separator = sep;
+    }
 
-		//scripting
-		bool executeSay(Player* player, const std::string& word, const std::string& param, SpeakClasses type) const;
-		//
+    //scripting
+    bool executeSay(Player* player, const std::string& word, const std::string& param, SpeakClasses type) const;
+    //
 
-	private:
-		std::string getScriptEventName() const override;
+private:
+    std::string getScriptEventName() const override;
 
-		std::vector<std::string> wordsMap;
-		std::string words;
-		char separator = '"';
+    std::vector<std::string> wordsMap;
+    std::string words;
+    char separator = '"';
 };
 
 class TalkActions final : public BaseEvents
 {
-	public:
-		TalkActions();
-		~TalkActions();
+public:
+    TalkActions();
+    ~TalkActions();
 
-		// non-copyable
-		TalkActions(const TalkActions&) = delete;
-		TalkActions& operator=(const TalkActions&) = delete;
+    // non-copyable
+    TalkActions(const TalkActions&) = delete;
+    TalkActions& operator=(const TalkActions&) = delete;
 
-		TalkActionResult_t playerSaySpell(Player* player, SpeakClasses type, const std::string& words) const;
+    TalkActionResult_t playerSaySpell(Player* player, SpeakClasses type, const std::string& words) const;
 
-		bool registerLuaEvent(TalkAction_ptr& event);
-		void clear(bool fromLua) override final;
+    bool registerLuaEvent(TalkAction_ptr& event);
+    void clear(bool fromLua) override final;
 
-	private:
-		LuaScriptInterface& getScriptInterface() override;
-		std::string getScriptBaseName() const override;
-		Event_ptr getEvent(const std::string& nodeName) override;
-		bool registerEvent(Event_ptr event, const pugi::xml_node& node) override;
-		
-		#if GAME_FEATURE_ROBINHOOD_HASH_MAP > 0
-		robin_hood::unordered_map<std::string, TalkAction_ptr> talkActions;
-		#else
-		std::unordered_map<std::string, TalkAction_ptr> talkActions;
-		#endif
+private:
+    LuaScriptInterface& getScriptInterface() override;
+    std::string getScriptBaseName() const override;
+    Event_ptr getEvent(const std::string& nodeName) override;
+    bool registerEvent(Event_ptr event, const pugi::xml_node& node) override;
 
-		LuaScriptInterface scriptInterface;
+#if GAME_FEATURE_ROBINHOOD_HASH_MAP > 0
+    robin_hood::unordered_map<std::string, TalkAction_ptr> talkActions;
+#else
+    std::unordered_map<std::string, TalkAction_ptr> talkActions;
+#endif
+
+    LuaScriptInterface scriptInterface;
 };
 
 #endif

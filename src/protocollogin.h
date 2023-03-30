@@ -28,31 +28,31 @@ class OutputMessage;
 
 class ProtocolLogin : public Protocol
 {
-	public:
-		// static protocol information
-		enum {server_sends_first = false};
-		enum {protocol_identifier = 0x01};
-		#if GAME_FEATURE_ADLER32_CHECKSUM > 0
-		enum {use_checksum = true};
-		#else
-		enum {use_checksum = false};
-		#endif
-		static const char* protocol_name() {
-			return "login protocol";
-		}
+public:
+    // static protocol information
+    enum { server_sends_first = false };
+    enum { protocol_identifier = 0x01 };
+#if GAME_FEATURE_ADLER32_CHECKSUM > 0
+    enum { use_checksum = true };
+#else
+    enum { use_checksum = false };
+#endif
+    static const char* protocol_name() {
+        return "login protocol";
+    }
 
-		explicit ProtocolLogin(Connection_ptr connection) : Protocol(connection) {}
+    explicit ProtocolLogin(Connection_ptr connection) : Protocol(connection) {}
 
-		void onRecvFirstMessage(NetworkMessage& msg) override;
+    void onRecvFirstMessage(NetworkMessage& msg) override;
 
-	private:
-		void disconnectClient(const std::string& message, uint32_t version);
+private:
+    void disconnectClient(const std::string& message, uint32_t version);
 
-		#if GAME_FEATURE_SESSIONKEY > 0
-		void getCharacterList(const std::string& accountName, const std::string& password, const std::string& token, uint32_t version);
-		#else
-		void getCharacterList(const std::string& accountName, const std::string& password, uint32_t version);
-		#endif
+#if GAME_FEATURE_SESSIONKEY > 0
+    void getCharacterList(const std::string& accountName, const std::string& password, const std::string& token, uint32_t version);
+#else
+    void getCharacterList(const std::string& accountName, const std::string& password, uint32_t version);
+#endif
 };
 
 #endif

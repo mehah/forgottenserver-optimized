@@ -24,15 +24,15 @@
 
 class Decay
 {
-	public:
-		void startDecay(Item* item, int32_t duration);
-		void stopDecay(Item* item, int64_t timestamp);
+public:
+    void startDecay(Item* item, int32_t duration);
+    void stopDecay(Item* item, int64_t timestamp);
 
-	private:
-		void checkDecay();
+private:
+    void checkDecay();
 
-		uint64_t eventId {0};
-		std::map<int64_t, std::vector<Item*>> decayMap;
+    uint64_t eventId{ 0 };
+    std::map<int64_t, std::vector<Item*>> decayMap;
 };
 
 extern Decay g_decay;

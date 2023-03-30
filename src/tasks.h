@@ -24,36 +24,37 @@
 #include "thread_holder_base.h"
 #include "enums.h"
 
-class Dispatcher : public ThreadHolder<Dispatcher> {
-	public:
-		#if BOOST_VERSION >= 106600
-		Dispatcher() : work(boost::asio::make_work_guard(io_service)) {}
-		#else
-		Dispatcher() : work(std::make_shared<boost::asio::io_service::work>(io_service)) {}
-		#endif
+class Dispatcher : public ThreadHolder<Dispatcher>
+{
+public:
+#if BOOST_VERSION >= 106600
+    Dispatcher() : work(boost::asio::make_work_guard(io_service)) {}
+#else
+    Dispatcher() : work(std::make_shared<boost::asio::io_service::work>(io_service)) {}
+#endif
 
-		void addTask(std::function<void (void)> functor);
-		uint64_t addEvent(uint32_t delay, std::function<void (void)> functor);
-		void stopEvent(uint64_t eventId);
+    void addTask(std::function<void(void)> functor);
+    uint64_t addEvent(uint32_t delay, std::function<void(void)> functor);
+    void stopEvent(uint64_t eventId);
 
-		void shutdown();
+    void shutdown();
 
-		uint64_t getDispatcherCycle() const {
-			return dispatcherCycle;
-		}
+    uint64_t getDispatcherCycle() const {
+        return dispatcherCycle;
+    }
 
-		void threadMain();
+    void threadMain();
 
-	private:
-		uint64_t lastEventId = 0;
-		uint64_t dispatcherCycle = 0;
-		std::map<uint64_t, boost::asio::deadline_timer> eventIds;
-		boost::asio::io_service io_service;
-		#if BOOST_VERSION >= 106600
-		boost::asio::executor_work_guard<boost::asio::io_context::executor_type> work;
-		#else
-		std::shared_ptr<boost::asio::io_service::work> work;
-		#endif
+private:
+    uint64_t lastEventId = 0;
+    uint64_t dispatcherCycle = 0;
+    std::map<uint64_t, boost::asio::deadline_timer> eventIds;
+    boost::asio::io_service io_service;
+#if BOOST_VERSION >= 106600
+    boost::asio::executor_work_guard<boost::asio::io_context::executor_type> work;
+#else
+    std::shared_ptr<boost::asio::io_service::work> work;
+#endif
 };
 
 extern Dispatcher g_dispatcher;

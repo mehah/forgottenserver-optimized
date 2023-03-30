@@ -25,158 +25,158 @@
 #include "pugicast.h"
 
 TalkActions::TalkActions()
-	: scriptInterface("TalkAction Interface")
+    : scriptInterface("TalkAction Interface")
 {
-	scriptInterface.initState();
-	talkActions.reserve(100);
+    scriptInterface.initState();
+    talkActions.reserve(100);
 }
 
 TalkActions::~TalkActions()
 {
-	clear(false);
+    clear(false);
 }
 
 void TalkActions::clear(bool fromLua)
 {
-	for (auto it = talkActions.begin(); it != talkActions.end(); ) {
-		if (fromLua == it->second->fromLua) {
-			it = talkActions.erase(it);
-		} else {
-			++it;
-		}
-	}
+    for (auto it = talkActions.begin(); it != talkActions.end(); ) {
+        if (fromLua == it->second->fromLua) {
+            it = talkActions.erase(it);
+        } else {
+            ++it;
+        }
+    }
 
-	reInitState(fromLua);
+    reInitState(fromLua);
 }
 
 LuaScriptInterface& TalkActions::getScriptInterface()
 {
-	return scriptInterface;
+    return scriptInterface;
 }
 
 std::string TalkActions::getScriptBaseName() const
 {
-	return "talkactions";
+    return "talkactions";
 }
 
 Event_ptr TalkActions::getEvent(const std::string& nodeName)
 {
-	if (strcasecmp(nodeName.c_str(), "talkaction") != 0) {
-		return nullptr;
-	}
-	return Event_ptr(new TalkAction(&scriptInterface));
+    if (strcasecmp(nodeName.c_str(), "talkaction") != 0) {
+        return nullptr;
+    }
+    return Event_ptr(new TalkAction(&scriptInterface));
 }
 
 bool TalkActions::registerEvent(Event_ptr event, const pugi::xml_node&)
 {
-	TalkAction_ptr talkAction{ static_cast<TalkAction*>(event.release()) }; // event is guaranteed to be a TalkAction
-	std::vector<std::string>& wordsMap = talkAction->getWordsMap();
-	if (!wordsMap.empty()) {
-		for (std::string& words : wordsMap) {
-			auto result = talkActions.emplace(words, talkAction);
-			if (!result.second) {
-				std::cout << "[Warning - Spells::registerEvent] Duplicate registered talkaction with words: " << words << std::endl;
-			}
-		}
-		wordsMap.clear();
-		wordsMap.shrink_to_fit();
-	}
-	return true;
+    TalkAction_ptr talkAction{ static_cast<TalkAction*>(event.release()) }; // event is guaranteed to be a TalkAction
+    std::vector<std::string>& wordsMap = talkAction->getWordsMap();
+    if (!wordsMap.empty()) {
+        for (std::string& words : wordsMap) {
+            auto result = talkActions.emplace(words, talkAction);
+            if (!result.second) {
+                std::cout << "[Warning - Spells::registerEvent] Duplicate registered talkaction with words: " << words << std::endl;
+            }
+        }
+        wordsMap.clear();
+        wordsMap.shrink_to_fit();
+    }
+    return true;
 }
 
 bool TalkActions::registerLuaEvent(TalkAction_ptr& event)
 {
-	bool result = false;
+    bool result = false;
 
-	std::vector<std::string>& wordsMap = event->getWordsMap();
-	if (!wordsMap.empty()) {
-		for (std::string& words : wordsMap) {
-			auto res = talkActions.emplace(words, event);
-			if (!res.second) {
-				std::cout << "[Warning - Spells::registerEvent] Duplicate registered talkaction with words: " << words << std::endl;
-				continue;
-			}
-			result = true;
-		}
-		wordsMap.clear();
-		wordsMap.shrink_to_fit();
-	}
-	return result;
+    std::vector<std::string>& wordsMap = event->getWordsMap();
+    if (!wordsMap.empty()) {
+        for (std::string& words : wordsMap) {
+            auto res = talkActions.emplace(words, event);
+            if (!res.second) {
+                std::cout << "[Warning - Spells::registerEvent] Duplicate registered talkaction with words: " << words << std::endl;
+                continue;
+            }
+            result = true;
+        }
+        wordsMap.clear();
+        wordsMap.shrink_to_fit();
+    }
+    return result;
 }
 
 TalkActionResult_t TalkActions::playerSaySpell(Player* player, SpeakClasses type, const std::string& words) const
 {
-	std::string param, instantWords = words;
-	if (instantWords.size() >= 3 && instantWords.front() != ' ') {
-		size_t param_find = instantWords.find(' ');
-		if (param_find != std::string::npos) {
-			param = instantWords.substr(param_find + 1);
-			instantWords = instantWords.substr(0, param_find);
-			trim_right(instantWords, ' ');
-		}
-	}
+    std::string param, instantWords = words;
+    if (instantWords.size() >= 3 && instantWords.front() != ' ') {
+        size_t param_find = instantWords.find(' ');
+        if (param_find != std::string::npos) {
+            param = instantWords.substr(param_find + 1);
+            instantWords = instantWords.substr(0, param_find);
+            trim_right(instantWords, ' ');
+        }
+    }
 
-	auto it = talkActions.find(instantWords);
-	if (it != talkActions.end()) {
-		char separator = it->second->getSeparator();
-		if (separator != ' ' && !param.empty()) {
-			return TALKACTION_CONTINUE;
-		}
+    auto it = talkActions.find(instantWords);
+    if (it != talkActions.end()) {
+        char separator = it->second->getSeparator();
+        if (separator != ' ' && !param.empty()) {
+            return TALKACTION_CONTINUE;
+        }
 
-		if (it->second->executeSay(player, instantWords, param, type)) {
-			return TALKACTION_CONTINUE;
-		} else {
-			return TALKACTION_BREAK;
-		}
-	}
-	return TALKACTION_CONTINUE;
+        if (it->second->executeSay(player, instantWords, param, type)) {
+            return TALKACTION_CONTINUE;
+        } else {
+            return TALKACTION_BREAK;
+        }
+    }
+    return TALKACTION_CONTINUE;
 }
 
 bool TalkAction::configureEvent(const pugi::xml_node& node)
 {
-	pugi::xml_attribute wordsAttribute = node.attribute("words");
-	if (!wordsAttribute) {
-		std::cout << "[Error - TalkAction::configureEvent] Missing words for talk action or spell" << std::endl;
-		return false;
-	}
+    pugi::xml_attribute wordsAttribute = node.attribute("words");
+    if (!wordsAttribute) {
+        std::cout << "[Error - TalkAction::configureEvent] Missing words for talk action or spell" << std::endl;
+        return false;
+    }
 
-	pugi::xml_attribute separatorAttribute = node.attribute("separator");
-	if (separatorAttribute) {
-		separator = pugi::cast<char>(separatorAttribute.value());
-	}
+    pugi::xml_attribute separatorAttribute = node.attribute("separator");
+    if (separatorAttribute) {
+        separator = pugi::cast<char>(separatorAttribute.value());
+    }
 
-	for (std::string& word : explodeString(wordsAttribute.as_string(), ";")) {
-		setWords(std::move(word));
-	}
-	return true;
+    for (std::string& word : explodeString(wordsAttribute.as_string(), ";")) {
+        setWords(std::move(word));
+    }
+    return true;
 }
 
 std::string TalkAction::getScriptEventName() const
 {
-	return "onSay";
+    return "onSay";
 }
 
 bool TalkAction::executeSay(Player* player, const std::string& word, const std::string& param, SpeakClasses type) const
 {
-	//onSay(player, words, param, type)
-	if (!scriptInterface->reserveScriptEnv()) {
-		std::cout << "[Error - TalkAction::executeSay] Call stack overflow" << std::endl;
-		return false;
-	}
+    //onSay(player, words, param, type)
+    if (!scriptInterface->reserveScriptEnv()) {
+        std::cout << "[Error - TalkAction::executeSay] Call stack overflow" << std::endl;
+        return false;
+    }
 
-	ScriptEnvironment* env = scriptInterface->getScriptEnv();
-	env->setScriptId(scriptId, scriptInterface);
+    ScriptEnvironment* env = scriptInterface->getScriptEnv();
+    env->setScriptId(scriptId, scriptInterface);
 
-	lua_State* L = scriptInterface->getLuaState();
+    lua_State* L = scriptInterface->getLuaState();
 
-	scriptInterface->pushFunction(scriptId);
+    scriptInterface->pushFunction(scriptId);
 
-	LuaScriptInterface::pushUserdata<Player>(L, player);
-	LuaScriptInterface::setMetatable(L, -1, "Player");
+    LuaScriptInterface::pushUserdata<Player>(L, player);
+    LuaScriptInterface::setMetatable(L, -1, "Player");
 
-	LuaScriptInterface::pushString(L, word);
-	LuaScriptInterface::pushString(L, param);
-	lua_pushnumber(L, type);
+    LuaScriptInterface::pushString(L, word);
+    LuaScriptInterface::pushString(L, param);
+    lua_pushnumber(L, type);
 
-	return scriptInterface->callFunction(4);
+    return scriptInterface->callFunction(4);
 }
