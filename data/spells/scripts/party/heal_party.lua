@@ -9,5 +9,5 @@ condition:setParameter(CONDITION_PARAM_HEALTHTICKS, 2000)
 condition:setParameter(CONDITION_PARAM_BUFF_SPELL, true)
 
 function onCastSpell(creature, variant)
-	return creature:addPartyCondition(combat, variant, condition, 120)
+    return creature:addPartyCondition(combat, variant, condition, 120)
 end

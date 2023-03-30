@@ -8,5 +8,5 @@ condition:setParameter(CONDITION_PARAM_SKILL_SHIELD, 3)
 condition:setParameter(CONDITION_PARAM_BUFF_SPELL, true)
 
 function onCastSpell(creature, variant)
-	return creature:addPartyCondition(combat, variant, condition, 90)
+    return creature:addPartyCondition(combat, variant, condition, 90)
 end

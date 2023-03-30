@@ -1,8 +1,4 @@
-local burstArea = createCombatArea({
-	{1, 1, 1},
-	{1, 3, 1},
-	{1, 1, 1}
-})
+local burstArea = createCombatArea({{1, 1, 1}, {1, 3, 1}, {1, 1, 1}})
 
 local burstCombat = Combat()
 burstCombat:setParameter(COMBAT_PARAM_TYPE, COMBAT_PHYSICALDAMAGE)
@@ -14,15 +10,15 @@ burstCombat:setArea(burstArea)
 
 local burstarrow = Weapon(WEAPON_AMMO)
 burstarrow.onUseWeapon = function(player, variant)
-	if player:getSkull() == SKULL_BLACK then
-		return false
-	end
+    if player:getSkull() == SKULL_BLACK then
+        return false
+    end
 
-	return burstCombat:execute(player, variant)
+    return burstCombat:execute(player, variant)
 end
 
 burstarrow:id(2546)
-burstarrow:action("removecount")
+burstarrow:action('removecount')
 burstarrow:register()
 
 local poisonCombat = Combat()
@@ -33,69 +29,64 @@ poisonCombat:setFormula(COMBAT_FORMULA_SKILL, 0, 0, 1, 0)
 
 local poisonarrow = Weapon(WEAPON_AMMO)
 poisonarrow.onUseWeapon = function(player, variant)
-	if not poisonCombat:execute(player, variant) then
-		return false
-	end
+    if not poisonCombat:execute(player, variant) then
+        return false
+    end
 
-	player:addDamageCondition(Creature(variant:getNumber()), CONDITION_POISON, DAMAGELIST_LOGARITHMIC_DAMAGE, 3)
-	return true
+    player:addDamageCondition(Creature(variant:getNumber()), CONDITION_POISON, DAMAGELIST_LOGARITHMIC_DAMAGE, 3)
+    return true
 end
 
 poisonarrow:id(2545)
-poisonarrow:action("removecount")
+poisonarrow:action('removecount')
 poisonarrow:register()
 
-if(CLIENT_VERSION >= 800) then
-	local viperCombat = Combat()
-	viperCombat:setParameter(COMBAT_PARAM_TYPE, COMBAT_PHYSICALDAMAGE)
-	viperCombat:setParameter(COMBAT_PARAM_DISTANCEEFFECT, CONST_ANI_GREENSTAR)
-	viperCombat:setParameter(COMBAT_PARAM_BLOCKARMOR, true)
-	viperCombat:setFormula(COMBAT_FORMULA_SKILL, 0, 0, 1, 0)
+if (CLIENT_VERSION >= 800) then
+    local viperCombat = Combat()
+    viperCombat:setParameter(COMBAT_PARAM_TYPE, COMBAT_PHYSICALDAMAGE)
+    viperCombat:setParameter(COMBAT_PARAM_DISTANCEEFFECT, CONST_ANI_GREENSTAR)
+    viperCombat:setParameter(COMBAT_PARAM_BLOCKARMOR, true)
+    viperCombat:setFormula(COMBAT_FORMULA_SKILL, 0, 0, 1, 0)
 
-	local viperstar= Weapon(WEAPON_DISTANCE)
-	viperstar.onUseWeapon = function(player, variant)
-		if not viperCombat:execute(player, variant) then
-			return false
-		end
+    local viperstar = Weapon(WEAPON_DISTANCE)
+    viperstar.onUseWeapon = function(player, variant)
+        if not viperCombat:execute(player, variant) then
+            return false
+        end
 
-		if math.random(1, 100) <= 90 then
-			return false
-		end
+        if math.random(1, 100) <= 90 then
+            return false
+        end
 
-		player:addDamageCondition(Creature(variant:getNumber()), CONDITION_POISON, DAMAGELIST_LOGARITHMIC_DAMAGE, 2)
-		return true
-	end
+        player:addDamageCondition(Creature(variant:getNumber()), CONDITION_POISON, DAMAGELIST_LOGARITHMIC_DAMAGE, 2)
+        return true
+    end
 
-	viperstar:id(7366)
-	viperstar:breakChance(9)
-	viperstar:register()
+    viperstar:id(7366)
+    viperstar:breakChance(9)
+    viperstar:register()
 end
 
-if(CLIENT_VERSION >= 1140) then
-	local diamondArea = createCombatArea({
-		{0, 1, 1, 1, 0},
-		{1, 1, 1, 1, 1},
-		{1, 1, 3, 1, 1},
-		{1, 1, 1, 1, 1},
-		{0, 1, 1, 1, 0},
-	})
+if (CLIENT_VERSION >= 1140) then
+    local diamondArea = createCombatArea({{0, 1, 1, 1, 0}, {1, 1, 1, 1, 1}, {1, 1, 3, 1, 1}, {1, 1, 1, 1, 1},
+                                          {0, 1, 1, 1, 0}})
 
-	local diamondCombat = Combat()
-	diamondCombat:setParameter(COMBAT_PARAM_TYPE, COMBAT_PHYSICALDAMAGE)
-	diamondCombat:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_ENERGYHIT)
-	diamondCombat:setParameter(COMBAT_PARAM_DISTANCEEFFECT, CONST_ANI_DIAMONDARROW)
-	diamondCombat:setParameter(COMBAT_PARAM_BLOCKARMOR, true)
-	diamondCombat:setFormula(COMBAT_FORMULA_SKILL, 0, 0, 1, 0)
-	diamondCombat:setArea(diamondArea)
+    local diamondCombat = Combat()
+    diamondCombat:setParameter(COMBAT_PARAM_TYPE, COMBAT_PHYSICALDAMAGE)
+    diamondCombat:setParameter(COMBAT_PARAM_EFFECT, CONST_ME_ENERGYHIT)
+    diamondCombat:setParameter(COMBAT_PARAM_DISTANCEEFFECT, CONST_ANI_DIAMONDARROW)
+    diamondCombat:setParameter(COMBAT_PARAM_BLOCKARMOR, true)
+    diamondCombat:setFormula(COMBAT_FORMULA_SKILL, 0, 0, 1, 0)
+    diamondCombat:setArea(diamondArea)
 
-	local diamondarrow = Weapon(WEAPON_AMMO)
-	diamondarrow.onUseWeapon = function(player, variant)
-		return diamondCombat:execute(player, variant)
-	end
+    local diamondarrow = Weapon(WEAPON_AMMO)
+    diamondarrow.onUseWeapon = function(player, variant)
+        return diamondCombat:execute(player, variant)
+    end
 
-	diamondarrow:id(29057)
-	diamondarrow:action("removecount")
-	diamondarrow:level(150)
-	diamondarrow:wieldUnproperly(true)
-	diamondarrow:register()
+    diamondarrow:id(29057)
+    diamondarrow:action('removecount')
+    diamondarrow:level(150)
+    diamondarrow:wieldUnproperly(true)
+    diamondarrow:register()
 end

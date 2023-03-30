@@ -8,5 +8,5 @@ condition:setFormula(0.3, -24, 0.3, -24)
 combat:addCondition(condition)
 
 function onCastSpell(creature, variant)
-	return combat:execute(creature, variant)
+    return combat:execute(creature, variant)
 end

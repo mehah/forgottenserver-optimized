@@ -2,10 +2,18 @@ local keywordHandler = KeywordHandler:new()
 local npcHandler = NpcHandler:new(keywordHandler)
 NpcSystem.parseParameters(npcHandler)
 
-function onCreatureAppear(cid)              npcHandler:onCreatureAppear(cid)            end
-function onCreatureDisappear(cid)           npcHandler:onCreatureDisappear(cid)         end
-function onCreatureSay(cid, type, msg)      npcHandler:onCreatureSay(cid, type, msg)    end
-function onThink()                          npcHandler:onThink()                        end
+function onCreatureAppear(cid)
+    npcHandler:onCreatureAppear(cid)
+end
+function onCreatureDisappear(cid)
+    npcHandler:onCreatureDisappear(cid)
+end
+function onCreatureSay(cid, type, msg)
+    npcHandler:onCreatureSay(cid, type, msg)
+end
+function onThink()
+    npcHandler:onThink()
+end
 
 local shopModule = ShopModule:new()
 npcHandler:addModule(shopModule)
@@ -78,11 +86,11 @@ shopModule:addSellableItem({'wand of dragonbreath', 'dragonbreath'}, 2191, 500, 
 shopModule:addSellableItem({'wand of decay', 'decay'}, 2188, 2500, 'wand of decay')
 shopModule:addSellableItem({'wand of draconia', 'draconia'}, 8921, 3750, 'wand of draconia')
 shopModule:addSellableItem({'wand of cosmic energy', 'cosmic energy'}, 2189, 5000, 'wand of cosmic energy')
-shopModule:addSellableItem({'wand of inferno', 'inferno'},2187, 7500, 'wand of inferno')
+shopModule:addSellableItem({'wand of inferno', 'inferno'}, 2187, 7500, 'wand of inferno')
 shopModule:addSellableItem({'wand of starstorm', 'starstorm'}, 8920, 9000, 'wand of starstorm')
 shopModule:addSellableItem({'wand of voodoo', 'voodoo'}, 8922, 11000, 'wand of voodoo')
 
-shopModule:addSellableItem({'snakebite rod', 'snakebite'}, 2182, 250,'snakebite rod')
+shopModule:addSellableItem({'snakebite rod', 'snakebite'}, 2182, 250, 'snakebite rod')
 shopModule:addSellableItem({'moonlight rod', 'moonlight'}, 2186, 500, 'moonlight rod')
 shopModule:addSellableItem({'necrotic rod', 'necrotic'}, 2185, 2500, 'necrotic rod')
 shopModule:addSellableItem({'northwind rod', 'northwind'}, 8911, 3750, 'northwind rod')
@@ -91,45 +99,46 @@ shopModule:addSellableItem({'hailstorm rod', 'hailstorm'}, 2183, 7500, 'hailstor
 shopModule:addSellableItem({'springsprout rod', 'springsprout'}, 8912, 9000, 'springsprout rod')
 shopModule:addSellableItem({'underworld rod', 'underworld'}, 8910, 11000, 'underworld rod')
 
-
 function creatureSayCallback(cid, type, msg)
-	if not npcHandler:isFocused(cid) then
-		return false
-	end
+    if not npcHandler:isFocused(cid) then
+        return false
+    end
 
-	local player = Player(cid)
-	local vocationId = player:getVocation():getId()
-	local items = {
-		[1] = 2190,
-		[2] = 2182,
-		[5] = 2190,
-		[6] = 2182
-	}
+    local player = Player(cid)
+    local vocationId = player:getVocation():getId()
+    local items = {
+        [1] = 2190,
+        [2] = 2182,
+        [5] = 2190,
+        [6] = 2182
+    }
 
-	if msgcontains(msg, 'first rod') or msgcontains(msg, 'first wand') then
-		if table.contains({1, 2, 5, 6}, vocationId) then
-			if player:getStorageValue(30002) == -1 then
-				selfSay('So you ask me for a {' .. ItemType(items[vocationId]):getName() .. '} to begin your advanture?', cid)
-				npcHandler.topic[cid] = 1
-			else
-				selfSay('What? I have already gave you one {' .. ItemType(items[vocationId]):getName() .. '}!', cid)
-			end
-		else
-			selfSay('Sorry, you aren\'t a druid either a sorcerer.', cid)
-		end
-	elseif msgcontains(msg, 'yes') then
-		if npcHandler.topic[cid] == 1 then
-			player:addItem(items[vocationId], 1)
-			selfSay('Here you are young adept, take care yourself.', cid)
-			player:setStorageValue(30002, 1)
-		end
-		npcHandler.topic[cid] = 0
-	elseif msgcontains(msg, 'no') and npcHandler.topic[cid] == 1 then
-		selfSay('Ok then.', cid)
-		npcHandler.topic[cid] = 0
-	end
+    if msgcontains(msg, 'first rod') or msgcontains(msg, 'first wand') then
+        if table.contains({1, 2, 5, 6}, vocationId) then
+            if player:getStorageValue(30002) == -1 then
+                selfSay(
+                    'So you ask me for a {' .. ItemType(items[vocationId]):getName() .. '} to begin your advanture?',
+                    cid)
+                npcHandler.topic[cid] = 1
+            else
+                selfSay('What? I have already gave you one {' .. ItemType(items[vocationId]):getName() .. '}!', cid)
+            end
+        else
+            selfSay('Sorry, you aren\'t a druid either a sorcerer.', cid)
+        end
+    elseif msgcontains(msg, 'yes') then
+        if npcHandler.topic[cid] == 1 then
+            player:addItem(items[vocationId], 1)
+            selfSay('Here you are young adept, take care yourself.', cid)
+            player:setStorageValue(30002, 1)
+        end
+        npcHandler.topic[cid] = 0
+    elseif msgcontains(msg, 'no') and npcHandler.topic[cid] == 1 then
+        selfSay('Ok then.', cid)
+        npcHandler.topic[cid] = 0
+    end
 
-	return true
+    return true
 end
 
 npcHandler:setCallback(CALLBACK_MESSAGE_DEFAULT, creatureSayCallback)

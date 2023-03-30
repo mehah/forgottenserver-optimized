@@ -1,4 +1,4 @@
--- Advanced NPC System by Jiddo
+k-- Advanced NPC System by Jiddo
 
 if Modules == nil then
 	-- default words for greeting and ungreeting the npc. Should be a table containing all such words.
