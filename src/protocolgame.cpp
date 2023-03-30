@@ -449,7 +449,7 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 #else
     g_dispatcher.addTask(std::bind(&ProtocolGame::login, getThis(), std::move(accountName), std::move(password), std::move(characterName), operatingSystem, TFCoperatingSystem));
 #endif
-    }
+}
 
 void ProtocolGame::onConnect()
 {
@@ -843,7 +843,7 @@ void ProtocolGame::checkCreatureAsKnown(uint32_t id, bool& known, uint32_t & rem
     } else {
         removedKnown = 0;
     }
-    }
+}
 
 bool ProtocolGame::canSee(const Creature * c) const
 {
@@ -4669,7 +4669,7 @@ void ProtocolGame::sendAddCreature(const Creature * creature, const Position & p
     sendMarketStatistics();
 #endif
     player->sendIcons();
-        }
+}
 
 void ProtocolGame::sendMoveCreature(const Creature * creature, const Position & newPos, int32_t newStackPos, const Position & oldPos, int32_t oldStackPos, bool teleport)
 {
@@ -6602,4 +6602,20 @@ uint8_t ProtocolGame::translateMessageClassToClient(MessageClasses messageType)
         default: return MESSAGE_NONE;
     }
 #endif
+}
+
+void ProtocolGame::sendAddAttchedEffect(const Creature * creature, uint16_t effectId) {
+    playermsg.reset();
+    playermsg.addByte(0x34);
+    playermsg.add<uint32_t>(creature->getID());
+    playermsg.add<uint16_t>(effectId);
+    writeToOutputBuffer(playermsg);
+}
+
+void ProtocolGame::sendRemoveAttchedEffect(const Creature * creature, uint16_t effectId) {
+    playermsg.reset();
+    playermsg.addByte(0x35);
+    playermsg.add<uint32_t>(creature->getID());
+    playermsg.add<uint16_t>(effectId);
+    writeToOutputBuffer(playermsg);
 }

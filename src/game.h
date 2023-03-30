@@ -546,6 +546,9 @@ public:
     void addDistanceEffect(const Position& fromPos, const Position& toPos, uint8_t effect);
     static void addDistanceEffect(const SpectatorVector& spectators, const Position& fromPos, const Position& toPos, uint8_t effect);
 
+    void addAttchedEffect(const Creature* creature, uint16_t effectId);
+    void removeAttchedEffect(const Creature* creature, uint16_t effectId);
+
     void updateCreatureData(const Creature* creature);
 
     void startDecay(Item* item);

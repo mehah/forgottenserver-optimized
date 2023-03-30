@@ -985,6 +985,18 @@ public:
     }
 #endif
 
+    void sendAddAttchedEffect(const Creature * creature, uint16_t effectId) {
+        if (client) {
+            client->sendAddAttchedEffect(creature, effectId);
+        }
+    }
+
+    void sendRemoveAttchedEffect(const Creature * creature, uint16_t effectId) {
+        if (client) {
+            client->sendRemoveAttchedEffect(creature, effectId);
+        }
+    }
+
     //event methods
     void onUpdateTileItem(const Tile * tile, const Position & pos, const Item * oldItem,
                                   const ItemType & oldType, const Item * newItem, const ItemType & newType) override;
@@ -1779,6 +1791,6 @@ private:
     friend class Actions;
     friend class IOLoginData;
     friend class ProtocolGame;
-    };
+};
 
 #endif

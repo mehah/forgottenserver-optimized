@@ -2659,6 +2659,9 @@ void LuaScriptInterface::registerFunctions()
 
     registerMethod("Creature", "getZone", LuaScriptInterface::luaCreatureGetZone);
 
+    registerMethod("Creature", "addAttchedEffect", LuaScriptInterface::luaCreatureAddAttchedEffect);
+    registerMethod("Creature", "removeAttchedEffect", LuaScriptInterface::luaCreatureRemoveAttchedEffect);
+
     // Player
     registerClass("Player", "Creature", LuaScriptInterface::luaPlayerCreate);
     registerMetaMethod("Player", "__eq", LuaScriptInterface::luaUserdataCompare);
@@ -16947,4 +16950,32 @@ void LuaEnvironment::executeTimerEvent(uint32_t eventIndex)
     for (auto parameter : timerEventDesc.parameters) {
         luaL_unref(luaState, LUA_REGISTRYINDEX, parameter);
     }
+}
+
+int LuaScriptInterface::luaCreatureAddAttchedEffect(lua_State* L)
+{
+    // creature:addAttchedEffect(effectId)
+    Creature* creature = getUserdata<Creature>(L, 1);
+    if (!creature) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    uint16_t effectId = getNumber<uint16_t>(L, 2);
+    g_game.addAttchedEffect(creature, effectId);
+    return 1;
+}
+
+int LuaScriptInterface::luaCreatureRemoveAttchedEffect(lua_State* L)
+{
+    // creature:addAttchedEffect(effectId)
+    Creature* creature = getUserdata<Creature>(L, 1);
+    if (!creature) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    uint16_t effectId = getNumber<uint16_t>(L, 2);
+    g_game.addAttchedEffect(creature, effectId);
+    return 1;
 }

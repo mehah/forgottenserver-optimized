@@ -846,6 +846,9 @@ private:
 
     static int luaCreatureGetZone(lua_State* L);
 
+    static int luaCreatureAddAttchedEffect(lua_State* L);
+    static int luaCreatureRemoveAttchedEffect(lua_State* L);
+
     // Player
     static int luaPlayerCreate(lua_State* L);
 

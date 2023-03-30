@@ -445,6 +445,9 @@ private:
     void sendModalWindow(const ModalWindow& modalWindow);
 #endif
 
+    void sendAddAttchedEffect(const Creature* creature, uint16_t effectId);
+    void sendRemoveAttchedEffect(const Creature* creature, uint16_t effectId);
+
     //Help functions
 
     // translate a tile to clientreadable format

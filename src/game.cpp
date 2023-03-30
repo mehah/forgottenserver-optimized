@@ -6045,7 +6045,7 @@ void Game::playerBrowseMarket(Player* player, uint16_t spriteId)
     const MarketOfferList& sellOffers = IOMarket::getActiveOffers(MARKETACTION_SELL, it.id);
     player->sendMarketBrowseItem(it.id, buyOffers, sellOffers);
     player->sendMarketDetail(it.id);
-    }
+}
 
 void Game::playerBrowseMarketOwnOffers(Player * player)
 {
@@ -6107,59 +6107,59 @@ void Game::playerCreateMarketOffer(Player * player, uint8_t type, uint16_t sprit
         fee = 100000;
     }
 #else
-} else if (fee > 1000) {
-    fee = 1000;
-}
+    } else if (fee > 1000) {
+        fee = 1000;
+    }
 #endif
 
-if (type == MARKETACTION_SELL) {
-    if (fee > player->bankBalance) {
-        return;
-    }
+    if (type == MARKETACTION_SELL) {
+        if (fee > player->bankBalance) {
+            return;
+        }
 
-    DepotChest* depotChest = player->getDepotChest(player->getLastDepotId(), false);
-    if (!depotChest) {
-        return;
-    }
+        DepotChest* depotChest = player->getDepotChest(player->getLastDepotId(), false);
+        if (!depotChest) {
+            return;
+        }
 
-    std::vector<Item*> itemList = getMarketItemList(it.wareId, amount, depotChest, player->getInbox());
-    if (itemList.empty()) {
-        return;
-    }
+        std::vector<Item*> itemList = getMarketItemList(it.wareId, amount, depotChest, player->getInbox());
+        if (itemList.empty()) {
+            return;
+        }
 
-    if (it.stackable) {
-        uint16_t tmpAmount = amount;
-        for (Item* item : itemList) {
-            uint16_t removeCount = std::min<uint16_t>(tmpAmount, item->getItemCount());
-            tmpAmount -= removeCount;
-            internalRemoveItem(item, removeCount);
-            if (tmpAmount == 0) {
-                break;
+        if (it.stackable) {
+            uint16_t tmpAmount = amount;
+            for (Item* item : itemList) {
+                uint16_t removeCount = std::min<uint16_t>(tmpAmount, item->getItemCount());
+                tmpAmount -= removeCount;
+                internalRemoveItem(item, removeCount);
+                if (tmpAmount == 0) {
+                    break;
+                }
+            }
+        } else {
+            for (Item* item : itemList) {
+                internalRemoveItem(item);
             }
         }
+
+        player->bankBalance -= fee;
     } else {
-        for (Item* item : itemList) {
-            internalRemoveItem(item);
+        uint64_t totalPrice = static_cast<uint64_t>(price) * amount;
+        totalPrice += fee;
+        if (totalPrice > player->bankBalance) {
+            return;
         }
+
+        player->bankBalance -= totalPrice;
     }
 
-    player->bankBalance -= fee;
-} else {
-    uint64_t totalPrice = static_cast<uint64_t>(price) * amount;
-    totalPrice += fee;
-    if (totalPrice > player->bankBalance) {
-        return;
-    }
+    IOMarket::createOffer(player->getGUID(), static_cast<MarketAction_t>(type), it.id, amount, price, anonymous);
 
-    player->bankBalance -= totalPrice;
-}
-
-IOMarket::createOffer(player->getGUID(), static_cast<MarketAction_t>(type), it.id, amount, price, anonymous);
-
-player->sendMarketEnter(player->getLastDepotId());
-const MarketOfferList& buyOffers = IOMarket::getActiveOffers(MARKETACTION_BUY, it.id);
-const MarketOfferList& sellOffers = IOMarket::getActiveOffers(MARKETACTION_SELL, it.id);
-player->sendMarketBrowseItem(it.id, buyOffers, sellOffers);
+    player->sendMarketEnter(player->getLastDepotId());
+    const MarketOfferList& buyOffers = IOMarket::getActiveOffers(MARKETACTION_BUY, it.id);
+    const MarketOfferList& sellOffers = IOMarket::getActiveOffers(MARKETACTION_SELL, it.id);
+    player->sendMarketBrowseItem(it.id, buyOffers, sellOffers);
 }
 
 void Game::playerCancelMarketOffer(Player* player, uint32_t timestamp, uint16_t counter)
@@ -6825,4 +6825,22 @@ bool Game::reload(ReloadTypes_t reloadType)
         }
     }
     return true;
+}
+
+void Game::addAttchedEffect(const Creature* creature, uint16_t effectId)
+{
+    SpectatorVector spectators;
+    map.getSpectators(spectators, creature->getPosition(), false, true);
+    for (Creature* spectator : spectators) {
+        spectator->getPlayer()->sendAddAttchedEffect(creature, effectId);
+    }
+}
+
+void Game::removeAttchedEffect(const Creature* creature, uint16_t effectId)
+{
+    SpectatorVector spectators;
+    map.getSpectators(spectators, creature->getPosition(), false, true);
+    for (Creature* spectator : spectators) {
+        spectator->getPlayer()->sendRemoveAttchedEffect(creature, effectId);
+    }
 }
