@@ -31,7 +31,7 @@
 
 extern ConfigManager g_config;
 
-Connection_ptr ConnectionManager::createConnection(boost::asio::io_service& io_service, const ServicePort_ptr&
+Connection_ptr ConnectionManager::createConnection(boost::asio::io_service& io_service, const ConstServicePort_ptr&
                                                    servicePort)
 {
     std::lock_guard<std::mutex> lockClass(connectionManagerLock);

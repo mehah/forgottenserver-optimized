@@ -26,10 +26,10 @@
 
 extern Game g_game;
 
-HouseTile::HouseTile(int32_t x, int32_t y, int32_t z, House* house) :
+HouseTile::HouseTile(const int32_t x, const int32_t y, const int32_t z, House* house) :
     DynamicTile(x, y, z), house(house) {}
 
-void HouseTile::addThing(int32_t index, Thing* thing)
+void HouseTile::addThing(const int32_t index, Thing* thing)
 {
     Tile::addThing(index, thing);
 
@@ -42,7 +42,7 @@ void HouseTile::addThing(int32_t index, Thing* thing)
     }
 }
 
-void HouseTile::internalAddThing(uint32_t index, Thing* thing)
+void HouseTile::internalAddThing(const uint32_t index, Thing* thing)
 {
     Tile::internalAddThing(index, thing);
 
@@ -55,7 +55,7 @@ void HouseTile::internalAddThing(uint32_t index, Thing* thing)
     }
 }
 
-void HouseTile::updateHouse(Item* item)
+void HouseTile::updateHouse(Item* item) const
 {
     if (item->getParent() != this) {
         return;
@@ -74,7 +74,7 @@ void HouseTile::updateHouse(Item* item)
     }
 }
 
-ReturnValue HouseTile::queryAdd(int32_t index, const Thing& thing, uint32_t count, uint32_t flags, Creature* actor/* = nullptr*/) const
+ReturnValue HouseTile::queryAdd(const int32_t index, const Thing& thing, const uint32_t count, const uint32_t flags, Creature* actor/* = nullptr*/) const
 {
     if (const Creature* creature = thing.getCreature()) {
         if (const Player* player = creature->getPlayer()) {
@@ -85,7 +85,7 @@ ReturnValue HouseTile::queryAdd(int32_t index, const Thing& thing, uint32_t coun
             return RETURNVALUE_NOTPOSSIBLE;
         }
     } else if (thing.getItem() && actor) {
-        Player* actorPlayer = actor->getPlayer();
+        const Player* actorPlayer = actor->getPlayer();
         if (!house->isInvited(actorPlayer)) {
             return RETURNVALUE_CANNOTTHROW;
         }
@@ -108,7 +108,7 @@ Tile* HouseTile::queryDestination(int32_t& index, const Thing& thing, Item** des
 
                     destTile = g_game.map.getTile(player->getTemplePosition());
                     if (!destTile) {
-                        destTile = &(Tile::nullptr_tile);
+                        destTile = &nullptr_tile;
                     }
                 }
 

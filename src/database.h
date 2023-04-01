@@ -54,14 +54,14 @@ public:
      *
      * @return true on successful init, false on error
      */
-    bool init();
+    static bool init();
 
     /**
      * Ends MySQL Client library
      *
      * @return nothing
      */
-    void end();
+    static void end();
 
     /**
      * Connects to the database
@@ -85,7 +85,7 @@ public:
      * @param query command
      * @return true on success, false on error
      */
-    bool executeQuery(const std::string& query);
+    bool executeQuery(const std::string& query) const;
 
     /**
      * Queries database.
@@ -94,7 +94,7 @@ public:
      *
      * @return results object (nullptr on error)
      */
-    DBResult_ptr storeQuery(const std::string& query);
+    DBResult_ptr storeQuery(const std::string& query) const;
 
     /**
      * Escapes string for query.
@@ -123,7 +123,7 @@ public:
      * @return id on success, 0 if last query did not result on any rows with auto_increment keys
      */
     uint64_t getLastInsertId() const {
-        return static_cast<uint64_t>(mysql_insert_id(handle));
+        return mysql_insert_id(handle);
     }
 
     /**
@@ -147,9 +147,9 @@ private:
      *
      * @return true on success, false on error
      */
-    bool beginTransaction();
-    bool rollback();
-    bool commit();
+    bool beginTransaction() const;
+    bool rollback() const;
+    bool commit() const;
 
     MYSQL* handle = nullptr;
     uint64_t maxPacketSize = 1048576;
@@ -170,7 +170,7 @@ public:
     template<typename T>
     T getNumber(const std::string& s) const
     {
-        auto it = listNames.find(s);
+        const auto it = listNames.find(s);
         if (it == listNames.end()) {
             std::cout << "[Error - DBResult::getNumber] Column '" << s << "' doesn't exist in the result set" << std::endl;
             return static_cast<T>(0);

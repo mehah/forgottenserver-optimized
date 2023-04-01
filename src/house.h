@@ -66,7 +66,8 @@ public:
         return this;
     }
 
-    House* getHouse() {
+    House* getHouse() const
+    {
         return house;
     }
 
@@ -74,14 +75,14 @@ public:
     Attr_ReadValue readAttr(AttrTypes_t attr, PropStream& propStream) override;
     void serializeAttr(PropWriteStream&) const override {}
 
-    void setDoorId(uint32_t doorId) {
+    void setDoorId(const uint32_t doorId) {
         setIntAttr(ITEM_ATTRIBUTE_DOORID, doorId);
     }
     uint32_t getDoorId() const {
         return getIntAttr(ITEM_ATTRIBUTE_DOORID);
     }
 
-    bool canUse(const Player* player);
+    bool canUse(const Player* player) const;
 
     void setAccessList(const std::string& textlist);
     bool getAccessList(std::string& list) const;
@@ -148,9 +149,9 @@ public:
     bool isInvited(const Player* player);
 
     AccessHouseLevel_t getHouseAccessLevel(const Player* player);
-    bool kickPlayer(Player* player, Player* target);
+    bool kickPlayer(const Player* player, Player* target);
 
-    void setEntryPos(Position pos) {
+    void setEntryPos(const Position pos) {
         posEntry = pos;
     }
     const Position& getEntryPosition() const {
@@ -169,28 +170,28 @@ public:
         return owner;
     }
 
-    void setPaidUntil(time_t paid) {
+    void setPaidUntil(const time_t paid) {
         paidUntil = paid;
     }
     time_t getPaidUntil() const {
         return paidUntil;
     }
 
-    void setRent(uint32_t rent) {
+    void setRent(const uint32_t rent) {
         this->rent = rent;
     }
     uint32_t getRent() const {
         return rent;
     }
 
-    void setPayRentWarnings(uint32_t warnings) {
+    void setPayRentWarnings(const uint32_t warnings) {
         rentWarnings = warnings;
     }
     uint32_t getPayRentWarnings() const {
         return rentWarnings;
     }
 
-    void setTownId(uint32_t townId) {
+    void setTownId(const uint32_t townId) {
         this->townId = townId;
     }
     uint32_t getTownId() const {
@@ -204,11 +205,11 @@ public:
     void addDoor(Door* door);
     void removeDoor(Door* door);
     Door* getDoorByNumber(uint32_t doorId) const;
-    Door* getDoorByPosition(const Position& pos);
+    Door* getDoorByPosition(const Position& pos) const;
 
     HouseTransferItem* getTransferItem();
     void resetTransferItem();
-    bool executeTransfer(HouseTransferItem* item, Player* newOwner);
+    bool executeTransfer(const HouseTransferItem* item, const Player* newOwner);
 
     const HouseTileList& getTiles() const {
         return houseTiles;
@@ -222,7 +223,8 @@ public:
     const HouseBedItemList& getBeds() const {
         return bedsList;
     }
-    uint32_t getBedCount() {
+    uint32_t getBedCount() const
+    {
         return static_cast<uint32_t>(std::ceil(bedsList.size() / 2.)); //each bed takes 2 sqms of space, ceil is just for bad maps
     }
 
@@ -278,7 +280,7 @@ public:
     Houses& operator=(const Houses&) = delete;
 
     House* addHouse(uint32_t id) {
-        auto it = houseMap.find(id);
+        const auto it = houseMap.find(id);
         if (it != houseMap.end()) {
             return &it->second;
         }
@@ -286,8 +288,8 @@ public:
         return &houseMap.emplace(std::piecewise_construct, std::forward_as_tuple(id), std::forward_as_tuple(id)).first->second;
     }
 
-    House* getHouse(uint32_t houseId) {
-        auto it = houseMap.find(houseId);
+    House* getHouse(const uint32_t houseId) {
+        const auto it = houseMap.find(houseId);
         if (it == houseMap.end()) {
             return nullptr;
         }

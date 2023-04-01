@@ -31,7 +31,7 @@ DepotLocker::DepotLocker(uint16_t type) :
     Container(type, 30), depotId(0) {}
 #endif
 
-Attr_ReadValue DepotLocker::readAttr(AttrTypes_t attr, PropStream& propStream)
+Attr_ReadValue DepotLocker::readAttr(const AttrTypes_t attr, PropStream& propStream)
 {
     if (attr == ATTR_DEPOT_ID) {
         if (!propStream.read<uint16_t>(depotId)) {
@@ -54,23 +54,23 @@ ReturnValue DepotLocker::queryAdd(int32_t index, const Thing& thing, uint32_t co
 }
 #endif
 
-void DepotLocker::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t index, cylinderlink_t)
+void DepotLocker::postAddNotification(Thing* thing, const Cylinder* oldParent, const int32_t index, cylinderlink_t)
 {
     if (parent != nullptr) {
         parent->postAddNotification(thing, oldParent, index, LINK_PARENT);
     }
 }
 
-void DepotLocker::postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t)
+void DepotLocker::postRemoveNotification(Thing* thing, const Cylinder* newParent, const int32_t index, cylinderlink_t)
 {
     if (parent != nullptr) {
         parent->postRemoveNotification(thing, newParent, index, LINK_PARENT);
     }
 }
 
-void DepotLocker::removeInbox(Inbox* inbox)
+void DepotLocker::removeInbox(const Inbox* inbox)
 {
-    auto cit = std::find(itemlist.begin(), itemlist.end(), inbox);
+    const auto cit = std::find(itemlist.begin(), itemlist.end(), inbox);
     if (cit == itemlist.end()) {
         return;
     }

@@ -85,7 +85,7 @@ namespace OTB {
 class PropStream
 {
 public:
-    void init(const char* a, size_t size) {
+    void init(const char* a, const size_t size) {
         p = a;
         end = a + size;
     }
@@ -105,7 +105,7 @@ public:
         return true;
     }
 
-    bool readString(std::string& ret, uint16_t strLen) {
+    bool readString(std::string& ret, const uint16_t strLen) {
         if (size() < strLen) {
             return false;
         }
@@ -132,7 +132,7 @@ public:
         return true;
     }
 
-    bool skip(size_t n) {
+    bool skip(const size_t n) {
         if (size() < n) {
             return false;
         }
@@ -166,12 +166,12 @@ public:
 
     template <typename T>
     void write(T add) {
-        char* addr = reinterpret_cast<char*>(&add);
+        auto addr = reinterpret_cast<char*>(&add);
         std::copy(addr, addr + sizeof(T), std::back_inserter(buffer));
     }
 
     void writeString(const std::string& str) {
-        size_t strLength = str.size();
+        const size_t strLength = str.size();
         if (strLength > std::numeric_limits<uint16_t>::max()) {
             write<uint16_t>(0);
             return;

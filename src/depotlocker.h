@@ -36,7 +36,7 @@ public:
         return this;
     }
 
-    void removeInbox(Inbox* inbox);
+    void removeInbox(const Inbox* inbox);
 
     //serialization
     Attr_ReadValue readAttr(AttrTypes_t attr, PropStream& propStream) override;
@@ -44,7 +44,7 @@ public:
     uint16_t getDepotId() const {
         return depotId;
     }
-    void setDepotId(uint16_t depotId) {
+    void setDepotId(const uint16_t depotId) {
         this->depotId = depotId;
     }
 

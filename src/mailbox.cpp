@@ -29,13 +29,13 @@ extern Game g_game;
 ReturnValue Mailbox::queryAdd(int32_t, const Thing& thing, uint32_t, uint32_t, Creature*) const
 {
     const Item* item = thing.getItem();
-    if (item && Mailbox::canSend(item)) {
+    if (item && canSend(item)) {
         return RETURNVALUE_NOERROR;
     }
     return RETURNVALUE_NOTPOSSIBLE;
 }
 
-ReturnValue Mailbox::queryMaxCount(int32_t, const Thing&, uint32_t count, uint32_t& maxQueryCount, uint32_t) const
+ReturnValue Mailbox::queryMaxCount(int32_t, const Thing&, const uint32_t count, uint32_t& maxQueryCount, uint32_t) const
 {
     maxQueryCount = std::max<uint32_t>(1, count);
     return RETURNVALUE_NOERROR;
@@ -59,7 +59,7 @@ void Mailbox::addThing(Thing* thing)
 void Mailbox::addThing(int32_t, Thing* thing)
 {
     Item* item = thing->getItem();
-    if (item && Mailbox::canSend(item)) {
+    if (item && canSend(item)) {
         sendItem(item);
     }
 }
@@ -79,12 +79,12 @@ void Mailbox::removeThing(Thing*, uint32_t)
     //
 }
 
-void Mailbox::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t index, cylinderlink_t)
+void Mailbox::postAddNotification(Thing* thing, const Cylinder* oldParent, const int32_t index, cylinderlink_t)
 {
     getParent()->postAddNotification(thing, oldParent, index, LINK_PARENT);
 }
 
-void Mailbox::postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t)
+void Mailbox::postRemoveNotification(Thing* thing, const Cylinder* newParent, const int32_t index, cylinderlink_t)
 {
     getParent()->postRemoveNotification(thing, newParent, index, LINK_PARENT);
 }
@@ -154,7 +154,7 @@ bool Mailbox::sendItem(Item* item) const
     return false;
 }
 
-bool Mailbox::getReceiver(Item* item, std::string& name, uint32_t& depotId) const
+bool Mailbox::getReceiver(Item* item, std::string& name, uint32_t& depotId)
 {
     const Container* container = item->getContainer();
     if (container) {

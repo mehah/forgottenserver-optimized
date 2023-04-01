@@ -43,7 +43,7 @@ bool Raids::loadFromXml()
     }
 
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file("data/raids/raids.xml");
+    const pugi::xml_parse_result result = doc.load_file("data/raids/raids.xml");
     if (!result) {
         printXMLError("Error - Raids::loadFromXml", "data/raids/raids.xml", result);
         return false;
@@ -51,7 +51,7 @@ bool Raids::loadFromXml()
 
     for (auto raidNode : doc.child("raids").children()) {
         std::string name, file;
-        uint32_t interval, margin;
+        uint32_t margin;
 
         pugi::xml_attribute attr;
         if ((attr = raidNode.attribute("name"))) {
@@ -70,7 +70,7 @@ bool Raids::loadFromXml()
             std::cout << "[Warning - Raids::loadFromXml] File tag missing for raid " << name << ". Using default: " << file << std::endl;
         }
 
-        interval = pugi::cast<uint32_t>(raidNode.attribute("interval2").value()) * 60;
+        const uint32_t interval = pugi::cast<uint32_t>(raidNode.attribute("interval2").value()) * 60;
         if (interval == 0) {
             std::cout << "[Error - Raids::loadFromXml] interval2 tag missing or zero (would divide by 0) for raid: " << name << std::endl;
             continue;
@@ -113,7 +113,7 @@ bool Raids::startup()
 
     setLastRaidEnd(OTSYS_TIME());
 
-    checkRaidsEvent = g_dispatcher.addEvent(CHECK_RAIDS_INTERVAL * 1000, std::bind(&Raids::checkRaids, this));
+    checkRaidsEvent = g_dispatcher.addEvent(CHECK_RAIDS_INTERVAL * 1000, [this] { checkRaids(); });
 
     started = true;
     return started;
@@ -122,17 +122,17 @@ bool Raids::startup()
 void Raids::checkRaids()
 {
     if (!getRunning()) {
-        uint64_t now = OTSYS_TIME();
+        const uint64_t now = OTSYS_TIME();
 
         for (auto it = raidList.begin(), end = raidList.end(); it != end; ++it) {
-            Raid* raid = &(*it);
-            if (now >= (getLastRaidEnd() + raid->getMargin())) {
-                if (((MAX_RAND_RANGE * CHECK_RAIDS_INTERVAL) / raid->getInterval()) >= static_cast<uint32_t>(uniform_random(0, MAX_RAND_RANGE))) {
+            Raid* raid = &*it;
+            if (now >= getLastRaidEnd() + raid->getMargin()) {
+                if (MAX_RAND_RANGE * CHECK_RAIDS_INTERVAL / raid->getInterval() >= static_cast<uint32_t>(uniform_random(0, MAX_RAND_RANGE))) {
                     setRunning(raid);
                     raid->startRaid();
 
                     if (!raid->canBeRepeated()) {
-                        (*it) = std::move(raidList.back());
+                        *it = std::move(raidList.back());
                         raidList.pop_back();
                     }
                     break;
@@ -141,7 +141,7 @@ void Raids::checkRaids()
         }
     }
 
-    checkRaidsEvent = g_dispatcher.addEvent(CHECK_RAIDS_INTERVAL * 1000, std::bind(&Raids::checkRaids, this));
+    checkRaidsEvent = g_dispatcher.addEvent(CHECK_RAIDS_INTERVAL * 1000, [this] { checkRaids(); });
 }
 
 void Raids::clear()
@@ -180,7 +180,7 @@ Raid* Raids::getRaidByName(const std::string& name)
 
 Raid::~Raid()
 {
-    for (RaidEvent* raidEvent : raidEvents) {
+    for (const RaidEvent* raidEvent : raidEvents) {
         delete raidEvent;
     }
 }
@@ -192,7 +192,7 @@ bool Raid::loadFromXml(const std::string& filename)
     }
 
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file(filename.c_str());
+    const pugi::xml_parse_result result = doc.load_file(filename.c_str());
     if (!result) {
         printXMLError("Error - Raid::loadFromXml", filename, result);
         return false;
@@ -235,7 +235,8 @@ void Raid::startRaid()
     RaidEvent* raidEvent = getNextRaidEvent();
     if (raidEvent) {
         state = RAIDSTATE_EXECUTING;
-        nextEventEvent = g_dispatcher.addEvent(raidEvent->getDelay(), std::bind(&Raid::executeRaidEvent, this, raidEvent));
+        nextEventEvent = g_dispatcher.addEvent(raidEvent->getDelay(),
+                                               [this, raidEvent] { executeRaidEvent(raidEvent); });
     }
 }
 
@@ -246,8 +247,8 @@ void Raid::executeRaidEvent(RaidEvent* raidEvent)
         RaidEvent* newRaidEvent = getNextRaidEvent();
 
         if (newRaidEvent) {
-            uint32_t ticks = static_cast<uint32_t>(std::max<int32_t>(RAID_MINTICKS, newRaidEvent->getDelay() - raidEvent->getDelay()));
-            nextEventEvent = g_dispatcher.addEvent(ticks, std::bind(&Raid::executeRaidEvent, this, newRaidEvent));
+            const uint32_t ticks = static_cast<uint32_t>(std::max<int32_t>(RAID_MINTICKS, newRaidEvent->getDelay() - raidEvent->getDelay()));
+            nextEventEvent = g_dispatcher.addEvent(ticks, [this, newRaidEvent] { executeRaidEvent(newRaidEvent); });
         } else {
             resetRaid();
         }
@@ -272,18 +273,17 @@ void Raid::stopEvents()
     }
 }
 
-RaidEvent* Raid::getNextRaidEvent()
+RaidEvent* Raid::getNextRaidEvent() const
 {
     if (nextEvent < raidEvents.size()) {
         return raidEvents[nextEvent];
-    } else {
-        return nullptr;
     }
+    return nullptr;
 }
 
 bool RaidEvent::configureRaidEvent(const pugi::xml_node& eventNode)
 {
-    pugi::xml_attribute delayAttribute = eventNode.attribute("delay");
+    const pugi::xml_attribute delayAttribute = eventNode.attribute("delay");
     if (!delayAttribute) {
         std::cout << "[Error] Raid: delay tag missing." << std::endl;
         return false;
@@ -299,16 +299,16 @@ bool AnnounceEvent::configureRaidEvent(const pugi::xml_node& eventNode)
         return false;
     }
 
-    pugi::xml_attribute messageAttribute = eventNode.attribute("message");
+    const pugi::xml_attribute messageAttribute = eventNode.attribute("message");
     if (!messageAttribute) {
         std::cout << "[Error] Raid: message tag missing for announce event." << std::endl;
         return false;
     }
     message = messageAttribute.as_string();
 
-    pugi::xml_attribute typeAttribute = eventNode.attribute("type");
+    const pugi::xml_attribute typeAttribute = eventNode.attribute("type");
     if (typeAttribute) {
-        std::string tmpStrValue = asLowerCaseString(typeAttribute.as_string());
+        const std::string tmpStrValue = asLowerCaseString(typeAttribute.as_string());
         if (!tfs_strcmp(tmpStrValue.c_str(), "warning")) {
             messageType = MESSAGE_STATUS_WARNING;
         } else if (!tfs_strcmp(tmpStrValue.c_str(), "event")) {
@@ -400,7 +400,7 @@ bool AreaSpawnEvent::configureRaidEvent(const pugi::xml_node& eventNode)
 
     pugi::xml_attribute attr;
     if ((attr = eventNode.attribute("radius"))) {
-        int32_t radius = pugi::cast<int32_t>(attr.value());
+        const auto radius = pugi::cast<int32_t>(attr.value());
         Position centerPos;
 
         if ((attr = eventNode.attribute("centerx"))) {
@@ -518,7 +518,7 @@ bool AreaSpawnEvent::configureRaidEvent(const pugi::xml_node& eventNode)
 bool AreaSpawnEvent::executeEvent()
 {
     for (const MonsterSpawn& spawn : spawnList) {
-        uint32_t amount = uniform_random(spawn.minAmount, spawn.maxAmount);
+        const uint32_t amount = uniform_random(spawn.minAmount, spawn.maxAmount);
         for (uint32_t i = 0; i < amount; ++i) {
             Monster* monster = Monster::createMonster(spawn.name);
             if (!monster) {
@@ -528,7 +528,7 @@ bool AreaSpawnEvent::executeEvent()
 
             bool success = false;
             for (int32_t tries = 0; tries < MAXIMUM_TRIES_PER_MONSTER; tries++) {
-                Tile* tile = g_game.map.getTile(uniform_random(fromPos.x, toPos.x), uniform_random(fromPos.y, toPos.y), uniform_random(fromPos.z, toPos.z));
+                const Tile* tile = g_game.map.getTile(uniform_random(fromPos.x, toPos.x), uniform_random(fromPos.y, toPos.y), uniform_random(fromPos.z, toPos.z));
                 if (tile && !tile->isMoveableBlocking() && !tile->hasFlag(TILESTATE_PROTECTIONZONE) && tile->getTopCreature() == nullptr && g_game.placeCreature(monster, tile->getPosition(), false, true)) {
                     success = true;
                     break;
@@ -549,7 +549,7 @@ bool ScriptEvent::configureRaidEvent(const pugi::xml_node& eventNode)
         return false;
     }
 
-    pugi::xml_attribute scriptAttribute = eventNode.attribute("script");
+    const pugi::xml_attribute scriptAttribute = eventNode.attribute("script");
     if (!scriptAttribute) {
         std::cout << "Error: [ScriptEvent::configureRaidEvent] No script file found for raid" << std::endl;
         return false;

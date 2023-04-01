@@ -28,7 +28,7 @@ class Dispatcher : public ThreadHolder<Dispatcher>
 {
 public:
 #if BOOST_VERSION >= 106600
-    Dispatcher() : work(boost::asio::make_work_guard(io_service)) {}
+    Dispatcher() : work(make_work_guard(io_service)) {}
 #else
     Dispatcher() : work(std::make_shared<boost::asio::io_service::work>(io_service)) {}
 #endif

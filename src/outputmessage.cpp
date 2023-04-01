@@ -30,13 +30,13 @@ const std::chrono::milliseconds OUTPUTMESSAGE_AUTOSEND_DELAY{ 10 };
 
 void OutputMessagePool::scheduleSendAll()
 {
-    g_dispatcher.addEvent(OUTPUTMESSAGE_AUTOSEND_DELAY.count(), std::bind(&OutputMessagePool::sendAll, this));
+    g_dispatcher.addEvent(OUTPUTMESSAGE_AUTOSEND_DELAY.count(), [this] { sendAll(); });
 }
 
 void OutputMessagePool::sendAll()
 {
     //dispatcher thread
-    for (auto& protocol : bufferedProtocols) {
+    for (const auto& protocol : bufferedProtocols) {
         auto& msg = protocol->getCurrentBuffer();
         if (msg) {
             protocol->send(std::move(msg));
@@ -48,7 +48,7 @@ void OutputMessagePool::sendAll()
     }
 }
 
-void OutputMessagePool::addProtocolToAutosend(Protocol_ptr protocol)
+void OutputMessagePool::addProtocolToAutosend(const Protocol_ptr& protocol)
 {
     //dispatcher thread
     if (bufferedProtocols.empty()) {
@@ -60,7 +60,7 @@ void OutputMessagePool::addProtocolToAutosend(Protocol_ptr protocol)
 void OutputMessagePool::removeProtocolFromAutosend(const Protocol_ptr& protocol)
 {
     //dispatcher thread
-    auto it = std::find(bufferedProtocols.begin(), bufferedProtocols.end(), protocol);
+    const auto it = std::find(bufferedProtocols.begin(), bufferedProtocols.end(), protocol);
     if (it != bufferedProtocols.end()) {
         *it = bufferedProtocols.back();
         bufferedProtocols.pop_back();

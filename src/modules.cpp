@@ -34,7 +34,7 @@ Modules::Modules() :
 bool Modules::load()
 {
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file("data/modules/modules.xml");
+    const pugi::xml_parse_result result = doc.load_file("data/modules/modules.xml");
     if (!result) {
         printXMLError("Error - Events::load", "data/modules/modules.xml", result);
         return false;
@@ -46,13 +46,13 @@ bool Modules::load()
     for (auto eventNode : doc.child("modules").children()) {
         pugi::xml_attribute attr;
         if ((attr = eventNode.attribute("versionmin"))) {
-            uint32_t versionMin = pugi::cast<uint32_t>(attr.value());
-            uint32_t versionMax = pugi::cast<uint32_t>(eventNode.attribute("versionmax").value());
+            auto versionMin = pugi::cast<uint32_t>(attr.value());
+            auto versionMax = pugi::cast<uint32_t>(eventNode.attribute("versionmax").value());
             if (CLIENT_VERSION < versionMin || CLIENT_VERSION > versionMax) {
                 continue;
             }
         } else if ((attr = eventNode.attribute("version"))) {
-            uint32_t version = pugi::cast<uint32_t>(attr.value());
+            auto version = pugi::cast<uint32_t>(attr.value());
             if (CLIENT_VERSION < version) {
                 continue;
             }
@@ -75,8 +75,8 @@ bool Modules::load()
             scripts[lowercase] = scriptId;
         }
 
-        uint16_t byte = static_cast<uint16_t>(strtoul(eventNode.attribute("byte").as_string(), nullptr, 0));
-        auto res = modules.emplace(static_cast<uint8_t>(byte), scriptId);
+        const uint16_t byte = static_cast<uint16_t>(strtoul(eventNode.attribute("byte").as_string(), nullptr, 0));
+        const auto res = modules.emplace(static_cast<uint8_t>(byte), scriptId);
         if (!res.second) {
             std::cout << "[Warning - Modules::load] Duplicate registered module with byte: " << byte << std::endl;
         }
@@ -85,9 +85,9 @@ bool Modules::load()
 }
 
 // Module
-bool Modules::eventOnRecvByte(Player* player, uint8_t recvbyte, NetworkMessage& msg)
+bool Modules::eventOnRecvByte(Player* player, const uint8_t recvbyte, NetworkMessage& msg)
 {
-    auto it = modules.find(recvbyte);
+    const auto it = modules.find(recvbyte);
     if (it == modules.end() || it->second == -1) {
         return false;
     }

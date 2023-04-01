@@ -30,7 +30,7 @@ ReturnValue TrashHolder::queryAdd(int32_t, const Thing&, uint32_t, uint32_t, Cre
     return RETURNVALUE_NOERROR;
 }
 
-ReturnValue TrashHolder::queryMaxCount(int32_t, const Thing&, uint32_t count, uint32_t& maxQueryCount, uint32_t) const
+ReturnValue TrashHolder::queryMaxCount(int32_t, const Thing&, const uint32_t count, uint32_t& maxQueryCount, uint32_t) const
 {
     maxQueryCount = std::max<uint32_t>(1, count);
     return RETURNVALUE_NOERROR;
@@ -62,9 +62,9 @@ void TrashHolder::addThing(int32_t, Thing* thing)
         return;
     }
 
-    const ItemType& it = Item::items[getID()];
+    const ItemType& it = items[getID()];
     if (item->isHangable() && it.isGroundTile()) {
-        Tile* tile = dynamic_cast<Tile*>(getParent());
+        const auto tile = dynamic_cast<Tile*>(getParent());
         if (tile && tile->hasFlag(TILESTATE_SUPPORTS_HANGABLE)) {
             return;
         }
@@ -92,12 +92,12 @@ void TrashHolder::removeThing(Thing*, uint32_t)
     //
 }
 
-void TrashHolder::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t index, cylinderlink_t)
+void TrashHolder::postAddNotification(Thing* thing, const Cylinder* oldParent, const int32_t index, cylinderlink_t)
 {
     getParent()->postAddNotification(thing, oldParent, index, LINK_PARENT);
 }
 
-void TrashHolder::postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t)
+void TrashHolder::postRemoveNotification(Thing* thing, const Cylinder* newParent, const int32_t index, cylinderlink_t)
 {
     getParent()->postRemoveNotification(thing, newParent, index, LINK_PARENT);
 }

@@ -33,9 +33,9 @@
 extern ConfigManager g_config;
 extern Game g_game;
 
-void ProtocolLogin::disconnectClient(const std::string& message, uint32_t version)
+void ProtocolLogin::disconnectClient(const std::string& message, const uint32_t version) const
 {
-    auto output = OutputMessagePool::getOutputMessage();
+    const auto output = OutputMessagePool::getOutputMessage();
     output->addByte(version >= 1076 ? 0x0B : 0x0A);
     output->addString(message);
     send(output);
@@ -65,7 +65,7 @@ void ProtocolLogin::getCharacterList(const std::string& accountName, const std::
     }
 #endif
 
-    auto connection = getConnection();
+    const auto connection = getConnection();
     if (!connection) {
         return;
     }
@@ -91,7 +91,7 @@ void ProtocolLogin::getCharacterList(const std::string& accountName, const std::
     auto output = OutputMessagePool::getOutputMessage();
 
 #if GAME_FEATURE_SESSIONKEY > 0
-    uint32_t ticks = time(nullptr) / AUTHENTICATOR_PERIOD;
+    const uint32_t ticks = time(nullptr) / AUTHENTICATOR_PERIOD;
     if (!account.key.empty()) {
         if (token.empty() || !(token == generateToken(account.key, ticks) || token == generateToken(account.key, ticks - 1) || token == generateToken(account.key, ticks + 1))) {
             output->addByte(0x0D);
@@ -167,7 +167,7 @@ void ProtocolLogin::getCharacterList(const std::string& accountName, const std::
         output->add<uint32_t>(0);
     } else {
         output->addByte(account.premiumDays > 0 ? 1 : 0);
-        output->add<uint32_t>(time(nullptr) + (account.premiumDays * 86400));
+        output->add<uint32_t>(time(nullptr) + account.premiumDays * 86400);
     }
 #else
     if (g_config.getBoolean(ConfigManager::FREE_PREMIUM)) {
@@ -191,7 +191,7 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 
     msg.skipBytes(2); // client OS
 
-    uint32_t clientVersion = static_cast<uint32_t>(msg.get<uint16_t>());
+    auto clientVersion = msg.get<uint16_t>();
     if (clientVersion >= 971) {
         clientVersion = msg.get<uint32_t>();
         msg.skipBytes(13);
@@ -206,12 +206,12 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
      */
 
     if (clientVersion >= 770) {
-        if (!Protocol::RSA_decrypt(msg)) {
+        if (!RSA_decrypt(msg)) {
             disconnect();
             return;
         }
 
-        uint32_t key[4] = { msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>() };
+        const uint32_t key[4] = { msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>() };
         enableXTEAEncryption();
         setXTEAKey(key);
 
@@ -255,8 +255,8 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
 
 #if GAME_FEATURE_SESSIONKEY > 0
     // read authenticator token and stay logged in flag from last 128 bytes
-    msg.skipBytes((msg.getLength() - 128) - msg.getBufferPosition());
-    if (!Protocol::RSA_decrypt(msg)) {
+    msg.skipBytes(msg.getLength() - 128 - msg.getBufferPosition());
+    if (!RSA_decrypt(msg)) {
         disconnectClient("Invalid authentification token.", clientVersion);
         return;
     }
@@ -264,7 +264,12 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
     std::string authToken = msg.getString();
 
     auto thisPtr = std::static_pointer_cast<ProtocolLogin>(shared_from_this());
-    g_dispatcher.addTask(std::bind(&ProtocolLogin::getCharacterList, thisPtr, std::move(accountName), std::move(password), std::move(authToken), clientVersion));
+    g_dispatcher.addTask(
+        [thisPtr, capture0 = std::move(accountName), capture1 = std::move(password), capture2 = std::move(authToken),
+            clientVersion]
+        {
+            thisPtr->getCharacterList(capture0, capture1, capture2, clientVersion);
+        });
 #else
     auto thisPtr = std::static_pointer_cast<ProtocolLogin>(shared_from_this());
     g_dispatcher.addTask(std::bind(&ProtocolLogin::getCharacterList, thisPtr, std::move(accountName), std::move(password), clientVersion));

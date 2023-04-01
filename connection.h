@@ -49,7 +49,7 @@ public:
         return instance;
     }
 
-    Connection_ptr createConnection(boost::asio::io_service& io_service, const ServicePort_ptr& servicePort);
+    Connection_ptr createConnection(boost::asio::io_service& io_service, const ConstServicePort_ptr& servicePort);
     void releaseConnection(const Connection_ptr& connection);
     void closeAll();
 

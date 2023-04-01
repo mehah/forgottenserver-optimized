@@ -75,12 +75,12 @@ public:
     Position getPosition();
 
     // skips count unknown/unused bytes in an incoming message
-    void skipBytes(int16_t count) {
+    void skipBytes(const int16_t count) {
         info.position += count;
     }
 
     // simply write functions for outgoing message
-    void addByte(uint8_t value) {
+    void addByte(const uint8_t value) {
         if (!canAdd(1)) {
             return;
         }
@@ -106,16 +106,16 @@ public:
     void addString(const std::string& value);
 
     template<uint8_t precision>
-    inline void addDouble(double value) {
+    void addDouble(const double value) {
         if (!canAdd(5)) {
             return;
         }
 
-        uint32_t doubleValue = (value * std::pow(10.0, precision)) + std::numeric_limits<int32_t>::max();
+        const uint32_t doubleValue = value * std::pow(10.0, precision) + std::numeric_limits<int32_t>::max();
         buffer[info.position] = precision;
-        memcpy(buffer + info.position + 1, &doubleValue, sizeof(doubleValue));
-        info.position += sizeof(doubleValue) + 1;
-        info.length += sizeof(doubleValue) + 1;
+        memcpy(buffer + info.position + 1, &doubleValue, sizeof doubleValue);
+        info.position += sizeof doubleValue + 1;
+        info.length += sizeof doubleValue + 1;
     }
 
     // write functions for complex types
@@ -126,7 +126,7 @@ public:
         return info.length;
     }
 
-    void setLength(MsgSize_t newLength) {
+    void setLength(const MsgSize_t newLength) {
         info.length = newLength;
     }
 
@@ -134,7 +134,7 @@ public:
         return info.position;
     }
 
-    void setBufferPosition(MsgSize_t newPosition) {
+    void setBufferPosition(const MsgSize_t newPosition) {
         info.position = newPosition;
     }
 
@@ -171,12 +171,12 @@ protected:
     uint8_t buffer[NETWORKMESSAGE_MAXSIZE];
 
 private:
-    bool canAdd(size_t size) const {
-        return (size + info.position) < MAX_BODY_LENGTH;
+    bool canAdd(const size_t size) const {
+        return size + info.position < MAX_BODY_LENGTH;
     }
 
-    bool canRead(int32_t size) {
-        if ((info.position + size) > (info.length + 8) || size >= (NETWORKMESSAGE_MAXSIZE - info.position)) {
+    bool canRead(const int32_t size) {
+        if (info.position + size > info.length + 8 || size >= NETWORKMESSAGE_MAXSIZE - info.position) {
             info.overrun = true;
             return false;
         }

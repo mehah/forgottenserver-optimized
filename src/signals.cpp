@@ -77,7 +77,7 @@ Signals::Signals(boost::asio::io_service& service) :
 
 void Signals::asyncWait()
 {
-    set.async_wait([this](ErrorCode err, int signal) {
+    set.async_wait([this](const ErrorCode err, const int signal) {
         if (err) {
             std::cerr << "Signal handling error: " << err.message() << std::endl;
             return;
@@ -90,7 +90,7 @@ void Signals::asyncWait()
 // On Windows this function does not need to be signal-safe,
 // as it is called in a new thread.
 // https://github.com/otland/forgottenserver/pull/2473
-void Signals::dispatchSignalHandler(int signal)
+void Signals::dispatchSignalHandler(const int signal)
 {
     switch (signal) {
         case SIGINT: //Shuts the server down

@@ -44,7 +44,7 @@ public:
         add_header(info.length);
     }
 
-    void addCryptoHeader(bool addChecksum, uint32_t checksum) {
+    void addCryptoHeader(const bool addChecksum, const uint32_t checksum) {
         if (addChecksum) {
             add_header(checksum);
         }
@@ -53,14 +53,14 @@ public:
     }
 
     void append(const NetworkMessage& msg) {
-        auto msgLen = msg.getLength();
+        const auto msgLen = msg.getLength();
         memcpy(buffer + info.position, msg.getBuffer() + INITIAL_BUFFER_POSITION, msgLen);
         info.length += msgLen;
         info.position += msgLen;
     }
 
     void append(const OutputMessage_ptr& msg) {
-        auto msgLen = msg->getLength();
+        const auto msgLen = msg->getLength();
         memcpy(buffer + info.position, msg->getBuffer() + INITIAL_BUFFER_POSITION, msgLen);
         info.length += msgLen;
         info.position += msgLen;
@@ -96,7 +96,7 @@ public:
 
     static OutputMessage_ptr getOutputMessage();
 
-    void addProtocolToAutosend(Protocol_ptr protocol);
+    void addProtocolToAutosend(const Protocol_ptr& protocol);
     void removeProtocolFromAutosend(const Protocol_ptr& protocol);
 private:
     OutputMessagePool() = default;

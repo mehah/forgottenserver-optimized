@@ -240,7 +240,7 @@ public:
 
     MonsterInfo info;
 
-    void loadLoot(MonsterType* monsterType, LootBlock& lootblock);
+    void loadLoot(MonsterType* monsterType, LootBlock& lootblock) const;
 };
 
 class MonsterSpell
@@ -306,19 +306,19 @@ public:
 
     std::unordered_map<std::string, uint16_t>& getRaces() { return races; }
     std::map<uint16_t, std::map<uint16_t, std::string>>& getMonsterRaces() { return monsterRaces; }
-    std::string getRaceName(uint16_t raceId);
+    std::string getRaceName(uint16_t raceId) const;
 
     MonsterType* getMonsterType(const std::string& name);
     MonsterType* addMonsterType(const std::string& name);
-    bool deserializeSpell(MonsterSpell* spell, spellBlock_t& sb, const std::string& description = "");
+    bool deserializeSpell(MonsterSpell* spell, spellBlock_t& sb, const std::string& description = "") const;
 
     std::unique_ptr<LuaScriptInterface> scriptInterface;
-    bool loadCallback(LuaScriptInterface* scriptInterface, MonsterType* mType);
+    static bool loadCallback(LuaScriptInterface* scriptInterface, MonsterType* mType);
 
 private:
     ConditionDamage* getDamageCondition(ConditionType_t conditionType,
-                                        int32_t maxDamage, int32_t minDamage, int32_t startDamage, uint32_t tickInterval);
-    bool deserializeSpell(const pugi::xml_node& node, spellBlock_t& sb, const std::string& description = "");
+                                        int32_t maxDamage, int32_t minDamage, int32_t startDamage, uint32_t tickInterval) const;
+    bool deserializeSpell(const pugi::xml_node& node, spellBlock_t& sb, const std::string& description = "") const;
 
     MonsterType* loadMonster(const std::string& file, const std::string& monsterName, bool reloading = false);
 

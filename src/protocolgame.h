@@ -52,7 +52,7 @@ struct TextMessage
     } primary, secondary;
 
     TextMessage() = default;
-    TextMessage(MessageClasses type, std::string text) : type(type), text(std::move(text)) {}
+    TextMessage(const MessageClasses type, std::string text) : type(type), text(std::move(text)) {}
 };
 
 #if GAME_FEATURE_QUEST_TRACKER > 0
@@ -78,14 +78,14 @@ public:
         return "gameworld protocol";
     }
 
-    explicit ProtocolGame(Connection_ptr connection) : Protocol(connection) {}
+    explicit ProtocolGame(const Connection_ptr& connection) : Protocol(connection) {}
 
 #if GAME_FEATURE_SESSIONKEY > 0
-    void login(const std::string& accountName, const std::string& password, std::string& characterName, std::string& token, uint32_t tokenTime, OperatingSystem_t operatingSystem, OperatingSystem_t tfcOperatingSystem);
+    void login(const std::string& accountName, const std::string& password, const std::string& characterName, const std::string& token, uint32_t tokenTime, OperatingSystem_t operatingSystem, OperatingSystem_t tfcOperatingSystem);
 #else
-    void login(const std::string& accountName, const std::string& password, std::string& characterName, OperatingSystem_t operatingSystem, OperatingSystem_t tfcOperatingSystem);
+    void login(const std::string& accountName, const std::string& password, const std::string& characterName, OperatingSystem_t operatingSystem, OperatingSystem_t tfcOperatingSystem);
 #endif
-    void logout(bool displayEffect, bool forced);
+    void logout(bool displayEffect, bool forced) const;
 
     uint16_t getVersion() const {
         return version;
@@ -118,25 +118,25 @@ private:
 #if GAME_FEATURE_QUEST_TRACKER > 0
     void parseTrackedQuestFlags(NetworkMessage& msg);
 #endif
-    void parseAutoWalk(NetworkMessage& msg);
-    void parseSetOutfit(NetworkMessage& msg);
-    void parseSay(NetworkMessage& msg);
+    void parseAutoWalk(NetworkMessage& msg) const;
+    void parseSetOutfit(NetworkMessage& msg) const;
+    void parseSay(NetworkMessage& msg) const;
 #if CLIENT_VERSION >= 1092
-    void parseWrapableItem(NetworkMessage& msg);
+    void parseWrapableItem(NetworkMessage& msg) const;
 #endif
-    void parseLookAt(NetworkMessage& msg);
-    void parseLookInBattleList(NetworkMessage& msg);
-    void parseFightModes(NetworkMessage& msg);
-    void parseAttack(NetworkMessage& msg);
-    void parseFollow(NetworkMessage& msg);
-    void parseEquipObject(NetworkMessage& msg);
+    void parseLookAt(NetworkMessage& msg) const;
+    void parseLookInBattleList(NetworkMessage& msg) const;
+    void parseFightModes(NetworkMessage& msg) const;
+    void parseAttack(NetworkMessage& msg) const;
+    void parseFollow(NetworkMessage& msg) const;
+    void parseEquipObject(NetworkMessage& msg) const;
 #if CLIENT_VERSION >= 1150
     void parseTeleport(NetworkMessage& msg);
 #endif
 
-    void parseCyclopediaMonsters(NetworkMessage& msg);
-    void parseCyclopediaRace(NetworkMessage& msg);
-    void parseCyclopediaHouseAction(NetworkMessage& msg);
+    void parseCyclopediaMonsters(NetworkMessage& msg) const;
+    void parseCyclopediaRace(NetworkMessage& msg) const;
+    void parseCyclopediaHouseAction(const NetworkMessage& msg);
 #if GAME_FEATURE_CYCLOPEDIA_CHARACTERINFO > 0
     void parseCyclopediaCharacterInfo(NetworkMessage& msg);
 #endif
@@ -144,83 +144,83 @@ private:
     void parseHighscores(NetworkMessage& msg);
 #endif
 
-    void parseTournamentLeaderboard(NetworkMessage& msg);
+    void parseTournamentLeaderboard(NetworkMessage& msg) const;
 
-    void parseBugReport(NetworkMessage& msg);
+    void parseBugReport(NetworkMessage& msg) const;
 #if GAME_FEATURE_RULEVIOLATION > 0
     void parseRuleViolation(NetworkMessage& msg);
 #endif
     void parseDebugAssert(NetworkMessage& msg);
-    void parseRuleViolationReport(NetworkMessage& msg);
+    void parseRuleViolationReport(NetworkMessage& msg) const;
 
-    void parseThrow(NetworkMessage& msg);
-    void parseUseItemEx(NetworkMessage& msg);
-    void parseUseWithCreature(NetworkMessage& msg);
-    void parseUseItem(NetworkMessage& msg);
-    void parseCloseContainer(NetworkMessage& msg);
-    void parseUpArrowContainer(NetworkMessage& msg);
-    void parseUpdateContainer(NetworkMessage& msg);
-    void parseTextWindow(NetworkMessage& msg);
-    void parseHouseWindow(NetworkMessage& msg);
+    void parseThrow(NetworkMessage& msg) const;
+    void parseUseItemEx(NetworkMessage& msg) const;
+    void parseUseWithCreature(NetworkMessage& msg) const;
+    void parseUseItem(NetworkMessage& msg) const;
+    void parseCloseContainer(NetworkMessage& msg) const;
+    void parseUpArrowContainer(NetworkMessage& msg) const;
+    void parseUpdateContainer(NetworkMessage& msg) const;
+    void parseTextWindow(NetworkMessage& msg) const;
+    void parseHouseWindow(NetworkMessage& msg) const;
 
-    void parseLookInShop(NetworkMessage& msg);
-    void parsePlayerPurchase(NetworkMessage& msg);
-    void parsePlayerSale(NetworkMessage& msg);
+    void parseLookInShop(NetworkMessage& msg) const;
+    void parsePlayerPurchase(NetworkMessage& msg) const;
+    void parsePlayerSale(NetworkMessage& msg) const;
 
-    void parseQuestLine(NetworkMessage& msg);
+    void parseQuestLine(NetworkMessage& msg) const;
 
-    void parseInviteToParty(NetworkMessage& msg);
-    void parseJoinParty(NetworkMessage& msg);
-    void parseRevokePartyInvite(NetworkMessage& msg);
-    void parsePassPartyLeadership(NetworkMessage& msg);
-    void parseEnableSharedPartyExperience(NetworkMessage& msg);
+    void parseInviteToParty(NetworkMessage& msg) const;
+    void parseJoinParty(NetworkMessage& msg) const;
+    void parseRevokePartyInvite(NetworkMessage& msg) const;
+    void parsePassPartyLeadership(NetworkMessage& msg) const;
+    void parseEnableSharedPartyExperience(NetworkMessage& msg) const;
 
 #if GAME_FEATURE_MOUNTS > 0
-    void parseToggleMount(NetworkMessage& msg);
+    void parseToggleMount(NetworkMessage& msg) const;
 #endif
 #if CLIENT_VERSION >= 960
-    void parseModalWindowAnswer(NetworkMessage& msg);
+    void parseModalWindowAnswer(NetworkMessage& msg) const;
 #endif
 
 #if GAME_FEATURE_BROWSEFIELD > 0
-    void parseBrowseField(NetworkMessage& msg);
+    void parseBrowseField(NetworkMessage& msg) const;
 #endif
 #if GAME_FEATURE_CONTAINER_PAGINATION > 0
-    void parseSeekInContainer(NetworkMessage& msg);
+    void parseSeekInContainer(NetworkMessage& msg) const;
 #endif
 #if GAME_FEATURE_INSPECTION > 0
     void parseInspectionObject(NetworkMessage& msg);
 #endif
 
     //trade methods
-    void parseRequestTrade(NetworkMessage& msg);
-    void parseLookInTrade(NetworkMessage& msg);
+    void parseRequestTrade(NetworkMessage& msg) const;
+    void parseLookInTrade(NetworkMessage& msg) const;
 
 #if GAME_FEATURE_MARKET > 0
     //market methods
-    void parseMarketLeave();
-    void parseMarketBrowse(NetworkMessage& msg);
-    void parseMarketCreateOffer(NetworkMessage& msg);
-    void parseMarketCancelOffer(NetworkMessage& msg);
-    void parseMarketAcceptOffer(NetworkMessage& msg);
+    void parseMarketLeave() const;
+    void parseMarketBrowse(NetworkMessage& msg) const;
+    void parseMarketCreateOffer(NetworkMessage& msg) const;
+    void parseMarketCancelOffer(NetworkMessage& msg) const;
+    void parseMarketAcceptOffer(NetworkMessage& msg) const;
 #endif
 
     //VIP methods
-    void parseAddVip(NetworkMessage& msg);
-    void parseRemoveVip(NetworkMessage& msg);
-    void parseEditVip(NetworkMessage& msg);
+    void parseAddVip(NetworkMessage& msg) const;
+    void parseRemoveVip(NetworkMessage& msg) const;
+    void parseEditVip(NetworkMessage& msg) const;
 
-    void parseRotateItem(NetworkMessage& msg);
+    void parseRotateItem(NetworkMessage& msg) const;
 #if GAME_FEATURE_PODIUM > 0
     void parseConfigureShowOffSocket(NetworkMessage& msg);
 #endif
 
     //Channel tabs
-    void parseChannelInvite(NetworkMessage& msg);
-    void parseChannelExclude(NetworkMessage& msg);
-    void parseOpenChannel(NetworkMessage& msg);
-    void parseOpenPrivateChannel(NetworkMessage& msg);
-    void parseCloseChannel(NetworkMessage& msg);
+    void parseChannelInvite(NetworkMessage& msg) const;
+    void parseChannelExclude(NetworkMessage& msg) const;
+    void parseOpenChannel(NetworkMessage& msg) const;
+    void parseOpenPrivateChannel(NetworkMessage& msg) const;
+    void parseCloseChannel(NetworkMessage& msg) const;
 #if GAME_FEATURE_RULEVIOLATION > 0
     void parseProcessRuleViolation(NetworkMessage& msg);
     void parseCloseRuleViolation(NetworkMessage& msg);
@@ -368,7 +368,7 @@ private:
     void sendTradeItemRequest(const std::string& traderName, const Item* item, bool ack);
     void sendCloseTrade();
 
-    void sendTextWindow(uint32_t windowTextId, Item* item, uint16_t maxlen, bool canWrite);
+    void sendTextWindow(uint32_t windowTextId, const Item* item, uint16_t maxlen, bool canWrite);
     void sendTextWindow(uint32_t windowTextId, uint32_t itemId, const std::string& text);
     void sendHouseWindow(uint32_t windowTextId, const std::string& text);
     void sendOutfitWindow();
@@ -456,33 +456,33 @@ private:
     // translate a map area to clientreadable format
     void GetMapDescription(int32_t x, int32_t y, int32_t z, int32_t width, int32_t height);
 
-    void AddCreature(const Creature* creature, bool known, uint32_t remove);
-    void AddPlayerStats();
-    void AddOutfit(const Outfit_t& outfit);
-    void AddPlayerSkills();
-    void AddWorldLight(LightInfo lightInfo);
-    void AddCreatureLight(const Creature* creature);
+    void AddCreature(const Creature* creature, bool known, uint32_t remove) const;
+    void AddPlayerStats() const;
+    static void AddOutfit(const Outfit_t& outfit);
+    void AddPlayerSkills() const;
+    void AddWorldLight(LightInfo lightInfo) const;
+    void AddCreatureLight(const Creature* creature) const;
 
     //tiles
-    void RemoveTileThing(const Position& pos, uint32_t stackpos);
+    static void RemoveTileThing(const Position& pos, uint32_t stackpos);
 
     void MoveUpCreature(const Creature* creature, const Position& newPos, const Position& oldPos);
     void MoveDownCreature(const Creature* creature, const Position& newPos, const Position& oldPos);
 
     //shop
-    void AddShopItem(const ShopInfo& item);
+    static void AddShopItem(const ShopInfo& item);
 
     //items
-    void AddItem(uint16_t id, uint8_t count);
-    void AddItem(const Item* item);
+    static void AddItem(uint16_t id, uint8_t count);
+    void AddItem(const Item* item) const;
 
     //otclient
-    void parseExtendedOpcode(NetworkMessage& msg);
+    void parseExtendedOpcode(NetworkMessage& msg) const;
 
     //translations
-    SpeakClasses translateSpeakClassFromClient(uint8_t talkType);
-    uint8_t translateSpeakClassToClient(SpeakClasses talkType);
-    uint8_t translateMessageClassToClient(MessageClasses messageType);
+    static SpeakClasses translateSpeakClassFromClient(uint8_t talkType);
+    static uint8_t translateSpeakClassToClient(SpeakClasses talkType);
+    static uint8_t translateMessageClassToClient(MessageClasses messageType);
 
     friend class Player;
 

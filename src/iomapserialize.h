@@ -27,7 +27,7 @@
 class IOMapSerialize
 {
 public:
-    static void loadHouseItems(Map* map);
+    static void loadHouseItems(const Map* map);
     static bool saveHouseItems();
     static bool loadHouseInfo();
     static bool saveHouseInfo();

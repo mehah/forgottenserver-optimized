@@ -67,7 +67,7 @@ void DatabaseTasks::addTask(std::string query, std::function<void(DBResult_ptr, 
     }
 }
 
-void DatabaseTasks::runTask(const DatabaseTask& task)
+void DatabaseTasks::runTask(const DatabaseTask& task) const
 {
     bool success;
     DBResult_ptr result;

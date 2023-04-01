@@ -27,7 +27,7 @@
 extern Chat* g_chat;
 extern Game g_game;
 
-bool PrivateChatChannel::isInvited(uint32_t guid) const
+bool PrivateChatChannel::isInvited(const uint32_t guid) const
 {
     if (guid == getOwner()) {
         return true;
@@ -35,14 +35,14 @@ bool PrivateChatChannel::isInvited(uint32_t guid) const
     return invites.find(guid) != invites.end();
 }
 
-bool PrivateChatChannel::removeInvite(uint32_t guid)
+bool PrivateChatChannel::removeInvite(const uint32_t guid)
 {
     return invites.erase(guid) != 0;
 }
 
 void PrivateChatChannel::invitePlayer(const Player& player, Player& invitePlayer)
 {
-    auto result = invites.emplace(invitePlayer.getGUID(), &invitePlayer);
+    const auto result = invites.emplace(invitePlayer.getGUID(), &invitePlayer);
     if (!result.second) {
         return;
     }
@@ -102,9 +102,11 @@ bool ChatChannel::addUser(Player& player)
 
     // TODO: Move to script when guild channels can be scripted
     if (id == CHANNEL_GUILD) {
-        Guild* guild = player.getGuild();
+        const Guild* guild = player.getGuild();
         if (guild && !guild->getMotd().empty()) {
-            g_dispatcher.addEvent(150, std::bind(&Game::sendGuildMotd, &g_game, player.getID()));
+            g_dispatcher.addEvent(150, [ObjectPtr = &g_game, capture0 = player.getID()] {
+                ObjectPtr->sendGuildMotd(capture0);
+            });
         }
     }
 
@@ -122,7 +124,7 @@ bool ChatChannel::addUser(Player& player)
 
 bool ChatChannel::removeUser(const Player& player)
 {
-    auto iter = users.find(player.getID());
+    const auto iter = users.find(player.getID());
     if (iter == users.end()) {
         return false;
     }
@@ -145,14 +147,14 @@ bool ChatChannel::hasUser(const Player& player) {
     return users.find(player.getID()) != users.end();
 }
 
-void ChatChannel::sendToAll(const std::string& message, SpeakClasses type) const
+void ChatChannel::sendToAll(const std::string& message, const SpeakClasses type) const
 {
     for (const auto& it : users) {
         it.second->sendChannelMessage("", message, type, id);
     }
 }
 
-bool ChatChannel::talk(const Player& fromPlayer, SpeakClasses type, const std::string& text)
+bool ChatChannel::talk(const Player& fromPlayer, const SpeakClasses type, const std::string& text)
 {
     if (users.find(fromPlayer.getID()) == users.end()) {
         return false;
@@ -164,7 +166,7 @@ bool ChatChannel::talk(const Player& fromPlayer, SpeakClasses type, const std::s
     return true;
 }
 
-bool ChatChannel::executeCanJoinEvent(const Player& player)
+bool ChatChannel::executeCanJoinEvent(const Player& player) const
 {
     if (canJoinEvent == -1) {
         return true;
@@ -189,7 +191,7 @@ bool ChatChannel::executeCanJoinEvent(const Player& player)
     return scriptInterface->callFunction(1);
 }
 
-bool ChatChannel::executeOnJoinEvent(const Player& player)
+bool ChatChannel::executeOnJoinEvent(const Player& player) const
 {
     if (onJoinEvent == -1) {
         return true;
@@ -214,7 +216,7 @@ bool ChatChannel::executeOnJoinEvent(const Player& player)
     return scriptInterface->callFunction(1);
 }
 
-bool ChatChannel::executeOnLeaveEvent(const Player& player)
+bool ChatChannel::executeOnLeaveEvent(const Player& player) const
 {
     if (onLeaveEvent == -1) {
         return true;
@@ -239,7 +241,7 @@ bool ChatChannel::executeOnLeaveEvent(const Player& player)
     return scriptInterface->callFunction(1);
 }
 
-bool ChatChannel::executeOnSpeakEvent(const Player& player, SpeakClasses& type, const std::string& message)
+bool ChatChannel::executeOnSpeakEvent(const Player& player, SpeakClasses& type, const std::string& message) const
 {
     if (onSpeakEvent == -1) {
         return true;
@@ -265,8 +267,8 @@ bool ChatChannel::executeOnSpeakEvent(const Player& player, SpeakClasses& type, 
     LuaScriptInterface::pushString(L, message);
 
     bool result = false;
-    int size0 = lua_gettop(L);
-    int ret = scriptInterface->protectedCall(L, 3, 1);
+    const int size0 = lua_gettop(L);
+    const int ret = scriptInterface->protectedCall(L, 3, 1);
     if (ret != 0) {
         LuaScriptInterface::reportError(nullptr, LuaScriptInterface::popString(L));
     } else if (lua_gettop(L) > 0) {
@@ -279,7 +281,7 @@ bool ChatChannel::executeOnSpeakEvent(const Player& player, SpeakClasses& type, 
         lua_pop(L, 1);
     }
 
-    if ((lua_gettop(L) + 4) != size0) {
+    if (lua_gettop(L) + 4 != size0) {
         LuaScriptInterface::reportError(nullptr, "Stack size changed!");
     }
     scriptInterface->resetScriptEnv();
@@ -296,7 +298,7 @@ Chat::Chat() :
 bool Chat::load()
 {
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file("data/chatchannels/chatchannels.xml");
+    const pugi::xml_parse_result result = doc.load_file("data/chatchannels/chatchannels.xml");
     if (!result) {
         printXMLError("Error - Chat::load", "data/chatchannels/chatchannels.xml", result);
         return false;
@@ -341,7 +343,7 @@ bool Chat::load()
             channelId = pugi::cast<uint16_t>(channelNode.attribute("id").value());
         }
         std::string channelName = channelNode.attribute("name").as_string();
-        bool isPublic = channelNode.attribute("public").as_bool();
+        const bool isPublic = channelNode.attribute("public").as_bool();
         pugi::xml_attribute scriptAttribute = channelNode.attribute("script");
 
         auto it = normalChannels.find(channelId);
@@ -396,9 +398,9 @@ ChatChannel* Chat::createChannel(const Player& player, uint16_t channelId)
 
     switch (channelId) {
         case CHANNEL_GUILD: {
-            Guild* guild = player.getGuild();
+            const Guild* guild = player.getGuild();
             if (guild) {
-                auto ret = guildChannels.emplace(std::piecewise_construct, std::forward_as_tuple(guild->getId()), std::forward_as_tuple(channelId, guild->getName()));
+                const auto ret = guildChannels.emplace(std::piecewise_construct, std::forward_as_tuple(guild->getId()), std::forward_as_tuple(channelId, guild->getName()));
                 return &ret.first->second;
             }
             break;
@@ -407,7 +409,7 @@ ChatChannel* Chat::createChannel(const Player& player, uint16_t channelId)
         case CHANNEL_PARTY: {
             Party* party = player.getParty();
             if (party) {
-                auto ret = partyChannels.emplace(std::piecewise_construct, std::forward_as_tuple(party), std::forward_as_tuple(channelId, "Party"));
+                const auto ret = partyChannels.emplace(std::piecewise_construct, std::forward_as_tuple(party), std::forward_as_tuple(channelId, "Party"));
                 return &ret.first->second;
             }
             break;
@@ -421,7 +423,7 @@ ChatChannel* Chat::createChannel(const Player& player, uint16_t channelId)
 
             //find a free private channel slot
             for (uint16_t i = 100; i < 10000; ++i) {
-                auto ret = privateChannels.emplace(std::piecewise_construct, std::forward_as_tuple(i), std::forward_as_tuple(i, player.getName() + "'s Channel"));
+                const auto ret = privateChannels.emplace(std::piecewise_construct, std::forward_as_tuple(i), std::forward_as_tuple(i, player.getName() + "'s Channel"));
                 if (ret.second) { //second is a bool that indicates that a new channel has been placed in the map
                     auto& newChannel = (*ret.first).second;
                     newChannel.setOwner(player.getGUID());
@@ -437,16 +439,16 @@ ChatChannel* Chat::createChannel(const Player& player, uint16_t channelId)
     return nullptr;
 }
 
-bool Chat::deleteChannel(const Player& player, uint16_t channelId)
+bool Chat::deleteChannel(const Player& player, const uint16_t channelId)
 {
     switch (channelId) {
         case CHANNEL_GUILD: {
-            Guild* guild = player.getGuild();
+            const Guild* guild = player.getGuild();
             if (!guild) {
                 return false;
             }
 
-            auto it = guildChannels.find(guild->getId());
+            const auto it = guildChannels.find(guild->getId());
             if (it == guildChannels.end()) {
                 return false;
             }
@@ -461,7 +463,7 @@ bool Chat::deleteChannel(const Player& player, uint16_t channelId)
                 return false;
             }
 
-            auto it = partyChannels.find(party);
+            const auto it = partyChannels.find(party);
             if (it == partyChannels.end()) {
                 return false;
             }
@@ -471,7 +473,7 @@ bool Chat::deleteChannel(const Player& player, uint16_t channelId)
         }
 
         default: {
-            auto it = privateChannels.find(channelId);
+            const auto it = privateChannels.find(channelId);
             if (it == privateChannels.end()) {
                 return false;
             }
@@ -485,7 +487,7 @@ bool Chat::deleteChannel(const Player& player, uint16_t channelId)
     return true;
 }
 
-ChatChannel* Chat::addUserToChannel(Player& player, uint16_t channelId)
+ChatChannel* Chat::addUserToChannel(Player& player, const uint16_t channelId)
 {
     ChatChannel* channel = getChannel(player, channelId);
     if (channel && channel->addUser(player)) {
@@ -494,7 +496,7 @@ ChatChannel* Chat::addUserToChannel(Player& player, uint16_t channelId)
     return nullptr;
 }
 
-bool Chat::removeUserFromChannel(const Player& player, uint16_t channelId)
+bool Chat::removeUserFromChannel(const Player& player, const uint16_t channelId)
 {
     ChatChannel* channel = getChannel(player, channelId);
     if (!channel || !channel->removeUser(player)) {
@@ -535,7 +537,7 @@ void Chat::removeUserFromAllChannels(const Player& player)
     }
 }
 
-bool Chat::talkToChannel(const Player& player, SpeakClasses type, const std::string& text, uint16_t channelId)
+bool Chat::talkToChannel(const Player& player, SpeakClasses type, const std::string& text, const uint16_t channelId)
 {
     ChatChannel* channel = getChannel(player, channelId);
     if (!channel) {
@@ -565,7 +567,7 @@ void Chat::openChannelsByServer(Player* player)
     const ChannelList& list = getChannelList(*player);
     for (ChatChannel* channel : list) {
         if (channel->hasUser(*player)) {
-            PrivateChatChannel* privateChannel = dynamic_cast<PrivateChatChannel*>(channel);
+            const auto privateChannel = dynamic_cast<PrivateChatChannel*>(channel);
             if (privateChannel && privateChannel->getOwner() == player->getGUID()) {
                 player->sendCreatePrivateChannel(channel->getId(), channel->getName());
             } else {
@@ -597,7 +599,7 @@ ChannelList Chat::getChannelList(const Player& player)
     bool hasPrivate = false;
     for (auto& it : privateChannels) {
         if (PrivateChatChannel* channel = &it.second) {
-            uint32_t guid = player.getGUID();
+            const uint32_t guid = player.getGUID();
             if (channel->isInvited(guid)) {
                 privates.push_back(channel);
             }
@@ -637,7 +639,7 @@ ChannelList Chat::getChannelList(const Player& player)
         }
     }
 
-    for (uint16_t channelId : cachedChannels) {
+    for (const uint16_t channelId : cachedChannels) {
         ChatChannel* channel = getChannel(player, channelId);
         if (channel) {
             list.push_back(channel);
@@ -650,13 +652,13 @@ ChannelList Chat::getChannelList(const Player& player)
     return list;
 }
 
-ChatChannel* Chat::getChannel(const Player& player, uint16_t channelId)
+ChatChannel* Chat::getChannel(const Player& player, const uint16_t channelId)
 {
     switch (channelId) {
         case CHANNEL_GUILD: {
-            Guild* guild = player.getGuild();
+            const Guild* guild = player.getGuild();
             if (guild) {
-                auto it = guildChannels.find(guild->getId());
+                const auto it = guildChannels.find(guild->getId());
                 if (it != guildChannels.end()) {
                     return &it->second;
                 }
@@ -667,7 +669,7 @@ ChatChannel* Chat::getChannel(const Player& player, uint16_t channelId)
         case CHANNEL_PARTY: {
             Party* party = player.getParty();
             if (party) {
-                auto it = partyChannels.find(party);
+                const auto it = partyChannels.find(party);
                 if (it != partyChannels.end()) {
                     return &it->second;
                 }
@@ -676,18 +678,17 @@ ChatChannel* Chat::getChannel(const Player& player, uint16_t channelId)
         }
 
         default: {
-            auto it = normalChannels.find(channelId);
+            const auto it = normalChannels.find(channelId);
             if (it != normalChannels.end()) {
                 ChatChannel& channel = it->second;
                 if (!channel.executeCanJoinEvent(player)) {
                     return nullptr;
                 }
                 return &channel;
-            } else {
-                auto it2 = privateChannels.find(channelId);
-                if (it2 != privateChannels.end() && it2->second.isInvited(player.getGUID())) {
-                    return &it2->second;
-                }
+            }
+            const auto it2 = privateChannels.find(channelId);
+            if (it2 != privateChannels.end() && it2->second.isInvited(player.getGUID())) {
+                return &it2->second;
             }
             break;
         }
@@ -695,18 +696,18 @@ ChatChannel* Chat::getChannel(const Player& player, uint16_t channelId)
     return nullptr;
 }
 
-ChatChannel* Chat::getGuildChannelById(uint32_t guildId)
+ChatChannel* Chat::getGuildChannelById(const uint32_t guildId)
 {
-    auto it = guildChannels.find(guildId);
+    const auto it = guildChannels.find(guildId);
     if (it == guildChannels.end()) {
         return nullptr;
     }
     return &it->second;
 }
 
-ChatChannel* Chat::getChannelById(uint16_t channelId)
+ChatChannel* Chat::getChannelById(const uint16_t channelId)
 {
-    auto it = normalChannels.find(channelId);
+    const auto it = normalChannels.find(channelId);
     if (it == normalChannels.end()) {
         return nullptr;
     }

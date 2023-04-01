@@ -31,7 +31,7 @@ bool DatabaseManager::optimizeTables()
     std::stringExtended query(256);
 
     query << "SELECT `TABLE_NAME` FROM `information_schema`.`TABLES` WHERE `TABLE_SCHEMA` = " << g_database.escapeString(g_config.getString(ConfigManager::MYSQL_DB)) << " AND `DATA_FREE` > 0";
-    DBResult_ptr result = g_database.storeQuery(query);
+    const DBResult_ptr result = g_database.storeQuery(query);
     if (!result) {
         return false;
     }
@@ -141,7 +141,7 @@ bool DatabaseManager::getDatabaseConfig(const std::string& config, int32_t& valu
     std::stringExtended query(256);
     query << "SELECT `value` FROM `server_config` WHERE `config` = " << g_database.escapeString(config);
 
-    DBResult_ptr result = g_database.storeQuery(query);
+    const DBResult_ptr result = g_database.storeQuery(query);
     if (!result) {
         return false;
     }
@@ -150,7 +150,7 @@ bool DatabaseManager::getDatabaseConfig(const std::string& config, int32_t& valu
     return true;
 }
 
-void DatabaseManager::registerDatabaseConfig(const std::string& config, int32_t value)
+void DatabaseManager::registerDatabaseConfig(const std::string& config, const int32_t value)
 {
     std::stringExtended query(256);
 

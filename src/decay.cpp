@@ -25,19 +25,20 @@
 extern Game g_game;
 Decay g_decay;
 
-void Decay::startDecay(Item* item, int32_t duration)
+void Decay::startDecay(Item* item, const int32_t duration)
 {
     if (item->hasAttribute(ITEM_ATTRIBUTE_DURATION_TIMESTAMP)) {
         stopDecay(item, item->getIntAttr(ITEM_ATTRIBUTE_DURATION_TIMESTAMP));
     }
 
-    int64_t timestamp = OTSYS_TIME() + static_cast<int64_t>(duration);
+    const int64_t timestamp = OTSYS_TIME() + static_cast<int64_t>(duration);
     if (decayMap.empty()) {
-        eventId = g_dispatcher.addEvent(std::max<int32_t>(SERVER_BEAT_MILISECONDS, duration), std::bind(&Decay::checkDecay, this));
+        eventId = g_dispatcher.addEvent(std::max<int32_t>(SERVER_BEAT_MILISECONDS, duration), [this] { checkDecay(); });
     } else {
         if (timestamp < decayMap.begin()->first) {
             g_dispatcher.stopEvent(eventId);
-            eventId = g_dispatcher.addEvent(std::max<int32_t>(SERVER_BEAT_MILISECONDS, duration), std::bind(&Decay::checkDecay, this));
+            eventId = g_dispatcher.addEvent(std::max<int32_t>(SERVER_BEAT_MILISECONDS, duration),
+                                            [this] { checkDecay(); });
         }
     }
 
@@ -47,9 +48,9 @@ void Decay::startDecay(Item* item, int32_t duration)
     decayMap[timestamp].push_back(item);
 }
 
-void Decay::stopDecay(Item* item, int64_t timestamp)
+void Decay::stopDecay(Item* item, const int64_t timestamp)
 {
-    auto it = decayMap.find(timestamp);
+    const auto it = decayMap.find(timestamp);
     if (it != decayMap.end()) {
         std::vector<Item*>& decayItems = it->second;
 
@@ -87,7 +88,7 @@ void Decay::stopDecay(Item* item, int64_t timestamp)
 
 void Decay::checkDecay()
 {
-    int64_t timestamp = OTSYS_TIME();
+    const int64_t timestamp = OTSYS_TIME();
 
     std::vector<Item*> tempItems;
     tempItems.reserve(32);// Small preallocation
@@ -117,6 +118,7 @@ void Decay::checkDecay()
     }
 
     if (it != end) {
-        eventId = g_dispatcher.addEvent(std::max<int32_t>(SERVER_BEAT_MILISECONDS, static_cast<int32_t>(it->first - timestamp)), std::bind(&Decay::checkDecay, this));
+        eventId = g_dispatcher.addEvent(std::max<int32_t>(SERVER_BEAT_MILISECONDS, static_cast<int32_t>(it->first - timestamp)),
+                                        [this] { checkDecay(); });
     }
 }

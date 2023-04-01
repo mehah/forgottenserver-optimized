@@ -70,9 +70,9 @@ public:
     ServicePort(const ServicePort&) = delete;
     ServicePort& operator=(const ServicePort&) = delete;
 
-    static void openAcceptor(std::weak_ptr<ServicePort> weak_service, uint16_t port);
+    static void openAcceptor(const std::weak_ptr<ServicePort>& weak_service, uint16_t port);
     void open(uint16_t port);
-    void close();
+    void close() const;
     bool is_single_socket() const;
     std::string get_protocol_names() const;
 
@@ -80,7 +80,7 @@ public:
     Protocol_ptr make_protocol(bool checksummed, NetworkMessage& msg, const Connection_ptr& connection) const;
 
     void onStopServer();
-    void onAccept(Connection_ptr connection, const boost::system::error_code& error);
+    void onAccept(const Connection_ptr& connection, const boost::system::error_code& error);
 
 private:
     void accept();
@@ -135,7 +135,7 @@ bool ServiceManager::add(uint16_t port)
 
     ServicePort_ptr service_port;
 
-    auto foundServicePort = acceptors.find(port);
+    const auto foundServicePort = acceptors.find(port);
 
     if (foundServicePort == acceptors.end()) {
         service_port = std::make_shared<ServicePort>(io_service);

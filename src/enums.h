@@ -788,18 +788,18 @@ struct LightInfo
     uint8_t level = 0;
     uint8_t color = 0;
     constexpr LightInfo() = default;
-    constexpr LightInfo(uint8_t level, uint8_t color) : level(level), color(color) {}
+    constexpr LightInfo(const uint8_t level, const uint8_t color) : level(level), color(color) {}
 };
 
 struct ShopInfo
 {
     ShopInfo() = default;
-    ShopInfo(uint16_t itemId, int32_t subType = 0, uint32_t buyPrice = 0, uint32_t sellPrice = 0, std::string realName = "") :
+    ShopInfo(const uint16_t itemId, const int32_t subType = 0, const uint32_t buyPrice = 0, const uint32_t sellPrice = 0, std::string realName = "") :
         itemId(itemId), subType(subType), buyPrice(buyPrice), sellPrice(sellPrice), realName(std::move(realName)) {}
 
     // copyable
-    ShopInfo(const ShopInfo& rhs) :
-        itemId(rhs.itemId), subType(rhs.subType), buyPrice(rhs.buyPrice), sellPrice(rhs.sellPrice), realName(rhs.realName) {}
+    ShopInfo(const ShopInfo& rhs) = default;
+
     ShopInfo& operator=(const ShopInfo& rhs) {
         if (this != &rhs) {
             itemId = rhs.itemId;
@@ -835,12 +835,12 @@ struct ShopInfo
 struct MarketOffer
 {
     MarketOffer() = default;
-    MarketOffer(uint32_t price, uint32_t timestamp, uint16_t amount, uint16_t counter, uint16_t itemId, std::string playerName) :
+    MarketOffer(const uint32_t price, const uint32_t timestamp, const uint16_t amount, const uint16_t counter, const uint16_t itemId, std::string playerName) :
         price(price), timestamp(timestamp), amount(amount), counter(counter), itemId(itemId), playerName(std::move(playerName)) {}
 
     // copyable
-    MarketOffer(const MarketOffer& rhs) :
-        price(rhs.price), timestamp(rhs.timestamp), amount(rhs.amount), counter(rhs.counter), itemId(rhs.itemId), playerName(rhs.playerName) {}
+    MarketOffer(const MarketOffer& rhs) = default;
+
     MarketOffer& operator=(const MarketOffer& rhs) {
         if (this != &rhs) {
             price = rhs.price;
@@ -879,7 +879,7 @@ struct MarketOffer
 struct MarketOfferEx
 {
     MarketOfferEx() = default;
-    MarketOfferEx(MarketOfferEx&& other) :
+    MarketOfferEx(MarketOfferEx&& other) noexcept :
         id(other.id), playerId(other.playerId), timestamp(other.timestamp), price(other.price),
         amount(other.amount), counter(other.counter), itemId(other.itemId), type(other.type),
         playerName(std::move(other.playerName)) {}
@@ -898,7 +898,7 @@ struct MarketOfferEx
 struct HistoryMarketOffer
 {
     HistoryMarketOffer() = default;
-    HistoryMarketOffer(uint32_t timestamp, uint32_t price, uint16_t itemId, uint16_t amount, MarketOfferState_t state) :
+    HistoryMarketOffer(const uint32_t timestamp, const uint32_t price, const uint16_t itemId, const uint16_t amount, const MarketOfferState_t state) :
         timestamp(timestamp), price(price), itemId(itemId), amount(amount), state(state) {}
 
     uint32_t timestamp;
@@ -921,11 +921,12 @@ struct ModalWindow
     std::vector<std::pair<std::string, uint8_t>> buttons, choices;
     std::string title, message;
     uint32_t id;
-    uint8_t defaultEnterButton, defaultEscapeButton;
-    bool priority;
+    uint8_t defaultEnterButton{ 0xFF }, defaultEscapeButton{ 0xFF };
+    bool priority{ false };
 
-    ModalWindow(uint32_t id, std::string title, std::string message) :
-        title(std::move(title)), message(std::move(message)), id(id), defaultEnterButton(0xFF), defaultEscapeButton(0xFF), priority(false) {}
+    ModalWindow(const uint32_t id, std::string title, std::string message) :
+        title(std::move(title)), message(std::move(message)), id(id)
+    {}
 };
 
 enum CombatOrigin

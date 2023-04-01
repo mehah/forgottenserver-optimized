@@ -36,7 +36,7 @@ TalkActions::~TalkActions()
     clear(false);
 }
 
-void TalkActions::clear(bool fromLua)
+void TalkActions::clear(const bool fromLua)
 {
     for (auto it = talkActions.begin(); it != talkActions.end(); ) {
         if (fromLua == it->second->fromLua) {
@@ -64,7 +64,7 @@ Event_ptr TalkActions::getEvent(const std::string& nodeName)
     if (strcasecmp(nodeName.c_str(), "talkaction") != 0) {
         return nullptr;
     }
-    return Event_ptr(new TalkAction(&scriptInterface));
+    return std::make_unique<TalkAction>(&scriptInterface);
 }
 
 bool TalkActions::registerEvent(Event_ptr event, const pugi::xml_node&)
@@ -73,7 +73,7 @@ bool TalkActions::registerEvent(Event_ptr event, const pugi::xml_node&)
     std::vector<std::string>& wordsMap = talkAction->getWordsMap();
     if (!wordsMap.empty()) {
         for (std::string& words : wordsMap) {
-            auto result = talkActions.emplace(words, talkAction);
+            const auto result = talkActions.emplace(words, talkAction);
             if (!result.second) {
                 std::cout << "[Warning - Spells::registerEvent] Duplicate registered talkaction with words: " << words << std::endl;
             }
@@ -91,7 +91,7 @@ bool TalkActions::registerLuaEvent(TalkAction_ptr& event)
     std::vector<std::string>& wordsMap = event->getWordsMap();
     if (!wordsMap.empty()) {
         for (std::string& words : wordsMap) {
-            auto res = talkActions.emplace(words, event);
+            const auto res = talkActions.emplace(words, event);
             if (!res.second) {
                 std::cout << "[Warning - Spells::registerEvent] Duplicate registered talkaction with words: " << words << std::endl;
                 continue;
@@ -104,11 +104,11 @@ bool TalkActions::registerLuaEvent(TalkAction_ptr& event)
     return result;
 }
 
-TalkActionResult_t TalkActions::playerSaySpell(Player* player, SpeakClasses type, const std::string& words) const
+TalkActionResult_t TalkActions::playerSaySpell(Player* player, const SpeakClasses type, const std::string& words) const
 {
     std::string param, instantWords = words;
     if (instantWords.size() >= 3 && instantWords.front() != ' ') {
-        size_t param_find = instantWords.find(' ');
+        const size_t param_find = instantWords.find(' ');
         if (param_find != std::string::npos) {
             param = instantWords.substr(param_find + 1);
             instantWords = instantWords.substr(0, param_find);
@@ -116,31 +116,30 @@ TalkActionResult_t TalkActions::playerSaySpell(Player* player, SpeakClasses type
         }
     }
 
-    auto it = talkActions.find(instantWords);
+    const auto it = talkActions.find(instantWords);
     if (it != talkActions.end()) {
-        char separator = it->second->getSeparator();
+        const char separator = it->second->getSeparator();
         if (separator != ' ' && !param.empty()) {
             return TALKACTION_CONTINUE;
         }
 
         if (it->second->executeSay(player, instantWords, param, type)) {
             return TALKACTION_CONTINUE;
-        } else {
-            return TALKACTION_BREAK;
         }
+        return TALKACTION_BREAK;
     }
     return TALKACTION_CONTINUE;
 }
 
 bool TalkAction::configureEvent(const pugi::xml_node& node)
 {
-    pugi::xml_attribute wordsAttribute = node.attribute("words");
+    const pugi::xml_attribute wordsAttribute = node.attribute("words");
     if (!wordsAttribute) {
         std::cout << "[Error - TalkAction::configureEvent] Missing words for talk action or spell" << std::endl;
         return false;
     }
 
-    pugi::xml_attribute separatorAttribute = node.attribute("separator");
+    const pugi::xml_attribute separatorAttribute = node.attribute("separator");
     if (separatorAttribute) {
         separator = pugi::cast<char>(separatorAttribute.value());
     }
@@ -156,7 +155,7 @@ std::string TalkAction::getScriptEventName() const
     return "onSay";
 }
 
-bool TalkAction::executeSay(Player* player, const std::string& word, const std::string& param, SpeakClasses type) const
+bool TalkAction::executeSay(Player* player, const std::string& word, const std::string& param, const SpeakClasses type) const
 {
     //onSay(player, words, param, type)
     if (!scriptInterface->reserveScriptEnv()) {

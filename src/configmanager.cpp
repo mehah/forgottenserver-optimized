@@ -53,7 +53,7 @@ namespace {
             return defaultValue;
         }
 
-        size_t len = lua_strlen(L, -1);
+        const size_t len = lua_strlen(L, -1);
         std::string ret(lua_tostring(L, -1), len);
         lua_pop(L, 1);
         return ret;
@@ -67,7 +67,7 @@ namespace {
             return defaultValue;
         }
 
-        int32_t val = lua_tonumber(L, -1);
+        const int32_t val = lua_tonumber(L, -1);
         lua_pop(L, 1);
         return val;
     }
@@ -81,13 +81,13 @@ namespace {
                 return defaultValue;
             }
 
-            size_t len = lua_strlen(L, -1);
-            std::string ret(lua_tostring(L, -1), len);
+            const size_t len = lua_strlen(L, -1);
+            const std::string ret(lua_tostring(L, -1), len);
             lua_pop(L, 1);
             return booleanString(ret);
         }
 
-        int val = lua_toboolean(L, -1);
+        const int val = lua_toboolean(L, -1);
         lua_pop(L, 1);
         return val != 0;
     }
@@ -208,8 +208,8 @@ bool ConfigManager::load()
 
 bool ConfigManager::reload()
 {
-    bool result = load();
-    if (transformToSHA1(getString(ConfigManager::MOTD)) != g_game.getMotdHash()) {
+    const bool result = load();
+    if (transformToSHA1(getString(MOTD)) != g_game.getMotdHash()) {
         g_game.incrementMotdNum();
     }
     return result;
@@ -217,7 +217,7 @@ bool ConfigManager::reload()
 
 static std::string dummyStr;
 
-const std::string& ConfigManager::getString(string_config_t what) const
+const std::string& ConfigManager::getString(const string_config_t what) const
 {
     if (what >= LAST_STRING_CONFIG) {
         std::cout << "[Warning - ConfigManager::getString] Accessing invalid index: " << what << std::endl;
@@ -226,7 +226,7 @@ const std::string& ConfigManager::getString(string_config_t what) const
     return string[what];
 }
 
-int32_t ConfigManager::getNumber(integer_config_t what) const
+int32_t ConfigManager::getNumber(const integer_config_t what) const
 {
     if (what >= LAST_INTEGER_CONFIG) {
         std::cout << "[Warning - ConfigManager::getNumber] Accessing invalid index: " << what << std::endl;
@@ -235,7 +235,7 @@ int32_t ConfigManager::getNumber(integer_config_t what) const
     return integer[what];
 }
 
-bool ConfigManager::getBoolean(boolean_config_t what) const
+bool ConfigManager::getBoolean(const boolean_config_t what) const
 {
     if (what >= LAST_BOOLEAN_CONFIG) {
         std::cout << "[Warning - ConfigManager::getBoolean] Accessing invalid index: " << what << std::endl;

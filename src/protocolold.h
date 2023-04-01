@@ -40,12 +40,12 @@ public:
         return "old login protocol";
     }
 
-    explicit ProtocolOld(Connection_ptr connection) : Protocol(connection) {}
+    explicit ProtocolOld(const Connection_ptr& connection) : Protocol(connection) {}
 
     void onRecvFirstMessage(NetworkMessage& msg) override;
 
 private:
-    void disconnectClient(const std::string& message, uint16_t version);
+    void disconnectClient(const std::string& message, uint16_t version) const;
 };
 
 #endif

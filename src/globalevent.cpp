@@ -39,7 +39,7 @@ GlobalEvents::~GlobalEvents()
     clear(false);
 }
 
-void GlobalEvents::clearMap(GlobalEventMap& map, bool fromLua)
+void GlobalEvents::clearMap(GlobalEventMap& map, const bool fromLua)
 {
     for (auto it = map.begin(); it != map.end(); ) {
         if (fromLua == it->second.fromLua) {
@@ -50,7 +50,7 @@ void GlobalEvents::clearMap(GlobalEventMap& map, bool fromLua)
     }
 }
 
-void GlobalEvents::clear(bool fromLua)
+void GlobalEvents::clear(const bool fromLua)
 {
     g_dispatcher.stopEvent(thinkEventId);
     thinkEventId = 0;
@@ -69,32 +69,32 @@ Event_ptr GlobalEvents::getEvent(const std::string& nodeName)
     if (strcasecmp(nodeName.c_str(), "globalevent") != 0) {
         return nullptr;
     }
-    return Event_ptr(new GlobalEvent(&scriptInterface));
+    return std::make_unique<GlobalEvent>(&scriptInterface);
 }
 
 bool GlobalEvents::registerEvent(Event_ptr event, const pugi::xml_node&)
 {
-    GlobalEvent_ptr globalEvent{ static_cast<GlobalEvent*>(event.release()) }; //event is guaranteed to be a GlobalEvent
+    const GlobalEvent_ptr globalEvent{ static_cast<GlobalEvent*>(event.release()) }; //event is guaranteed to be a GlobalEvent
 
     std::string name = globalEvent->getName();
     if (globalEvent->getEventType() == GLOBALEVENT_TIMER) {
-        auto result = timerMap.emplace(name, std::move(*globalEvent));
+        const auto result = timerMap.emplace(name, std::move(*globalEvent));
         if (result.second) {
             if (timerEventId == 0) {
-                timerEventId = g_dispatcher.addEvent(SERVER_BEAT_MILISECONDS, std::bind(&GlobalEvents::timer, this));
+                timerEventId = g_dispatcher.addEvent(SERVER_BEAT_MILISECONDS, [this] { timer(); });
             }
             return true;
         }
     } else if (globalEvent->getEventType() != GLOBALEVENT_NONE) {
-        auto result = serverMap.emplace(name, std::move(*globalEvent));
+        const auto result = serverMap.emplace(name, std::move(*globalEvent));
         if (result.second) {
             return true;
         }
     } else { // think event
-        auto result = thinkMap.emplace(name, std::move(*globalEvent));
+        const auto result = thinkMap.emplace(name, std::move(*globalEvent));
         if (result.second) {
             if (thinkEventId == 0) {
-                thinkEventId = g_dispatcher.addEvent(SERVER_BEAT_MILISECONDS, std::bind(&GlobalEvents::think, this));
+                thinkEventId = g_dispatcher.addEvent(SERVER_BEAT_MILISECONDS, [this] { think(); });
             }
             return true;
         }
@@ -106,27 +106,27 @@ bool GlobalEvents::registerEvent(Event_ptr event, const pugi::xml_node&)
 
 bool GlobalEvents::registerLuaEvent(GlobalEvent* event)
 {
-    GlobalEvent_ptr globalEvent{ event };
+    const GlobalEvent_ptr globalEvent{ event };
 
     std::string name = globalEvent->getName();
     if (globalEvent->getEventType() == GLOBALEVENT_TIMER) {
-        auto result = timerMap.emplace(name, std::move(*globalEvent));
+        const auto result = timerMap.emplace(name, std::move(*globalEvent));
         if (result.second) {
             if (timerEventId == 0) {
-                timerEventId = g_dispatcher.addEvent(SERVER_BEAT_MILISECONDS, std::bind(&GlobalEvents::timer, this));
+                timerEventId = g_dispatcher.addEvent(SERVER_BEAT_MILISECONDS, [this] { timer(); });
             }
             return true;
         }
     } else if (globalEvent->getEventType() != GLOBALEVENT_NONE) {
-        auto result = serverMap.emplace(name, std::move(*globalEvent));
+        const auto result = serverMap.emplace(name, std::move(*globalEvent));
         if (result.second) {
             return true;
         }
     } else { // think event
-        auto result = thinkMap.emplace(name, std::move(*globalEvent));
+        const auto result = thinkMap.emplace(name, std::move(*globalEvent));
         if (result.second) {
             if (thinkEventId == 0) {
-                thinkEventId = g_dispatcher.addEvent(SERVER_BEAT_MILISECONDS, std::bind(&GlobalEvents::think, this));
+                thinkEventId = g_dispatcher.addEvent(SERVER_BEAT_MILISECONDS, [this] { think(); });
             }
             return true;
         }
@@ -143,7 +143,7 @@ void GlobalEvents::startup() const
 
 void GlobalEvents::timer()
 {
-    time_t now = time(nullptr);
+    const time_t now = time(nullptr);
 
     int64_t nextScheduledTime = std::numeric_limits<int64_t>::max();
 
@@ -177,13 +177,13 @@ void GlobalEvents::timer()
     }
 
     if (nextScheduledTime != std::numeric_limits<int64_t>::max()) {
-        timerEventId = g_dispatcher.addEvent(std::max<int64_t>(1000, nextScheduledTime * 1000), std::bind(&GlobalEvents::timer, this));
+        timerEventId = g_dispatcher.addEvent(std::max<int64_t>(1000, nextScheduledTime * 1000), [this] { timer(); });
     }
 }
 
 void GlobalEvents::think()
 {
-    int64_t now = OTSYS_TIME();
+    const int64_t now = OTSYS_TIME();
 
     int64_t nextScheduledTime = std::numeric_limits<int64_t>::max();
     for (auto& it : thinkMap) {
@@ -210,11 +210,11 @@ void GlobalEvents::think()
     }
 
     if (nextScheduledTime != std::numeric_limits<int64_t>::max()) {
-        thinkEventId = g_dispatcher.addEvent(nextScheduledTime, std::bind(&GlobalEvents::think, this));
+        thinkEventId = g_dispatcher.addEvent(nextScheduledTime, [this] { think(); });
     }
 }
 
-void GlobalEvents::execute(GlobalEvent_t type) const
+void GlobalEvents::execute(const GlobalEvent_t type) const
 {
     for (const auto& it : serverMap) {
         const GlobalEvent& globalEvent = it.second;
@@ -224,7 +224,7 @@ void GlobalEvents::execute(GlobalEvent_t type) const
     }
 }
 
-GlobalEventMap GlobalEvents::getEventMap(GlobalEvent_t type)
+GlobalEventMap GlobalEvents::getEventMap(const GlobalEvent_t type)
 {
     // TODO: This should be better implemented. Maybe have a map for every type.
     switch (type) {
@@ -241,7 +241,7 @@ GlobalEventMap GlobalEvents::getEventMap(GlobalEvent_t type)
             }
             return retMap;
         }
-        default: return GlobalEventMap();
+        default: return {};
     }
 }
 
@@ -249,7 +249,7 @@ GlobalEvent::GlobalEvent(LuaScriptInterface* interface) : Event(interface) {}
 
 bool GlobalEvent::configureEvent(const pugi::xml_node& node)
 {
-    pugi::xml_attribute nameAttribute = node.attribute("name");
+    const pugi::xml_attribute nameAttribute = node.attribute("name");
     if (!nameAttribute) {
         std::cout << "[Error - GlobalEvent::configureEvent] Missing name for a globalevent" << std::endl;
         return false;
@@ -260,9 +260,9 @@ bool GlobalEvent::configureEvent(const pugi::xml_node& node)
 
     pugi::xml_attribute attr;
     if ((attr = node.attribute("time"))) {
-        std::vector<int32_t> params = vectorAtoi(explodeString(attr.as_string(), ":"));
+        const std::vector<int32_t> params = vectorAtoi(explodeString(attr.as_string(), ":"));
 
-        int32_t hour = params.front();
+        const int32_t hour = params.front();
         if (hour < 0 || hour > 23) {
             std::cout << "[Error - GlobalEvent::configureEvent] Invalid hour \"" << attr.as_string() << "\" for globalevent with name: " << name << std::endl;
             return false;
@@ -288,13 +288,13 @@ bool GlobalEvent::configureEvent(const pugi::xml_node& node)
             }
         }
 
-        time_t current_time = time(nullptr);
+        const time_t current_time = time(nullptr);
         tm* timeinfo = localtime(&current_time);
         timeinfo->tm_hour = hour;
         timeinfo->tm_min = min;
         timeinfo->tm_sec = sec;
 
-        time_t difference = static_cast<time_t>(difftime(mktime(timeinfo), current_time));
+        auto difference = static_cast<time_t>(difftime(mktime(timeinfo), current_time));
         if (difference < 0) {
             difference += 86400;
         }
@@ -334,7 +334,7 @@ std::string GlobalEvent::getScriptEventName() const
     }
 }
 
-bool GlobalEvent::executeRecord(uint32_t current, uint32_t old)
+bool GlobalEvent::executeRecord(const uint32_t current, const uint32_t old) const
 {
     //onRecord(current, old)
     if (!scriptInterface->reserveScriptEnv()) {

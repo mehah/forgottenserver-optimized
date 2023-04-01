@@ -35,9 +35,9 @@ public:
 
     static bool loginserverAuthentication(const std::string& name, const std::string& password, Account& account);
 #if GAME_FEATURE_SESSIONKEY > 0
-    static uint32_t gameworldAuthentication(const std::string& accountName, const std::string& password, std::string& characterName, std::string& token, uint32_t tokenTime);
+    static uint32_t gameworldAuthentication(const std::string& accountName, const std::string& password, const std::string& characterName, const std::string& token, uint32_t tokenTime);
 #else
-    static uint32_t gameworldAuthentication(const std::string& accountName, const std::string& password, std::string& characterName);
+    static uint32_t gameworldAuthentication(const std::string& accountName, const std::string& password, const std::string& characterName);
 #endif
 
     static AccountType_t getAccountType(uint32_t accountId);
@@ -65,7 +65,7 @@ public:
 
 private:
     static bool loadContainer(PropStream& propStream, Container* container);
-    static void loadItems(ItemBlockList& itemMap, DBResult_ptr result, PropStream& stream);
+    static void loadItems(ItemBlockList& itemMap, const DBResult_ptr& result, PropStream& stream);
     static void saveItem(PropWriteStream& stream, const Item* item);
     static bool saveItems(const Player* player, const ItemBlockList& itemList, std::stringExtended& query, PropWriteStream& stream, const std::string& table);
 };

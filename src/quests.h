@@ -33,13 +33,13 @@ using QuestsList = std::vector<Quest>;
 class Mission
 {
 public:
-    Mission(std::string name, int32_t storageID, int32_t startValue, int32_t endValue, bool ignoreEndValue) :
+    Mission(std::string name, const int32_t storageID, const int32_t startValue, const int32_t endValue, const bool ignoreEndValue) :
         name(std::move(name)), storageID(storageID), startValue(startValue), endValue(endValue), ignoreEndValue(ignoreEndValue) {}
 
-    bool isCompleted(Player* player) const;
-    bool isStarted(Player* player) const;
+    bool isCompleted(const Player* player) const;
+    bool isStarted(const Player* player) const;
     std::string getName(Player* player) const;
-    std::string getDescription(Player* player) const;
+    std::string getDescription(const Player* player) const;
 
 #if GAME_FEATURE_QUEST_TRACKER > 0
     void setQuestId(uint16_t id) {
@@ -84,7 +84,7 @@ private:
 class Quest
 {
 public:
-    Quest(std::string name, uint16_t id, int32_t startStorageID, int32_t startStorageValue) :
+    Quest(std::string name, const uint16_t id, const int32_t startStorageID, const int32_t startStorageValue) :
         name(std::move(name)), startStorageID(startStorageID), startStorageValue(startStorageValue), id(id) {}
 
     bool isCompleted(Player* player) const;
@@ -135,7 +135,7 @@ public:
     const Mission* getMissionByID(uint16_t id);
 #endif
     Quest* getQuestByID(uint16_t id);
-    bool isQuestStorage(const uint32_t key, const int32_t value, const int32_t oldValue) const;
+    bool isQuestStorage(uint32_t key, int32_t value, int32_t oldValue) const;
     uint16_t getQuestsCount(Player* player) const;
     bool reload();
 

@@ -128,7 +128,7 @@ public:
 
     void resetEnv();
 
-    void setScriptId(int32_t scriptId, LuaScriptInterface* scriptInterface) {
+    void setScriptId(const int32_t scriptId, LuaScriptInterface* scriptInterface) {
         this->scriptId = scriptId;
         interface = scriptInterface;
     }
@@ -137,7 +137,8 @@ public:
     int32_t getScriptId() const {
         return scriptId;
     }
-    LuaScriptInterface* getScriptInterface() {
+    LuaScriptInterface* getScriptInterface() const
+    {
         return interface;
     }
 
@@ -148,12 +149,12 @@ public:
     void getEventInfo(int32_t& scriptId, LuaScriptInterface*& scriptInterface, int32_t& callbackId, bool& timerEvent) const;
 
     void addTempItem(Item* item);
-    static void removeTempItem(Item* item);
+    static void removeTempItem(const Item* item);
     uint32_t addThing(Thing* thing);
     void insertItem(uint32_t uid, Item* item);
 
     static DBResult_ptr getResultByID(uint32_t id);
-    static uint32_t addResult(DBResult_ptr res);
+    static uint32_t addResult(const DBResult_ptr& res);
     static bool removeResult(uint32_t id);
 
     void setNpc(Npc* npc) {
@@ -261,11 +262,11 @@ public:
         return luaState;
     }
 
-    bool pushFunction(int32_t functionId);
+    bool pushFunction(int32_t functionId) const;
 
     static int luaErrorHandler(lua_State* L);
-    bool callFunction(int params);
-    void callVoidFunction(int params);
+    bool callFunction(int params) const;
+    void callVoidFunction(int params) const;
 
     //push/pop common structures
     static void pushThing(lua_State* L, Thing* thing);
@@ -294,14 +295,14 @@ public:
 
     // Get
     template<typename T>
-    static typename std::enable_if<std::is_enum<T>::value, T>::type
-        getNumber(lua_State* L, int32_t arg)
+    static std::enable_if_t<std::is_enum<T>::value, T>
+        getNumber(lua_State* L, const int32_t arg)
     {
         return static_cast<T>(static_cast<int64_t>(lua_tonumber(L, arg)));
     }
     template<typename T>
-    static typename std::enable_if<std::is_integral<T>::value || std::is_floating_point<T>::value, T>::type
-        getNumber(lua_State* L, int32_t arg)
+    static std::enable_if_t<std::is_integral<T>::value || std::is_floating_point<T>::value, T>
+        getNumber(lua_State* L, const int32_t arg)
     {
         return static_cast<T>(lua_tonumber(L, arg));
     }
@@ -315,7 +316,7 @@ public:
         return getNumber<T>(L, arg);
     }
     template<class T>
-    static T* getUserdata(lua_State* L, int32_t arg)
+    static T* getUserdata(lua_State* L, const int32_t arg)
     {
         T** userdata = getRawUserdata<T>(L, arg);
         if (!userdata) {
@@ -324,16 +325,16 @@ public:
         return *userdata;
     }
     template<class T>
-    static T** getRawUserdata(lua_State* L, int32_t arg)
+    static T** getRawUserdata(lua_State* L, const int32_t arg)
     {
         return static_cast<T**>(lua_touserdata(L, arg));
     }
 
-    static bool getBoolean(lua_State* L, int32_t arg)
+    static bool getBoolean(lua_State* L, const int32_t arg)
     {
         return lua_toboolean(L, arg) != 0;
     }
-    static bool getBoolean(lua_State* L, int32_t arg, bool defaultValue)
+    static bool getBoolean(lua_State* L, const int32_t arg, const bool defaultValue)
     {
         const auto parameters = lua_gettop(L);
         if (parameters == 0 || arg > parameters) {
@@ -354,14 +355,14 @@ public:
     static Player* getPlayer(lua_State* L, int32_t arg);
 
     template<typename T>
-    static typename std::enable_if<std::is_same<T, bool>::value, T>::type
-        getField(lua_State* L, int32_t arg, const std::string& key)
+    static std::enable_if_t<std::is_same<T, bool>::value, T>
+        getField(lua_State* L, const int32_t arg, const std::string& key)
     {
         lua_getfield(L, arg, key.c_str());
         return getBoolean(L, -1);
     }
     template<typename T>
-    static T getField(lua_State* L, int32_t arg, const std::string& key)
+    static T getField(lua_State* L, const int32_t arg, const std::string& key)
     {
         lua_getfield(L, arg, key.c_str());
         return getNumber<T>(L, -1);
@@ -372,27 +373,27 @@ public:
     static LuaDataType getUserdataType(lua_State* L, int32_t arg);
 
     // Is
-    static bool isNumber(lua_State* L, int32_t arg)
+    static bool isNumber(lua_State* L, const int32_t arg)
     {
         return lua_type(L, arg) == LUA_TNUMBER;
     }
-    static bool isString(lua_State* L, int32_t arg)
+    static bool isString(lua_State* L, const int32_t arg)
     {
         return lua_isstring(L, arg) != 0;
     }
-    static bool isBoolean(lua_State* L, int32_t arg)
+    static bool isBoolean(lua_State* L, const int32_t arg)
     {
         return lua_isboolean(L, arg);
     }
-    static bool isTable(lua_State* L, int32_t arg)
+    static bool isTable(lua_State* L, const int32_t arg)
     {
         return lua_istable(L, arg);
     }
-    static bool isFunction(lua_State* L, int32_t arg)
+    static bool isFunction(lua_State* L, const int32_t arg)
     {
         return lua_isfunction(L, arg);
     }
-    static bool isUserdata(lua_State* L, int32_t arg)
+    static bool isUserdata(lua_State* L, const int32_t arg)
     {
         return lua_isuserdata(L, arg) != 0;
     }
@@ -406,7 +407,7 @@ public:
     static void pushLoot(lua_State* L, const std::vector<LootBlock>& lootList);
 
     //
-    static void setField(lua_State* L, const char* index, lua_Number value)
+    static void setField(lua_State* L, const char* index, const lua_Number value)
     {
         lua_pushnumber(L, value);
         lua_setfield(L, -2, index);
@@ -434,7 +435,7 @@ protected:
 
     void registerFunctions();
 
-    void registerMethod(const std::string& globalName, const std::string& methodName, lua_CFunction func);
+    void registerMethod(const std::string& globalName, const std::string& methodName, lua_CFunction func) const;
 
     static std::string getErrorDesc(ErrorCode_t code);
 
@@ -447,15 +448,15 @@ protected:
     std::map<int32_t, std::string> cacheFiles;
 
 private:
-    void registerClass(const std::string& className, const std::string& baseClass, lua_CFunction newFunction = nullptr);
-    void registerTable(const std::string& tableName);
-    void registerMetaMethod(const std::string& className, const std::string& methodName, lua_CFunction func);
-    void registerGlobalMethod(const std::string& functionName, lua_CFunction func);
-    void registerVariable(const std::string& tableName, const std::string& name, lua_Number value);
-    void registerGlobalVariable(const std::string& name, lua_Number value);
-    void registerGlobalBoolean(const std::string& name, bool value);
+    void registerClass(const std::string& className, const std::string& baseClass, lua_CFunction newFunction = nullptr) const;
+    void registerTable(const std::string& tableName) const;
+    void registerMetaMethod(const std::string& className, const std::string& methodName, lua_CFunction func) const;
+    void registerGlobalMethod(const std::string& functionName, lua_CFunction func) const;
+    void registerVariable(const std::string& tableName, const std::string& name, lua_Number value) const;
+    void registerGlobalVariable(const std::string& name, lua_Number value) const;
+    void registerGlobalBoolean(const std::string& name, bool value) const;
 
-    std::string getStackTrace(const std::string& error_desc);
+    std::string getStackTrace(const std::string& error_desc) const;
 
     static bool getArea(lua_State* L, std::list<uint32_t>& list, uint32_t& rows);
 
@@ -1522,7 +1523,7 @@ class LuaEnvironment : public LuaScriptInterface
 {
 public:
     LuaEnvironment();
-    ~LuaEnvironment();
+    ~LuaEnvironment() override;
 
     // non-copyable
     LuaEnvironment(const LuaEnvironment&) = delete;

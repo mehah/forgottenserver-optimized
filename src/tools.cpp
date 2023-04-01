@@ -38,17 +38,17 @@ void printXMLError(const std::string& where, const std::string& fileName, const 
     uint32_t currentLine = 1;
     std::string line;
 
-    size_t offset = static_cast<size_t>(result.offset);
+    const auto offset = static_cast<size_t>(result.offset);
     size_t lineOffsetPosition = 0;
     size_t index = 0;
     size_t bytes;
     do {
         bytes = fread(buffer, 1, 32768, file);
         for (size_t i = 0; i < bytes; ++i) {
-            char ch = buffer[i];
+            const char ch = buffer[i];
             if (ch == '\n') {
-                if ((index + i) >= offset) {
-                    lineOffsetPosition = line.length() - ((index + i) - offset);
+                if (index + i >= offset) {
+                    lineOffsetPosition = line.length() - (index + i - offset);
                     bytes = 0;
                     break;
                 }
@@ -248,8 +248,8 @@ static void processSHA1MessageBlock(const uint8_t* messageBlock, uint32_t* H)
     _mm_storeu_si128(reinterpret_cast<__m128i*>(H), ABCD);
     H[4] = _mm_extract_epi32(E0, 3);
 #else
-    auto circularShift = [](int32_t bits, uint32_t value) {
-        return (value << bits) | (value >> (32 - bits));
+    auto circularShift = [](const int32_t bits, const uint32_t value) {
+        return value << bits | value >> 32 - bits;
     };
 
     uint32_t W[80];
@@ -265,7 +265,7 @@ static void processSHA1MessageBlock(const uint8_t* messageBlock, uint32_t* H)
     uint32_t A = H[0], B = H[1], C = H[2], D = H[3], E = H[4];
 
     for (int i = 0; i < 20; ++i) {
-        const uint32_t tmp = circularShift(5, A) + ((B & C) | ((~B) & D)) + E + W[i] + 0x5A827999;
+        const uint32_t tmp = circularShift(5, A) + (B & C | ~B & D) + E + W[i] + 0x5A827999;
         E = D; D = C; C = circularShift(30, B); B = A; A = tmp;
     }
 
@@ -275,7 +275,7 @@ static void processSHA1MessageBlock(const uint8_t* messageBlock, uint32_t* H)
     }
 
     for (int i = 40; i < 60; ++i) {
-        const uint32_t tmp = circularShift(5, A) + ((B & C) | (B & D) | (C & D)) + E + W[i] + 0x8F1BBCDC;
+        const uint32_t tmp = circularShift(5, A) + (B & C | B & D | C & D) + E + W[i] + 0x8F1BBCDC;
         E = D; D = C; C = circularShift(30, B); B = A; A = tmp;
     }
 
@@ -307,7 +307,7 @@ std::string transformToSHA1(const std::string& input)
 
     uint32_t length_low = 0;
     uint32_t length_high = 0;
-    for (char ch : input) {
+    for (const char ch : input) {
         messageBlock[index++] = ch;
 
         length_low += 8;
@@ -351,7 +351,7 @@ std::string transformToSHA1(const std::string& input)
     char hexstring[41];
     static const char hexDigits[] = { "0123456789abcdef" };
     for (int hashByte = 20; --hashByte >= 0;) {
-        const uint8_t byte = H[hashByte >> 2] >> (((3 - hashByte) & 3) << 3);
+        const uint8_t byte = H[hashByte >> 2] >> ((3 - hashByte & 3) << 3);
         index = hashByte << 1;
         hexstring[index] = hexDigits[byte >> 4];
         hexstring[index + 1] = hexDigits[byte & 15];
@@ -391,14 +391,14 @@ std::string generateToken(const std::string& key, uint32_t ticks)
     message.assign(transformToSHA1(oKeyPad));
 
     // calculate hmac offset
-    uint32_t offset = static_cast<uint32_t>(std::strtoul(message.substr(39, 1).c_str(), nullptr, 16) & 0xF);
+    const uint32_t offset = static_cast<uint32_t>(std::strtoul(message.substr(39, 1).c_str(), nullptr, 16) & 0xF);
 
     // get truncated hash
-    uint32_t truncHash = static_cast<uint32_t>(std::strtoul(message.substr(2 * offset, 8).c_str(), nullptr, 16)) & 0x7FFFFFFF;
+    const uint32_t truncHash = static_cast<uint32_t>(std::strtoul(message.substr(2 * offset, 8).c_str(), nullptr, 16)) & 0x7FFFFFFF;
     message.assign(std::to_string(truncHash));
 
     // return only last AUTHENTICATOR_DIGITS (default 6) digits, also asserts exactly 6 digits
-    uint32_t hashLen = message.length();
+    const uint32_t hashLen = message.length();
     message.assign(message.substr(hashLen - std::min(hashLen, AUTHENTICATOR_DIGITS)));
     message.insert(0, AUTHENTICATOR_DIGITS - std::min(hashLen, AUTHENTICATOR_DIGITS), '0');
     return message;
@@ -408,20 +408,20 @@ void replaceString(std::string& str, const std::string& sought, const std::strin
 {
     size_t pos = 0;
     size_t start = 0;
-    size_t soughtLen = sought.length();
-    size_t replaceLen = replacement.length();
+    const size_t soughtLen = sought.length();
+    const size_t replaceLen = replacement.length();
     while ((pos = str.find(sought, start)) != std::string::npos) {
         str = str.substr(0, pos) + replacement + str.substr(pos + soughtLen);
         start = pos + replaceLen;
     }
 }
 
-void trim_right(std::string& source, char t)
+void trim_right(std::string& source, const char t)
 {
     source.erase(source.find_last_not_of(t) + 1);
 }
 
-void trim_left(std::string& source, char t)
+void trim_left(std::string& source, const char t)
 {
     source.erase(0, source.find_first_not_of(t));
 }
@@ -430,10 +430,10 @@ void toLowerCaseString(std::string& source)
 {
 #if defined(__SSE4_2__)
     const __m128i ranges = _mm_setr_epi8('A', 'Z', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-    __m128i* mem = reinterpret_cast<__m128i*>(&source[0]);
+    auto mem = reinterpret_cast<__m128i*>(&source[0]);
     const __m128i diff = _mm_set1_epi8(0x20);
 
-    const uint8_t mode = (_SIDD_UBYTE_OPS | _SIDD_CMP_RANGES | _SIDD_UNIT_MASK);
+    const uint8_t mode = _SIDD_UBYTE_OPS | _SIDD_CMP_RANGES | _SIDD_UNIT_MASK;
     for (; ; ++mem) {
         const __m128i chunk = _mm_loadu_si128(mem);
         if (_mm_cmpistrc(ranges, chunk, mode)) {
@@ -473,11 +473,11 @@ void toLowerCaseString(std::string& source)
 void toUpperCaseString(std::string& source)
 {
 #if defined(__SSE4_2__)
-    __m128i* mem = reinterpret_cast<__m128i*>(&source[0]);
+    auto mem = reinterpret_cast<__m128i*>(&source[0]);
     const __m128i ranges = _mm_setr_epi8('a', 'z', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     const __m128i diff = _mm_set1_epi8(0x20);
 
-    const uint8_t mode = (_SIDD_UBYTE_OPS | _SIDD_CMP_RANGES | _SIDD_UNIT_MASK);
+    const uint8_t mode = _SIDD_UBYTE_OPS | _SIDD_CMP_RANGES | _SIDD_UNIT_MASK;
     for (; ; ++mem) {
         const __m128i chunk = _mm_loadu_si128(mem);
         if (_mm_cmpistrc(ranges, chunk, mode)) {
@@ -560,7 +560,8 @@ int32_t uniform_random(int32_t minNumber, int32_t maxNumber)
     static std::uniform_int_distribution<int32_t> uniformRand;
     if (minNumber == maxNumber) {
         return minNumber;
-    } else if (minNumber > maxNumber) {
+    }
+    if (minNumber > maxNumber) {
         std::swap(minNumber, maxNumber);
     }
     return uniformRand(getRandomGenerator(), std::uniform_int_distribution<int32_t>::param_type(minNumber, maxNumber));
@@ -577,7 +578,8 @@ int32_t normal_random(int32_t minNumber, int32_t maxNumber)
     static std::normal_distribution<float> normalRand(0.5f, 0.25f);
     if (minNumber == maxNumber) {
         return minNumber;
-    } else if (minNumber > maxNumber) {
+    }
+    if (minNumber > maxNumber) {
         std::swap(minNumber, maxNumber);
     }
 
@@ -594,7 +596,7 @@ int32_t normal_random(int32_t minNumber, int32_t maxNumber)
     return minNumber + increment;
 }
 
-bool boolean_random(double probability/* = 0.5*/)
+bool boolean_random(const double probability/* = 0.5*/)
 {
     static std::bernoulli_distribution booleanRand;
     return booleanRand(getRandomGenerator(), std::bernoulli_distribution::param_type(probability));
@@ -606,11 +608,11 @@ void trimString(std::string& str)
     str.erase(0, str.find_first_not_of(' '));
 }
 
-std::string convertIPToString(uint32_t ip)
+std::string convertIPToString(const uint32_t ip)
 {
     char buffer[17];
 
-    int res = sprintf(buffer, "%u.%u.%u.%u", ip & 0xFF, (ip >> 8) & 0xFF, (ip >> 16) & 0xFF, (ip >> 24));
+    const int res = sprintf(buffer, "%u.%u.%u.%u", ip & 0xFF, ip >> 8 & 0xFF, ip >> 16 & 0xFF, ip >> 24);
     if (res < 0) {
         return {};
     }
@@ -618,7 +620,7 @@ std::string convertIPToString(uint32_t ip)
     return buffer;
 }
 
-std::string formatDate(time_t time)
+std::string formatDate(const time_t time)
 {
     const tm* tms = localtime(&time);
     if (!tms) {
@@ -626,14 +628,14 @@ std::string formatDate(time_t time)
     }
 
     char buffer[20];
-    int res = sprintf(buffer, "%02d/%02d/%04d %02d:%02d:%02d", tms->tm_mday, tms->tm_mon + 1, tms->tm_year + 1900, tms->tm_hour, tms->tm_min, tms->tm_sec);
+    const int res = sprintf(buffer, "%02d/%02d/%04d %02d:%02d:%02d", tms->tm_mday, tms->tm_mon + 1, tms->tm_year + 1900, tms->tm_hour, tms->tm_min, tms->tm_sec);
     if (res < 0) {
         return {};
     }
     return { buffer, 19 };
 }
 
-std::string formatDateShort(time_t time)
+std::string formatDateShort(const time_t time)
 {
     const tm* tms = localtime(&time);
     if (!tms) {
@@ -641,7 +643,7 @@ std::string formatDateShort(time_t time)
     }
 
     char buffer[12];
-    size_t res = strftime(buffer, 12, "%d %b %Y", tms);
+    const size_t res = strftime(buffer, 12, "%d %b %Y", tms);
     if (res == 0) {
         return {};
     }
@@ -674,7 +676,7 @@ Direction getDirection(const std::string& string)
     return direction;
 }
 
-Position getNextPosition(Direction direction, Position pos)
+Position getNextPosition(const Direction direction, Position pos)
 {
     switch (direction) {
         case DIRECTION_NORTH:
@@ -762,165 +764,245 @@ MagicEffectClasses getMagicEffect(const std::string& strValue)
 {
     if (!tfs_strcmp(strValue.c_str(), "redspark")) {
         return CONST_ME_DRAWBLOOD;
-    } else if (!tfs_strcmp(strValue.c_str(), "bluebubble")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "bluebubble")) {
         return CONST_ME_LOSEENERGY;
-    } else if (!tfs_strcmp(strValue.c_str(), "poff")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "poff")) {
         return CONST_ME_POFF;
-    } else if (!tfs_strcmp(strValue.c_str(), "yellowspark")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "yellowspark")) {
         return CONST_ME_BLOCKHIT;
-    } else if (!tfs_strcmp(strValue.c_str(), "explosionarea")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "explosionarea")) {
         return CONST_ME_EXPLOSIONAREA;
-    } else if (!tfs_strcmp(strValue.c_str(), "explosion")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "explosion")) {
         return CONST_ME_EXPLOSIONHIT;
-    } else if (!tfs_strcmp(strValue.c_str(), "firearea")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "firearea")) {
         return CONST_ME_FIREAREA;
-    } else if (!tfs_strcmp(strValue.c_str(), "yellowbubble")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "yellowbubble")) {
         return CONST_ME_YELLOW_RINGS;
-    } else if (!tfs_strcmp(strValue.c_str(), "greenbubble")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "greenbubble")) {
         return CONST_ME_GREEN_RINGS;
-    } else if (!tfs_strcmp(strValue.c_str(), "blackspark")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "blackspark")) {
         return CONST_ME_HITAREA;
-    } else if (!tfs_strcmp(strValue.c_str(), "teleport")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "teleport")) {
         return CONST_ME_TELEPORT;
-    } else if (!tfs_strcmp(strValue.c_str(), "energy")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "energy")) {
         return CONST_ME_ENERGYHIT;
-    } else if (!tfs_strcmp(strValue.c_str(), "blueshimmer")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "blueshimmer")) {
         return CONST_ME_MAGIC_BLUE;
-    } else if (!tfs_strcmp(strValue.c_str(), "redshimmer")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "redshimmer")) {
         return CONST_ME_MAGIC_RED;
-    } else if (!tfs_strcmp(strValue.c_str(), "greenshimmer")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "greenshimmer")) {
         return CONST_ME_MAGIC_GREEN;
-    } else if (!tfs_strcmp(strValue.c_str(), "fire")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "fire")) {
         return CONST_ME_HITBYFIRE;
-    } else if (!tfs_strcmp(strValue.c_str(), "greenspark")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "greenspark")) {
         return CONST_ME_HITBYPOISON;
-    } else if (!tfs_strcmp(strValue.c_str(), "mortarea")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "mortarea")) {
         return CONST_ME_MORTAREA;
-    } else if (!tfs_strcmp(strValue.c_str(), "greennote")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "greennote")) {
         return CONST_ME_SOUND_GREEN;
-    } else if (!tfs_strcmp(strValue.c_str(), "rednote")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "rednote")) {
         return CONST_ME_SOUND_RED;
-    } else if (!tfs_strcmp(strValue.c_str(), "poison")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "poison")) {
         return CONST_ME_POISONAREA;
-    } else if (!tfs_strcmp(strValue.c_str(), "yellownote")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "yellownote")) {
         return CONST_ME_SOUND_YELLOW;
-    } else if (!tfs_strcmp(strValue.c_str(), "purplenote")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "purplenote")) {
         return CONST_ME_SOUND_PURPLE;
-    } else if (!tfs_strcmp(strValue.c_str(), "bluenote")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "bluenote")) {
         return CONST_ME_SOUND_BLUE;
-    } else if (!tfs_strcmp(strValue.c_str(), "whitenote")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "whitenote")) {
         return CONST_ME_SOUND_WHITE;
-    } else if (!tfs_strcmp(strValue.c_str(), "bubbles")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "bubbles")) {
         return CONST_ME_BUBBLES;
-    } else if (!tfs_strcmp(strValue.c_str(), "dice")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "dice")) {
         return CONST_ME_CRAPS;
-    } else if (!tfs_strcmp(strValue.c_str(), "giftwraps")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "giftwraps")) {
         return CONST_ME_GIFT_WRAPS;
-    } else if (!tfs_strcmp(strValue.c_str(), "yellowfirework")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "yellowfirework")) {
         return CONST_ME_FIREWORK_YELLOW;
-    } else if (!tfs_strcmp(strValue.c_str(), "redfirework")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "redfirework")) {
         return CONST_ME_FIREWORK_RED;
-    } else if (!tfs_strcmp(strValue.c_str(), "bluefirework")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "bluefirework")) {
         return CONST_ME_FIREWORK_BLUE;
-    } else if (!tfs_strcmp(strValue.c_str(), "stun")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "stun")) {
         return CONST_ME_STUN;
-    } else if (!tfs_strcmp(strValue.c_str(), "sleep")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "sleep")) {
         return CONST_ME_SLEEP;
-    } else if (!tfs_strcmp(strValue.c_str(), "watercreature")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "watercreature")) {
         return CONST_ME_WATERCREATURE;
-    } else if (!tfs_strcmp(strValue.c_str(), "groundshaker")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "groundshaker")) {
         return CONST_ME_GROUNDSHAKER;
-    } else if (!tfs_strcmp(strValue.c_str(), "hearts")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "hearts")) {
         return CONST_ME_HEARTS;
-    } else if (!tfs_strcmp(strValue.c_str(), "fireattack")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "fireattack")) {
         return CONST_ME_FIREATTACK;
-    } else if (!tfs_strcmp(strValue.c_str(), "energyarea")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "energyarea")) {
         return CONST_ME_ENERGYAREA;
-    } else if (!tfs_strcmp(strValue.c_str(), "smallclouds")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "smallclouds")) {
         return CONST_ME_SMALLCLOUDS;
-    } else if (!tfs_strcmp(strValue.c_str(), "holydamage")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "holydamage")) {
         return CONST_ME_HOLYDAMAGE;
-    } else if (!tfs_strcmp(strValue.c_str(), "bigclouds")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "bigclouds")) {
         return CONST_ME_BIGCLOUDS;
-    } else if (!tfs_strcmp(strValue.c_str(), "icearea")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "icearea")) {
         return CONST_ME_ICEAREA;
-    } else if (!tfs_strcmp(strValue.c_str(), "icetornado")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "icetornado")) {
         return CONST_ME_ICETORNADO;
-    } else if (!tfs_strcmp(strValue.c_str(), "iceattack")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "iceattack")) {
         return CONST_ME_ICEATTACK;
-    } else if (!tfs_strcmp(strValue.c_str(), "stones")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "stones")) {
         return CONST_ME_STONES;
-    } else if (!tfs_strcmp(strValue.c_str(), "smallplants")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "smallplants")) {
         return CONST_ME_SMALLPLANTS;
-    } else if (!tfs_strcmp(strValue.c_str(), "carniphila")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "carniphila")) {
         return CONST_ME_CARNIPHILA;
-    } else if (!tfs_strcmp(strValue.c_str(), "purpleenergy")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "purpleenergy")) {
         return CONST_ME_PURPLEENERGY;
-    } else if (!tfs_strcmp(strValue.c_str(), "yellowenergy")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "yellowenergy")) {
         return CONST_ME_YELLOWENERGY;
-    } else if (!tfs_strcmp(strValue.c_str(), "holyarea")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "holyarea")) {
         return CONST_ME_HOLYAREA;
-    } else if (!tfs_strcmp(strValue.c_str(), "bigplants")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "bigplants")) {
         return CONST_ME_BIGPLANTS;
-    } else if (!tfs_strcmp(strValue.c_str(), "cake")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "cake")) {
         return CONST_ME_CAKE;
-    } else if (!tfs_strcmp(strValue.c_str(), "giantice")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "giantice")) {
         return CONST_ME_GIANTICE;
-    } else if (!tfs_strcmp(strValue.c_str(), "watersplash")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "watersplash")) {
         return CONST_ME_WATERSPLASH;
-    } else if (!tfs_strcmp(strValue.c_str(), "plantattack")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "plantattack")) {
         return CONST_ME_PLANTATTACK;
-    } else if (!tfs_strcmp(strValue.c_str(), "tutorialarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "tutorialarrow")) {
         return CONST_ME_TUTORIALARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "tutorialsquare")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "tutorialsquare")) {
         return CONST_ME_TUTORIALSQUARE;
-    } else if (!tfs_strcmp(strValue.c_str(), "mirrorhorizontal")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "mirrorhorizontal")) {
         return CONST_ME_MIRRORHORIZONTAL;
-    } else if (!tfs_strcmp(strValue.c_str(), "mirrorvertical")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "mirrorvertical")) {
         return CONST_ME_MIRRORVERTICAL;
-    } else if (!tfs_strcmp(strValue.c_str(), "skullhorizontal")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "skullhorizontal")) {
         return CONST_ME_SKULLHORIZONTAL;
-    } else if (!tfs_strcmp(strValue.c_str(), "skullvertical")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "skullvertical")) {
         return CONST_ME_SKULLVERTICAL;
-    } else if (!tfs_strcmp(strValue.c_str(), "assassin")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "assassin")) {
         return CONST_ME_ASSASSIN;
-    } else if (!tfs_strcmp(strValue.c_str(), "stepshorizontal")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "stepshorizontal")) {
         return CONST_ME_STEPSHORIZONTAL;
-    } else if (!tfs_strcmp(strValue.c_str(), "bloodysteps")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "bloodysteps")) {
         return CONST_ME_BLOODYSTEPS;
-    } else if (!tfs_strcmp(strValue.c_str(), "stepsvertical")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "stepsvertical")) {
         return CONST_ME_STEPSVERTICAL;
-    } else if (!tfs_strcmp(strValue.c_str(), "yalaharighost")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "yalaharighost")) {
         return CONST_ME_YALAHARIGHOST;
-    } else if (!tfs_strcmp(strValue.c_str(), "bats")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "bats")) {
         return CONST_ME_BATS;
-    } else if (!tfs_strcmp(strValue.c_str(), "smoke")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "smoke")) {
         return CONST_ME_SMOKE;
-    } else if (!tfs_strcmp(strValue.c_str(), "insects")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "insects")) {
         return CONST_ME_INSECTS;
-    } else if (!tfs_strcmp(strValue.c_str(), "dragonhead")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "dragonhead")) {
         return CONST_ME_DRAGONHEAD;
-    } else if (!tfs_strcmp(strValue.c_str(), "orcshaman")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "orcshaman")) {
         return CONST_ME_ORCSHAMAN;
-    } else if (!tfs_strcmp(strValue.c_str(), "orcshamanfire")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "orcshamanfire")) {
         return CONST_ME_ORCSHAMAN_FIRE;
-    } else if (!tfs_strcmp(strValue.c_str(), "thunder")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "thunder")) {
         return CONST_ME_THUNDER;
-    } else if (!tfs_strcmp(strValue.c_str(), "ferumbras")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "ferumbras")) {
         return CONST_ME_FERUMBRAS;
-    } else if (!tfs_strcmp(strValue.c_str(), "confettihorizontal")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "confettihorizontal")) {
         return CONST_ME_CONFETTI_HORIZONTAL;
-    } else if (!tfs_strcmp(strValue.c_str(), "confettivertical")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "confettivertical")) {
         return CONST_ME_CONFETTI_VERTICAL;
-    } else if (!tfs_strcmp(strValue.c_str(), "blacksmoke")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "blacksmoke")) {
         return CONST_ME_BLACKSMOKE;
-    } else if (!tfs_strcmp(strValue.c_str(), "redsmoke")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "redsmoke")) {
         return CONST_ME_REDSMOKE;
-    } else if (!tfs_strcmp(strValue.c_str(), "yellowsmoke")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "yellowsmoke")) {
         return CONST_ME_YELLOWSMOKE;
-    } else if (!tfs_strcmp(strValue.c_str(), "greensmoke")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "greensmoke")) {
         return CONST_ME_GREENSMOKE;
-    } else if (!tfs_strcmp(strValue.c_str(), "purplesmoke")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "purplesmoke")) {
         return CONST_ME_PURPLESMOKE;
     }
     return CONST_ME_NONE;
@@ -930,109 +1012,158 @@ ShootType_t getShootType(const std::string& strValue)
 {
     if (!tfs_strcmp(strValue.c_str(), "spear")) {
         return CONST_ANI_SPEAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "bolt")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "bolt")) {
         return CONST_ANI_BOLT;
-    } else if (!tfs_strcmp(strValue.c_str(), "arrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "arrow")) {
         return CONST_ANI_ARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "fire")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "fire")) {
         return CONST_ANI_FIRE;
-    } else if (!tfs_strcmp(strValue.c_str(), "energy")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "energy")) {
         return CONST_ANI_ENERGY;
-    } else if (!tfs_strcmp(strValue.c_str(), "poisonarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "poisonarrow")) {
         return CONST_ANI_POISONARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "burstarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "burstarrow")) {
         return CONST_ANI_BURSTARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "throwingstar")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "throwingstar")) {
         return CONST_ANI_THROWINGSTAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "throwingknife")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "throwingknife")) {
         return CONST_ANI_THROWINGKNIFE;
-    } else if (!tfs_strcmp(strValue.c_str(), "smallstone")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "smallstone")) {
         return CONST_ANI_SMALLSTONE;
-    } else if (!tfs_strcmp(strValue.c_str(), "death")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "death")) {
         return CONST_ANI_DEATH;
-    } else if (!tfs_strcmp(strValue.c_str(), "largerock")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "largerock")) {
         return CONST_ANI_LARGEROCK;
-    } else if (!tfs_strcmp(strValue.c_str(), "snowball")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "snowball")) {
         return CONST_ANI_SNOWBALL;
-    } else if (!tfs_strcmp(strValue.c_str(), "powerbolt")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "powerbolt")) {
         return CONST_ANI_POWERBOLT;
-    } else if (!tfs_strcmp(strValue.c_str(), "poison")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "poison")) {
         return CONST_ANI_POISON;
-    } else if (!tfs_strcmp(strValue.c_str(), "infernalbolt")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "infernalbolt")) {
         return CONST_ANI_INFERNALBOLT;
-    } else if (!tfs_strcmp(strValue.c_str(), "huntingspear")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "huntingspear")) {
         return CONST_ANI_HUNTINGSPEAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "enchantedspear")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "enchantedspear")) {
         return CONST_ANI_ENCHANTEDSPEAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "redstar")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "redstar")) {
         return CONST_ANI_REDSTAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "greenstar")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "greenstar")) {
         return CONST_ANI_GREENSTAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "royalspear")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "royalspear")) {
         return CONST_ANI_ROYALSPEAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "sniperarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "sniperarrow")) {
         return CONST_ANI_SNIPERARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "onyxarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "onyxarrow")) {
         return CONST_ANI_ONYXARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "piercingbolt")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "piercingbolt")) {
         return CONST_ANI_PIERCINGBOLT;
-    } else if (!tfs_strcmp(strValue.c_str(), "whirlwindsword")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "whirlwindsword")) {
         return CONST_ANI_WHIRLWINDSWORD;
-    } else if (!tfs_strcmp(strValue.c_str(), "whirlwindaxe")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "whirlwindaxe")) {
         return CONST_ANI_WHIRLWINDAXE;
-    } else if (!tfs_strcmp(strValue.c_str(), "whirlwindclub")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "whirlwindclub")) {
         return CONST_ANI_WHIRLWINDCLUB;
-    } else if (!tfs_strcmp(strValue.c_str(), "etherealspear")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "etherealspear")) {
         return CONST_ANI_ETHEREALSPEAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "ice")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "ice")) {
         return CONST_ANI_ICE;
-    } else if (!tfs_strcmp(strValue.c_str(), "earth")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "earth")) {
         return CONST_ANI_EARTH;
-    } else if (!tfs_strcmp(strValue.c_str(), "holy")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "holy")) {
         return CONST_ANI_HOLY;
-    } else if (!tfs_strcmp(strValue.c_str(), "suddendeath")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "suddendeath")) {
         return CONST_ANI_SUDDENDEATH;
-    } else if (!tfs_strcmp(strValue.c_str(), "flasharrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "flasharrow")) {
         return CONST_ANI_FLASHARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "flammingarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "flammingarrow")) {
         return CONST_ANI_FLAMMINGARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "shiverarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "shiverarrow")) {
         return CONST_ANI_SHIVERARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "energyball")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "energyball")) {
         return CONST_ANI_ENERGYBALL;
-    } else if (!tfs_strcmp(strValue.c_str(), "smallice")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "smallice")) {
         return CONST_ANI_SMALLICE;
-    } else if (!tfs_strcmp(strValue.c_str(), "smallholy")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "smallholy")) {
         return CONST_ANI_SMALLHOLY;
-    } else if (!tfs_strcmp(strValue.c_str(), "smallearth")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "smallearth")) {
         return CONST_ANI_SMALLEARTH;
-    } else if (!tfs_strcmp(strValue.c_str(), "eartharrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "eartharrow")) {
         return CONST_ANI_EARTHARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "explosion")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "explosion")) {
         return CONST_ANI_EXPLOSION;
-    } else if (!tfs_strcmp(strValue.c_str(), "cake")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "cake")) {
         return CONST_ANI_CAKE;
-    } else if (!tfs_strcmp(strValue.c_str(), "tarsalarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "tarsalarrow")) {
         return CONST_ANI_TARSALARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "vortexbolt")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "vortexbolt")) {
         return CONST_ANI_VORTEXBOLT;
-    } else if (!tfs_strcmp(strValue.c_str(), "prismaticbolt")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "prismaticbolt")) {
         return CONST_ANI_PRISMATICBOLT;
-    } else if (!tfs_strcmp(strValue.c_str(), "crystallinearrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "crystallinearrow")) {
         return CONST_ANI_CRYSTALLINEARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "drillbolt")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "drillbolt")) {
         return CONST_ANI_DRILLBOLT;
-    } else if (!tfs_strcmp(strValue.c_str(), "envenomedarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "envenomedarrow")) {
         return CONST_ANI_ENVENOMEDARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "gloothspear")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "gloothspear")) {
         return CONST_ANI_GLOOTHSPEAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "simplearrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "simplearrow")) {
         return CONST_ANI_SIMPLEARROW;
     }
     return CONST_ANI_NONE;
 }
 
-std::string getCombatName(CombatType_t combatType)
+std::string getCombatName(const CombatType_t combatType)
 {
     switch (combatType) {
         case COMBAT_PHYSICALDAMAGE: return "physical";
@@ -1055,49 +1186,71 @@ Ammo_t getAmmoType(const std::string& strValue)
 {
     if (!tfs_strcmp(strValue.c_str(), "spear")) {
         return AMMO_SPEAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "bolt")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "bolt")) {
         return AMMO_BOLT;
-    } else if (!tfs_strcmp(strValue.c_str(), "arrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "arrow")) {
         return AMMO_ARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "poisonarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "poisonarrow")) {
         return AMMO_ARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "burstarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "burstarrow")) {
         return AMMO_ARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "throwingstar")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "throwingstar")) {
         return AMMO_THROWINGSTAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "throwingknife")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "throwingknife")) {
         return AMMO_THROWINGKNIFE;
-    } else if (!tfs_strcmp(strValue.c_str(), "smallstone")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "smallstone")) {
         return AMMO_STONE;
-    } else if (!tfs_strcmp(strValue.c_str(), "largerock")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "largerock")) {
         return AMMO_STONE;
-    } else if (!tfs_strcmp(strValue.c_str(), "snowball")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "snowball")) {
         return AMMO_SNOWBALL;
-    } else if (!tfs_strcmp(strValue.c_str(), "powerbolt")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "powerbolt")) {
         return AMMO_BOLT;
-    } else if (!tfs_strcmp(strValue.c_str(), "infernalbolt")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "infernalbolt")) {
         return AMMO_BOLT;
-    } else if (!tfs_strcmp(strValue.c_str(), "huntingspear")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "huntingspear")) {
         return AMMO_SPEAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "enchantedspear")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "enchantedspear")) {
         return AMMO_SPEAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "royalspear")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "royalspear")) {
         return AMMO_SPEAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "sniperarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "sniperarrow")) {
         return AMMO_ARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "onyxarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "onyxarrow")) {
         return AMMO_ARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "piercingbolt")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "piercingbolt")) {
         return AMMO_BOLT;
-    } else if (!tfs_strcmp(strValue.c_str(), "etherealspear")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "etherealspear")) {
         return AMMO_SPEAR;
-    } else if (!tfs_strcmp(strValue.c_str(), "flasharrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "flasharrow")) {
         return AMMO_ARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "flammingarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "flammingarrow")) {
         return AMMO_ARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "shiverarrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "shiverarrow")) {
         return AMMO_ARROW;
-    } else if (!tfs_strcmp(strValue.c_str(), "eartharrow")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "eartharrow")) {
         return AMMO_ARROW;
     }
     return AMMO_NONE;
@@ -1107,9 +1260,11 @@ WeaponAction_t getWeaponAction(const std::string& strValue)
 {
     if (!tfs_strcmp(strValue.c_str(), "move")) {
         return WEAPONACTION_MOVE;
-    } else if (!tfs_strcmp(strValue.c_str(), "removecharge")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "removecharge")) {
         return WEAPONACTION_REMOVECHARGE;
-    } else if (!tfs_strcmp(strValue.c_str(), "removecount")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "removecount")) {
         return WEAPONACTION_REMOVECOUNT;
     }
     return WEAPONACTION_NONE;
@@ -1119,21 +1274,26 @@ Skulls_t getSkullType(const std::string& strValue)
 {
     if (!tfs_strcmp(strValue.c_str(), "yellow")) {
         return SKULL_YELLOW;
-    } else if (!tfs_strcmp(strValue.c_str(), "green")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "green")) {
         return SKULL_GREEN;
-    } else if (!tfs_strcmp(strValue.c_str(), "white")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "white")) {
         return SKULL_WHITE;
-    } else if (!tfs_strcmp(strValue.c_str(), "red")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "red")) {
         return SKULL_RED;
-    } else if (!tfs_strcmp(strValue.c_str(), "black")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "black")) {
         return SKULL_BLACK;
-    } else if (!tfs_strcmp(strValue.c_str(), "orange")) {
+    }
+    if (!tfs_strcmp(strValue.c_str(), "orange")) {
         return SKULL_ORANGE;
     }
     return SKULL_NONE;
 }
 
-std::string getSpecialSkillName(uint8_t skillid)
+std::string getSpecialSkillName(const uint8_t skillid)
 {
     switch (skillid) {
         case SPECIALSKILL_CRITICALHITCHANCE:
@@ -1159,7 +1319,7 @@ std::string getSpecialSkillName(uint8_t skillid)
     }
 }
 
-std::string getSkillName(uint8_t skillid)
+std::string getSkillName(const uint8_t skillid)
 {
     switch (skillid) {
         case SKILL_FIST:
@@ -1215,7 +1375,7 @@ uint32_t adlerChecksum(const uint8_t* data, size_t length)
 
 #if defined(__SSE2__)
         while (tmp >= 16) {
-            __m128i vdata = _mm_loadu_si128(reinterpret_cast<const __m128i*>(data));
+            const __m128i vdata = _mm_loadu_si128(reinterpret_cast<const __m128i*>(data));
             __m128i v = _mm_sad_epu8(vdata, zeros);
             __m128i v32 = _mm_add_epi32(_mm_madd_epi16(_mm_unpacklo_epi8(vdata, zeros), h16), _mm_madd_epi16(_mm_unpackhi_epi8(vdata, zeros), h8));
             v32 = _mm_add_epi32(v32, _mm_shuffle_epi32(v32, _MM_SHUFFLE(2, 3, 0, 1)));
@@ -1242,7 +1402,7 @@ uint32_t adlerChecksum(const uint8_t* data, size_t length)
         b %= adler;
     }
 
-    return (b << 16) | a;
+    return b << 16 | a;
 }
 
 std::string ucfirst(std::string str)
@@ -1258,7 +1418,7 @@ std::string ucfirst(std::string str)
 
 std::string ucwords(std::string str)
 {
-    size_t strLength = str.length();
+    const size_t strLength = str.length();
     if (strLength == 0) {
         return str;
     }
@@ -1279,11 +1439,11 @@ bool booleanString(const std::string& str)
         return false;
     }
 
-    char ch = tolower(str.front());
+    const char ch = tolower(str.front());
     return ch != 'f' && ch != 'n' && ch != '0';
 }
 
-std::string getWeaponName(WeaponType_t weaponType)
+std::string getWeaponName(const WeaponType_t weaponType)
 {
     switch (weaponType) {
         case WEAPON_SWORD: return "sword";
@@ -1292,11 +1452,11 @@ std::string getWeaponName(WeaponType_t weaponType)
         case WEAPON_DISTANCE: return "distance";
         case WEAPON_WAND: return "wand";
         case WEAPON_AMMO: return "ammunition";
-        default: return std::string();
+        default: return {};
     }
 }
 
-size_t combatTypeToIndex(CombatType_t combatType)
+size_t combatTypeToIndex(const CombatType_t combatType)
 {
     switch (combatType) {
         case COMBAT_PHYSICALDAMAGE:
@@ -1328,7 +1488,7 @@ size_t combatTypeToIndex(CombatType_t combatType)
     }
 }
 
-CombatType_t indexToCombatType(size_t v)
+CombatType_t indexToCombatType(const size_t v)
 {
     return static_cast<CombatType_t>(1 << v);
 }
@@ -1336,7 +1496,7 @@ CombatType_t indexToCombatType(size_t v)
 uint8_t serverFluidToClient(uint8_t serverFluid)
 {
 #if GAME_FEATURE_NEWFLUIDS > 0
-    uint8_t size = sizeof(clientToServerFluidMap) / sizeof(clientToServerFluidMap[0]);
+    const uint8_t size = sizeof clientToServerFluidMap / sizeof clientToServerFluidMap[0];
     for (uint8_t i = 0; i < size; ++i) {
         if (clientToServerFluidMap[i] == serverFluid) {
             return i;
@@ -1351,7 +1511,7 @@ uint8_t serverFluidToClient(uint8_t serverFluid)
 uint8_t clientFluidToServer(uint8_t clientFluid)
 {
 #if GAME_FEATURE_NEWFLUIDS > 0
-    uint8_t size = sizeof(clientToServerFluidMap) / sizeof(clientToServerFluidMap[0]);
+    const uint8_t size = sizeof clientToServerFluidMap / sizeof clientToServerFluidMap[0];
     if (clientFluid >= size) {
         return 0;
     }
@@ -1366,49 +1526,71 @@ itemAttrTypes stringToItemAttribute(const std::string& str)
     const char* cstr = str.c_str();
     if (!tfs_strcmp(cstr, "aid")) {
         return ITEM_ATTRIBUTE_ACTIONID;
-    } else if (!tfs_strcmp(cstr, "uid")) {
+    }
+    if (!tfs_strcmp(cstr, "uid")) {
         return ITEM_ATTRIBUTE_UNIQUEID;
-    } else if (!tfs_strcmp(cstr, "description")) {
+    }
+    if (!tfs_strcmp(cstr, "description")) {
         return ITEM_ATTRIBUTE_DESCRIPTION;
-    } else if (!tfs_strcmp(cstr, "text")) {
+    }
+    if (!tfs_strcmp(cstr, "text")) {
         return ITEM_ATTRIBUTE_TEXT;
-    } else if (!tfs_strcmp(cstr, "date")) {
+    }
+    if (!tfs_strcmp(cstr, "date")) {
         return ITEM_ATTRIBUTE_DATE;
-    } else if (!tfs_strcmp(cstr, "writer")) {
+    }
+    if (!tfs_strcmp(cstr, "writer")) {
         return ITEM_ATTRIBUTE_WRITER;
-    } else if (!tfs_strcmp(cstr, "name")) {
+    }
+    if (!tfs_strcmp(cstr, "name")) {
         return ITEM_ATTRIBUTE_NAME;
-    } else if (!tfs_strcmp(cstr, "article")) {
+    }
+    if (!tfs_strcmp(cstr, "article")) {
         return ITEM_ATTRIBUTE_ARTICLE;
-    } else if (!tfs_strcmp(cstr, "pluralname")) {
+    }
+    if (!tfs_strcmp(cstr, "pluralname")) {
         return ITEM_ATTRIBUTE_PLURALNAME;
-    } else if (!tfs_strcmp(cstr, "weight")) {
+    }
+    if (!tfs_strcmp(cstr, "weight")) {
         return ITEM_ATTRIBUTE_WEIGHT;
-    } else if (!tfs_strcmp(cstr, "attack")) {
+    }
+    if (!tfs_strcmp(cstr, "attack")) {
         return ITEM_ATTRIBUTE_ATTACK;
-    } else if (!tfs_strcmp(cstr, "defense")) {
+    }
+    if (!tfs_strcmp(cstr, "defense")) {
         return ITEM_ATTRIBUTE_DEFENSE;
-    } else if (!tfs_strcmp(cstr, "extradefense")) {
+    }
+    if (!tfs_strcmp(cstr, "extradefense")) {
         return ITEM_ATTRIBUTE_EXTRADEFENSE;
-    } else if (!tfs_strcmp(cstr, "armor")) {
+    }
+    if (!tfs_strcmp(cstr, "armor")) {
         return ITEM_ATTRIBUTE_ARMOR;
-    } else if (!tfs_strcmp(cstr, "hitchance")) {
+    }
+    if (!tfs_strcmp(cstr, "hitchance")) {
         return ITEM_ATTRIBUTE_HITCHANCE;
-    } else if (!tfs_strcmp(cstr, "shootrange")) {
+    }
+    if (!tfs_strcmp(cstr, "shootrange")) {
         return ITEM_ATTRIBUTE_SHOOTRANGE;
-    } else if (!tfs_strcmp(cstr, "owner")) {
+    }
+    if (!tfs_strcmp(cstr, "owner")) {
         return ITEM_ATTRIBUTE_OWNER;
-    } else if (!tfs_strcmp(cstr, "duration")) {
+    }
+    if (!tfs_strcmp(cstr, "duration")) {
         return ITEM_ATTRIBUTE_DURATION;
-    } else if (!tfs_strcmp(cstr, "decaystate")) {
+    }
+    if (!tfs_strcmp(cstr, "decaystate")) {
         return ITEM_ATTRIBUTE_DECAYSTATE;
-    } else if (!tfs_strcmp(cstr, "corpseowner")) {
+    }
+    if (!tfs_strcmp(cstr, "corpseowner")) {
         return ITEM_ATTRIBUTE_CORPSEOWNER;
-    } else if (!tfs_strcmp(cstr, "charges")) {
+    }
+    if (!tfs_strcmp(cstr, "charges")) {
         return ITEM_ATTRIBUTE_CHARGES;
-    } else if (!tfs_strcmp(cstr, "fluidtype")) {
+    }
+    if (!tfs_strcmp(cstr, "fluidtype")) {
         return ITEM_ATTRIBUTE_FLUIDTYPE;
-    } else if (!tfs_strcmp(cstr, "doorid")) {
+    }
+    if (!tfs_strcmp(cstr, "doorid")) {
         return ITEM_ATTRIBUTE_DOORID;
     }
     return ITEM_ATTRIBUTE_NONE;
@@ -1421,16 +1603,15 @@ void getMailDetails(const std::string& str, std::string& playerName, std::string
         if (c == '\n') {
             if (currentLine == &townName) {
                 break;
-            } else {
-                currentLine = &townName;
-                continue;
             }
+            currentLine = &townName;
+            continue;
         }
         currentLine->push_back(c);
     }
 }
 
-const char* getReturnMessage(ReturnValue value)
+const char* getReturnMessage(const ReturnValue value)
 {
     switch (value) {
         case RETURNVALUE_DESTINATIONOUTOFREACH:
@@ -1644,14 +1825,17 @@ int64_t OTSYS_TIME()
 
 SpellGroup_t stringToSpellGroup(const std::string& value)
 {
-    std::string tmpStr = asLowerCaseString(value);
+    const std::string tmpStr = asLowerCaseString(value);
     if (!tfs_strcmp(tmpStr.c_str(), "attack") || !tfs_strcmp(tmpStr.c_str(), "1")) {
         return SPELLGROUP_ATTACK;
-    } else if (!tfs_strcmp(tmpStr.c_str(), "healing") || !tfs_strcmp(tmpStr.c_str(), "2")) {
+    }
+    if (!tfs_strcmp(tmpStr.c_str(), "healing") || !tfs_strcmp(tmpStr.c_str(), "2")) {
         return SPELLGROUP_HEALING;
-    } else if (!tfs_strcmp(tmpStr.c_str(), "support") || !tfs_strcmp(tmpStr.c_str(), "3")) {
+    }
+    if (!tfs_strcmp(tmpStr.c_str(), "support") || !tfs_strcmp(tmpStr.c_str(), "3")) {
         return SPELLGROUP_SUPPORT;
-    } else if (!tfs_strcmp(tmpStr.c_str(), "special") || !tfs_strcmp(tmpStr.c_str(), "4")) {
+    }
+    if (!tfs_strcmp(tmpStr.c_str(), "special") || !tfs_strcmp(tmpStr.c_str(), "4")) {
         return SPELLGROUP_SPECIAL;
     }
     return SPELLGROUP_NONE;
@@ -1660,53 +1844,54 @@ SpellGroup_t stringToSpellGroup(const std::string& value)
 #if defined(__SSE4_2__)
 int tfs_strncmp(const char* s1, const char* s2, size_t n)
 {
-    __m128i* ptr1 = reinterpret_cast<__m128i*>(const_cast<char*>(s1));
-    __m128i* ptr2 = reinterpret_cast<__m128i*>(const_cast<char*>(s2));
+    auto ptr1 = reinterpret_cast<__m128i*>(const_cast<char*>(s1));
+    auto ptr2 = reinterpret_cast<__m128i*>(const_cast<char*>(s2));
 
-    const uint8_t mode = (_SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_NEGATIVE_POLARITY | _SIDD_LEAST_SIGNIFICANT);
+    const uint8_t mode = _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_NEGATIVE_POLARITY | _SIDD_LEAST_SIGNIFICANT;
     for (; n != 0; ++ptr1, ++ptr2) {
         const __m128i a = _mm_loadu_si128(ptr1);
         const __m128i b = _mm_loadu_si128(ptr2);
         if (_mm_cmpestrc(a, n, b, n, mode)) {
             const auto idx = _mm_cmpestri(a, n, b, n, mode);
 
-            const uint8_t b1 = (reinterpret_cast<char*>(ptr1))[idx];
-            const uint8_t b2 = (reinterpret_cast<char*>(ptr2))[idx];
+            const uint8_t b1 = reinterpret_cast<char*>(ptr1)[idx];
+            const uint8_t b2 = reinterpret_cast<char*>(ptr2)[idx];
             if (b1 < b2) {
                 return -1;
-            } else if (b1 > b2) {
-                return 1;
-            } else {
-                return 0;
             }
+            if (b1 > b2) {
+                return 1;
+            }
+            return 0;
         }
-        n = (n > 16 ? n - 16 : 0);
+        n = n > 16 ? n - 16 : 0;
     }
     return 0;
 }
 
 int tfs_strcmp(const char* s1, const char* s2)
 {
-    __m128i* ptr1 = reinterpret_cast<__m128i*>(const_cast<char*>(s1));
-    __m128i* ptr2 = reinterpret_cast<__m128i*>(const_cast<char*>(s2));
+    auto ptr1 = reinterpret_cast<__m128i*>(const_cast<char*>(s1));
+    auto ptr2 = reinterpret_cast<__m128i*>(const_cast<char*>(s2));
 
-    const uint8_t mode = (_SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_NEGATIVE_POLARITY | _SIDD_LEAST_SIGNIFICANT);
+    const uint8_t mode = _SIDD_UBYTE_OPS | _SIDD_CMP_EQUAL_EACH | _SIDD_NEGATIVE_POLARITY | _SIDD_LEAST_SIGNIFICANT;
     for (; ; ++ptr1, ++ptr2) {
         const __m128i a = _mm_loadu_si128(ptr1);
         const __m128i b = _mm_loadu_si128(ptr2);
         if (_mm_cmpistrc(a, b, mode)) {
             const auto idx = _mm_cmpistri(a, b, mode);
 
-            const uint8_t b1 = (reinterpret_cast<char*>(ptr1))[idx];
-            const uint8_t b2 = (reinterpret_cast<char*>(ptr2))[idx];
+            const uint8_t b1 = reinterpret_cast<char*>(ptr1)[idx];
+            const uint8_t b2 = reinterpret_cast<char*>(ptr2)[idx];
             if (b1 < b2) {
                 return -1;
-            } else if (b1 > b2) {
-                return 1;
-            } else {
-                return 0;
             }
-        } else if (_mm_cmpistrz(a, b, mode)) {
+            if (b1 > b2) {
+                return 1;
+            }
+            return 0;
+        }
+        if (_mm_cmpistrz(a, b, mode)) {
             break;
         }
     }

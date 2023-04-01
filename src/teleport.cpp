@@ -25,7 +25,7 @@
 
 extern Game g_game;
 
-Attr_ReadValue Teleport::readAttr(AttrTypes_t attr, PropStream& propStream)
+Attr_ReadValue Teleport::readAttr(const AttrTypes_t attr, PropStream& propStream)
 {
     if (attr == ATTR_TELE_DEST) {
         if (!propStream.read<uint16_t>(destPos.x) || !propStream.read<uint16_t>(destPos.y) || !propStream.read<uint8_t>(destPos.z)) {
@@ -78,10 +78,10 @@ void Teleport::addThing(int32_t, Thing* thing)
         return;
     }
 
-    const MagicEffectClasses effect = Item::items[getID()].magicEffect;
+    const MagicEffectClasses effect = items[getID()].magicEffect;
 
     if (Creature* creature = thing->getCreature()) {
-        Position origPos = creature->getPosition();
+        const Position origPos = creature->getPosition();
         g_game.internalCreatureTurn(creature, origPos.x > destPos.x ? DIRECTION_WEST : DIRECTION_EAST);
         g_game.map.moveCreature(*creature, *destTile);
         if (effect != CONST_ME_NONE) {
@@ -112,12 +112,12 @@ void Teleport::removeThing(Thing*, uint32_t)
     //
 }
 
-void Teleport::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t index, cylinderlink_t)
+void Teleport::postAddNotification(Thing* thing, const Cylinder* oldParent, const int32_t index, cylinderlink_t)
 {
     getParent()->postAddNotification(thing, oldParent, index, LINK_PARENT);
 }
 
-void Teleport::postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t)
+void Teleport::postRemoveNotification(Thing* thing, const Cylinder* newParent, const int32_t index, cylinderlink_t)
 {
     getParent()->postRemoveNotification(thing, newParent, index, LINK_PARENT);
 }

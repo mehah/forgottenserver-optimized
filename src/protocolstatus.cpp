@@ -45,12 +45,12 @@ enum RequestedInfo_t : uint16_t
 
 void ProtocolStatus::onRecvFirstMessage(NetworkMessage& msg)
 {
-    uint32_t ip = getIP();
+    const uint32_t ip = getIP();
     if (ip != 0x0100007F) {
-        std::string ipStr = convertIPToString(ip);
+        const std::string ipStr = convertIPToString(ip);
         if (ipStr != g_config.getString(ConfigManager::IP)) {
-            std::map<uint32_t, int64_t>::const_iterator it = ipConnectMap.find(ip);
-            if (it != ipConnectMap.end() && (OTSYS_TIME() < (it->second + g_config.getNumber(ConfigManager::STATUSQUERY_TIMEOUT)))) {
+            const std::map<uint32_t, int64_t>::const_iterator it = ipConnectMap.find(ip);
+            if (it != ipConnectMap.end() && OTSYS_TIME() < it->second + g_config.getNumber(ConfigManager::STATUSQUERY_TIMEOUT)) {
                 disconnect();
                 return;
             }
@@ -63,7 +63,10 @@ void ProtocolStatus::onRecvFirstMessage(NetworkMessage& msg)
         //XML info protocol
         case 0xFF: {
             if (!tfs_strcmp(msg.getString(4).c_str(), "info")) {
-                g_dispatcher.addTask(std::bind(&ProtocolStatus::sendStatusString, std::static_pointer_cast<ProtocolStatus>(shared_from_this())));
+                g_dispatcher.addTask([capture0 = std::static_pointer_cast<ProtocolStatus>(shared_from_this())]
+                {
+                    capture0->sendStatusString();
+                });
                 return;
             }
             break;
@@ -71,12 +74,17 @@ void ProtocolStatus::onRecvFirstMessage(NetworkMessage& msg)
 
                  //Another ServerInfo protocol
         case 0x01: {
-            uint16_t requestedInfo = msg.get<uint16_t>(); // only a Byte is necessary, though we could add new info here
+            auto requestedInfo = msg.get<uint16_t>(); // only a Byte is necessary, though we could add new info here
             std::string characterName;
             if (requestedInfo & REQUEST_PLAYER_STATUS_INFO) {
                 characterName = msg.getString();
             }
-            g_dispatcher.addTask(std::bind(&ProtocolStatus::sendInfo, std::static_pointer_cast<ProtocolStatus>(shared_from_this()), requestedInfo, std::move(characterName)));
+            g_dispatcher.addTask(
+                [capture0 = std::static_pointer_cast<ProtocolStatus>(shared_from_this()), requestedInfo, capture1 =
+                    std::move(characterName)]
+                {
+                    capture0->sendInfo(requestedInfo, capture1);
+                });
             return;
         }
 
@@ -88,7 +96,7 @@ void ProtocolStatus::onRecvFirstMessage(NetworkMessage& msg)
 
 void ProtocolStatus::sendStatusString()
 {
-    auto output = OutputMessagePool::getOutputMessage();
+    const auto output = OutputMessagePool::getOutputMessage();
 
     setRawMessages(true);
 
@@ -101,7 +109,7 @@ void ProtocolStatus::sendStatusString()
     tsqp.append_attribute("version") = "1.0";
 
     pugi::xml_node serverinfo = tsqp.append_child("serverinfo");
-    uint64_t uptime = (OTSYS_TIME() - ProtocolStatus::start) / 1000;
+    const uint64_t uptime = (OTSYS_TIME() - start) / 1000;
     serverinfo.append_attribute("uptime") = std::to_string(uptime).c_str();
     serverinfo.append_attribute("ip") = g_config.getString(ConfigManager::IP).c_str();
     serverinfo.append_attribute("servername") = g_config.getString(ConfigManager::SERVER_NAME).c_str();
@@ -143,21 +151,21 @@ void ProtocolStatus::sendStatusString()
     map.append_attribute("width") = std::to_string(mapWidth).c_str();
     map.append_attribute("height") = std::to_string(mapHeight).c_str();
 
-    pugi::xml_node motd = tsqp.append_child("motd");
+    const pugi::xml_node motd = tsqp.append_child("motd");
     motd.text() = g_config.getString(ConfigManager::MOTD).c_str();
 
     std::ostringstream ss;
     doc.save(ss, "", pugi::format_raw);
 
-    std::string data = ss.str();
+    const std::string data = ss.str();
     output->addBytes(data.c_str(), data.size());
     send(output);
     disconnect();
 }
 
-void ProtocolStatus::sendInfo(uint16_t requestedInfo, const std::string& characterName)
+void ProtocolStatus::sendInfo(const uint16_t requestedInfo, const std::string& characterName) const
 {
-    auto output = OutputMessagePool::getOutputMessage();
+    const auto output = OutputMessagePool::getOutputMessage();
 
     if (requestedInfo & REQUEST_BASIC_SERVER_INFO) {
         output->addByte(0x10);
@@ -177,7 +185,7 @@ void ProtocolStatus::sendInfo(uint16_t requestedInfo, const std::string& charact
         output->addString(g_config.getString(ConfigManager::MOTD));
         output->addString(g_config.getString(ConfigManager::LOCATION));
         output->addString(g_config.getString(ConfigManager::URL));
-        output->add<uint64_t>((OTSYS_TIME() - ProtocolStatus::start) / 1000);
+        output->add<uint64_t>((OTSYS_TIME() - start) / 1000);
     }
 
     if (requestedInfo & REQUEST_PLAYERS_INFO) {

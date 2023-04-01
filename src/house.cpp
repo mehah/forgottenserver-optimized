@@ -23,6 +23,8 @@
 #include "pugicast.h"
 
 #include "house.h"
+
+#include <memory>
 #include "iologindata.h"
 #include "game.h"
 #include "configmanager.h"
@@ -31,7 +33,7 @@
 extern ConfigManager g_config;
 extern Game g_game;
 
-House::House(uint32_t houseId) : id(houseId) {}
+House::House(const uint32_t houseId) : id(houseId) {}
 
 void House::addTile(HouseTile* tile)
 {
@@ -40,7 +42,7 @@ void House::addTile(HouseTile* tile)
     tile->setFlag(TILESTATE_PROTECTIONZONE);
 }
 
-void House::setOwner(uint32_t guid, bool updateDatabase/* = true*/, Player* player/* = nullptr*/)
+void House::setOwner(const uint32_t guid, const bool updateDatabase/* = true*/, Player* player/* = nullptr*/)
 {
     if (updateDatabase && owner != guid) {
         std::stringExtended query(256);
@@ -86,7 +88,7 @@ void House::setOwner(uint32_t guid, bool updateDatabase/* = true*/, Player* play
             door->setAccessList("");
         }
     } else {
-        std::string strRentPeriod = asLowerCaseString(g_config.getString(ConfigManager::HOUSE_RENT_PERIOD));
+        const std::string strRentPeriod = asLowerCaseString(g_config.getString(ConfigManager::HOUSE_RENT_PERIOD));
         time_t currentTime = time(nullptr);
         if (!tfs_strcmp(strRentPeriod.c_str(), "yearly")) {
             currentTime += 24 * 60 * 60 * 365;
@@ -126,7 +128,7 @@ void House::updateDoorDescription() const
 
         const int32_t housePrice = g_config.getNumber(ConfigManager::HOUSE_PRICE);
         if (housePrice != -1) {
-            ss << " It costs " << (houseTiles.size() * housePrice) << " gold coins.";
+            ss << " It costs " << houseTiles.size() * housePrice << " gold coins.";
         }
     }
 
@@ -160,13 +162,13 @@ AccessHouseLevel_t House::getHouseAccessLevel(const Player* player)
     return HOUSE_NOT_INVITED;
 }
 
-bool House::kickPlayer(Player* player, Player* target)
+bool House::kickPlayer(const Player* player, Player* target)
 {
     if (!target) {
         return false;
     }
 
-    HouseTile* houseTile = dynamic_cast<HouseTile*>(target->getTile());
+    const auto houseTile = dynamic_cast<HouseTile*>(target->getTile());
     if (!houseTile || houseTile->getHouse() != this) {
         return false;
     }
@@ -175,7 +177,7 @@ bool House::kickPlayer(Player* player, Player* target)
         return false;
     }
 
-    Position oldPosition = target->getPosition();
+    const Position oldPosition = target->getPosition();
     if (g_game.internalTeleport(target, getEntryPosition()) == RETURNVALUE_NOERROR) {
         g_game.addMagicEffect(oldPosition, CONST_ME_POFF);
         g_game.addMagicEffect(getEntryPosition(), CONST_ME_TELEPORT);
@@ -183,7 +185,7 @@ bool House::kickPlayer(Player* player, Player* target)
     return true;
 }
 
-void House::setAccessList(uint32_t listId, const std::string& textlist)
+void House::setAccessList(const uint32_t listId, const std::string& textlist)
 {
     if (listId == GUEST_LIST) {
         guestList.parseList(textlist);
@@ -201,7 +203,7 @@ void House::setAccessList(uint32_t listId, const std::string& textlist)
 
     //kick uninvited players
     for (HouseTile* tile : houseTiles) {
-        if (CreatureVector* creatures = tile->getCreatures()) {
+        if (const CreatureVector* creatures = tile->getCreatures()) {
             for (int32_t i = creatures->size(); --i >= 0;) {
                 Player* player = (*creatures)[i]->getPlayer();
                 if (player && !isInvited(player)) {
@@ -243,11 +245,11 @@ bool House::transferToDepot(Player* player) const
     for (HouseTile* tile : houseTiles) {
         if (const TileItemVector* items = tile->getItemList()) {
             for (auto it = items->rbegin(), end = items->rend(); it != end; ++it) {
-                Item* item = (*it);
+                Item* item = *it;
                 if (item->isPickupable()) {
                     moveItemList.push_back(item);
                 } else {
-                    Container* container = item->getContainer();
+                    const Container* container = item->getContainer();
                     if (container) {
                         for (Item* containerItem : container->getItemList()) {
                             moveItemList.push_back(containerItem);
@@ -282,9 +284,8 @@ bool House::transferToDepot(Player* player) const
                 g_game.internalAddItem(player->getDepotLocker(townId), parcel, INDEX_WHEREEVER, FLAG_NOLIMIT);
 #endif
                 return true;
-            } else {
-                delete newItem;
             }
+            delete newItem;
         }
 
 #if GAME_FEATURE_MARKET > 0
@@ -302,17 +303,18 @@ bool House::transferToDepot(Player* player) const
     return true;
 }
 
-bool House::getAccessList(uint32_t listId, std::string& list) const
+bool House::getAccessList(const uint32_t listId, std::string& list) const
 {
     if (listId == GUEST_LIST) {
         guestList.getList(list);
         return true;
-    } else if (listId == SUBOWNER_LIST) {
+    }
+    if (listId == SUBOWNER_LIST) {
         subOwnerList.getList(list);
         return true;
     }
 
-    Door* door = getDoorByNumber(listId);
+    const Door* door = getDoorByNumber(listId);
     if (!door) {
         return false;
     }
@@ -336,10 +338,10 @@ void House::addDoor(Door* door)
 
 void House::removeDoor(Door* door)
 {
-    auto it = std::find(doorSet.begin(), doorSet.end(), door);
+    const auto it = std::find(doorSet.begin(), doorSet.end(), door);
     if (it != doorSet.end()) {
         door->decrementReferenceCounter();
-        (*it) = doorSet.back();
+        *it = doorSet.back();
         doorSet.pop_back();
     }
 }
@@ -351,7 +353,7 @@ void House::addBed(BedItem* bed)
     bed->setHouse(this);
 }
 
-Door* House::getDoorByNumber(uint32_t doorId) const
+Door* House::getDoorByNumber(const uint32_t doorId) const
 {
     for (Door* door : doorSet) {
         if (door->getDoorId() == doorId) {
@@ -361,7 +363,7 @@ Door* House::getDoorByNumber(uint32_t doorId) const
     return nullptr;
 }
 
-Door* House::getDoorByPosition(const Position& pos)
+Door* House::getDoorByPosition(const Position& pos) const
 {
     for (Door* door : doorSet) {
         if (door->getPosition() == pos) {
@@ -371,7 +373,7 @@ Door* House::getDoorByPosition(const Position& pos)
     return nullptr;
 }
 
-bool House::canEditAccessList(uint32_t listId, const Player* player)
+bool House::canEditAccessList(const uint32_t listId, const Player* player)
 {
     switch (getHouseAccessLevel(player)) {
         case HOUSE_OWNER:
@@ -411,7 +413,7 @@ void House::resetTransferItem()
 
 HouseTransferItem* HouseTransferItem::createHouseTransferItem(House* house)
 {
-    HouseTransferItem* transferItem = new HouseTransferItem(house);
+    const auto transferItem = new HouseTransferItem(house);
     transferItem->incrementReferenceCounter();
     transferItem->setID(ITEM_DOCUMENT_RO);
     transferItem->setSubType(1);
@@ -421,7 +423,7 @@ HouseTransferItem* HouseTransferItem::createHouseTransferItem(House* house)
     return transferItem;
 }
 
-void HouseTransferItem::onTradeEvent(TradeEvents_t event, Player* owner)
+void HouseTransferItem::onTradeEvent(const TradeEvents_t event, Player* owner)
 {
     if (event == ON_TRADE_TRANSFER) {
         if (house) {
@@ -436,7 +438,7 @@ void HouseTransferItem::onTradeEvent(TradeEvents_t event, Player* owner)
     }
 }
 
-bool House::executeTransfer(HouseTransferItem* item, Player* newOwner)
+bool House::executeTransfer(const HouseTransferItem* item, const Player* newOwner)
 {
     if (transferItem != item) {
         return false;
@@ -469,7 +471,7 @@ void AccessList::parseList(const std::string& list)
 
         toLowerCaseString(line);
 
-        std::string::size_type at_pos = line.find("@");
+        const std::string::size_type at_pos = line.find('@');
         if (at_pos != std::string::npos) {
             if (at_pos == 0) {
                 addGuild(line.substr(1));
@@ -477,8 +479,6 @@ void AccessList::parseList(const std::string& list)
                 addGuildRank(line.substr(0, at_pos - 1), line.substr(at_pos + 1));
             }
         } else if (line.find_first_of("!*?") != std::string::npos) {
-            // Remove regular expressions since they don't make much sense in houses
-            continue;
         } else if (line.length() <= NETWORKMESSAGE_PLAYERNAME_MAXLENGTH) {
             addPlayer(line);
         }
@@ -487,11 +487,11 @@ void AccessList::parseList(const std::string& list)
 
 void AccessList::addPlayer(const std::string& name)
 {
-    Player* player = g_game.getPlayerByName(name);
+    const Player* player = g_game.getPlayerByName(name);
     if (player) {
         playerList.insert(player->getGUID());
     } else {
-        uint32_t guid = IOLoginData::getGuidByName(name);
+        const uint32_t guid = IOLoginData::getGuidByName(name);
         if (guid != 0) {
             playerList.insert(guid);
         }
@@ -501,7 +501,7 @@ void AccessList::addPlayer(const std::string& name)
 namespace {
     const Guild* getGuildByName(const std::string& name)
     {
-        uint32_t guildId = IOGuild::getGuildIdByName(name);
+        const uint32_t guildId = IOGuild::getGuildIdByName(name);
         if (guildId == 0) {
             return nullptr;
         }
@@ -538,7 +538,7 @@ void AccessList::addGuildRank(const std::string& name, const std::string& rankNa
 
 bool AccessList::isInList(const Player* player)
 {
-    auto playerIt = playerList.find(player->getGUID());
+    const auto playerIt = playerList.find(player->getGUID());
     if (playerIt != playerList.end()) {
         return true;
     }
@@ -552,9 +552,9 @@ void AccessList::getList(std::string& list) const
     list = this->list;
 }
 
-Door::Door(uint16_t type) : Item(type) {}
+Door::Door(const uint16_t type) : Item(type) {}
 
-Attr_ReadValue Door::readAttr(AttrTypes_t attr, PropStream& propStream)
+Attr_ReadValue Door::readAttr(const AttrTypes_t attr, PropStream& propStream)
 {
     if (attr == ATTR_HOUSEDOORID) {
         uint8_t doorId;
@@ -577,11 +577,11 @@ void Door::setHouse(House* house)
     this->house = house;
 
     if (!accessList) {
-        accessList.reset(new AccessList());
+        accessList = std::make_unique<AccessList>();
     }
 }
 
-bool Door::canUse(const Player* player)
+bool Door::canUse(const Player* player) const
 {
     if (!house) {
         return true;
@@ -597,7 +597,7 @@ bool Door::canUse(const Player* player)
 void Door::setAccessList(const std::string& textlist)
 {
     if (!accessList) {
-        accessList.reset(new AccessList());
+        accessList = std::make_unique<AccessList>();
     }
 
     accessList->parseList(textlist);
@@ -622,7 +622,7 @@ void Door::onRemoved()
     }
 }
 
-House* Houses::getHouseByPlayerId(uint32_t playerId)
+House* Houses::getHouseByPlayerId(const uint32_t playerId)
 {
     for (auto& it : houseMap) {
         if (it.second.getOwner() == playerId) {
@@ -635,7 +635,7 @@ House* Houses::getHouseByPlayerId(uint32_t playerId)
 bool Houses::loadHousesXML(const std::string& filename)
 {
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file(filename.c_str());
+    const pugi::xml_parse_result result = doc.load_file(filename.c_str());
     if (!result) {
         printXMLError("Error - Houses::loadHousesXML", filename, result);
         return false;
@@ -647,7 +647,7 @@ bool Houses::loadHousesXML(const std::string& filename)
             return false;
         }
 
-        int32_t houseId = pugi::cast<int32_t>(houseIdAttribute.value());
+        const auto houseId = pugi::cast<int32_t>(houseIdAttribute.value());
 
         House* house = getHouse(houseId);
         if (!house) {
@@ -657,7 +657,7 @@ bool Houses::loadHousesXML(const std::string& filename)
 
         house->setName(houseNode.attribute("name").as_string());
 
-        Position entryPos(
+        const Position entryPos(
             pugi::cast<uint16_t>(houseNode.attribute("entryx").value()),
             pugi::cast<uint16_t>(houseNode.attribute("entryy").value()),
             pugi::cast<uint16_t>(houseNode.attribute("entryz").value())
@@ -677,15 +677,15 @@ bool Houses::loadHousesXML(const std::string& filename)
     return true;
 }
 
-void Houses::payHouses(RentPeriod_t rentPeriod) const
+void Houses::payHouses(const RentPeriod_t rentPeriod) const
 {
     if (rentPeriod == RENTPERIOD_NEVER) {
         return;
     }
 
-    time_t currentTime = time(nullptr);
+    const time_t currentTime = time(nullptr);
     for (auto& it : houseMap) {
-        House* house = const_cast<House*>(&it.second);
+        const auto house = const_cast<House*>(&it.second);
         if (house->getOwner() == 0) {
             continue;
         }
@@ -732,7 +732,7 @@ void Houses::payHouses(RentPeriod_t rentPeriod) const
             house->setPaidUntil(paidUntil);
         } else {
             if (house->getPayRentWarnings() < 7) {
-                int32_t daysLeft = 7 - house->getPayRentWarnings();
+                const int32_t daysLeft = 7 - house->getPayRentWarnings();
 
                 std::string period;
                 switch (rentPeriod) {

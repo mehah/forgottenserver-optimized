@@ -81,12 +81,12 @@ class Tile;
 
 static constexpr int32_t EVENT_CREATURECOUNT = 10;
 static constexpr int32_t EVENT_CREATURE_THINK_INTERVAL = 1000;
-static constexpr int32_t EVENT_CHECK_CREATURE_INTERVAL = (EVENT_CREATURE_THINK_INTERVAL / EVENT_CREATURECOUNT);
+static constexpr int32_t EVENT_CHECK_CREATURE_INTERVAL = EVENT_CREATURE_THINK_INTERVAL / EVENT_CREATURECOUNT;
 
 class FrozenPathingConditionCall
 {
 public:
-    explicit FrozenPathingConditionCall(Position targetPos) : targetPos(std::move(targetPos)) {}
+    explicit FrozenPathingConditionCall(Position targetPos) : targetPos(targetPos) {}
 
     bool operator()(const Position& startPos, const Position& testPos,
                     const FindPathParams& fpp, int32_t& bestMatchDist) const;
@@ -110,16 +110,16 @@ protected:
 public:
     static double speedA, speedB, speedC;
 
-    virtual ~Creature();
+    ~Creature() override;
 
     // non-copyable
     Creature(const Creature&) = delete;
     Creature& operator=(const Creature&) = delete;
 
-    Creature* getCreature() override final {
+    Creature* getCreature() final {
         return this;
     }
-    const Creature* getCreature() const override final {
+    const Creature* getCreature() const final {
         return this;
     }
     virtual Player* getPlayer() {
@@ -173,24 +173,24 @@ public:
     Direction getDirection() const {
         return direction;
     }
-    void setDirection(Direction dir) {
+    void setDirection(const Direction dir) {
         direction = dir;
     }
 
     bool isHealthHidden() const {
         return hiddenHealth;
     }
-    void setHiddenHealth(bool b) {
+    void setHiddenHealth(const bool b) {
         hiddenHealth = b;
     }
 
-    int32_t getThrowRange() const override final {
+    int32_t getThrowRange() const final {
         return 1;
     }
     bool isPushable() const override {
         return getWalkDelay() <= 0;
     }
-    bool isRemoved() const override final {
+    bool isRemoved() const final {
         return isInternalRemoved;
     }
     virtual bool canSeeInvisibility() const {
@@ -213,8 +213,8 @@ public:
     int32_t getSpeed() const {
         return baseSpeed + varSpeed;
     }
-    void setSpeed(int32_t varSpeedDelta) {
-        int32_t oldSpeed = getSpeed();
+    void setSpeed(const int32_t varSpeedDelta) {
+        const int32_t oldSpeed = getSpeed();
         varSpeed = varSpeedDelta;
 
 #if GAME_FEATURE_NEWSPEED_LAW > 0
@@ -230,9 +230,9 @@ public:
 
 #if GAME_FEATURE_NEWSPEED_LAW > 0
     void cacheSpeed() {
-        int32_t stepSpeed = getStepSpeed();
-        if (stepSpeed > -Creature::speedB) {
-            cachedFormulatedSpeed = std::floor((Creature::speedA * std::log((stepSpeed / 2) + Creature::speedB) + Creature::speedC) + 0.5);
+        const int32_t stepSpeed = getStepSpeed();
+        if (stepSpeed > -speedB) {
+            cachedFormulatedSpeed = std::floor(speedA * std::log(stepSpeed / 2 + speedB) + speedC + 0.5);
             if (cachedFormulatedSpeed == 0) {
                 cachedFormulatedSpeed = 1;
             }
@@ -242,7 +242,7 @@ public:
     }
 #endif
 
-    void setBaseSpeed(uint32_t newBaseSpeed) {
+    void setBaseSpeed(const uint32_t newBaseSpeed) {
         baseSpeed = newBaseSpeed;
     }
     uint32_t getBaseSpeed() const {
@@ -259,7 +259,7 @@ public:
     const Outfit_t getCurrentOutfit() const {
         return currentOutfit;
     }
-    void setCurrentOutfit(Outfit_t outfit) {
+    void setCurrentOutfit(const Outfit_t outfit) {
         currentOutfit = outfit;
     }
     const Outfit_t getDefaultOutfit() const {
@@ -294,7 +294,8 @@ public:
     virtual void onFollowCreatureComplete(const Creature*) {}
 
     //combat functions
-    Creature* getAttackedCreature() {
+    Creature* getAttackedCreature() const
+    {
         return attackedCreature;
     }
     virtual bool setAttackedCreature(Creature* creature);
@@ -375,7 +376,7 @@ public:
 
     void onDeath();
     virtual uint64_t getGainedExperience(Creature* attacker) const;
-    void addDamagePoints(Creature* attacker, int32_t damagePoints);
+    void addDamagePoints(const Creature* attacker, int32_t damagePoints);
     bool hasBeenAttacked(uint32_t attackerId);
 
     //combat event functions
@@ -430,13 +431,13 @@ public:
     size_t getSummonCount() const {
         return summons.size();
     }
-    void setDropLoot(bool lootDrop) {
+    void setDropLoot(const bool lootDrop) {
         this->lootDrop = lootDrop;
     }
-    void setSkillLoss(bool skillLoss) {
+    void setSkillLoss(const bool skillLoss) {
         this->skillLoss = skillLoss;
     }
-    void setUseDefense(bool useDefense) {
+    void setUseDefense(const bool useDefense) {
         canUseDefense = useDefense;
     }
 
@@ -444,22 +445,22 @@ public:
     bool registerCreatureEvent(const std::string& name);
     bool unregisterCreatureEvent(const std::string& name);
 
-    Cylinder* getParent() const override final {
+    Cylinder* getParent() const final {
         return tile;
     }
-    void setParent(Cylinder* cylinder) override final {
+    void setParent(Cylinder* cylinder) final {
         tile = static_cast<Tile*>(cylinder);
         position = tile->getPosition();
     }
 
-    const Position& getPosition() const override final {
+    const Position& getPosition() const final {
         return position;
     }
 
-    Tile* getTile() override final {
+    Tile* getTile() final {
         return tile;
     }
-    const Tile* getTile() const override final {
+    const Tile* getTile() const final {
         return tile;
     }
 
@@ -468,13 +469,13 @@ public:
     const Position& getLastPosition() const {
         return lastPosition;
     }
-    void setLastPosition(Position newLastPos) {
+    void setLastPosition(const Position newLastPos) {
         lastPosition = newLastPos;
     }
 
     static bool canSee(const Position& myPos, const Position& pos, int32_t viewRangeX, int32_t viewRangeY);
 
-    double getDamageRatio(Creature* attacker) const;
+    double getDamageRatio(const Creature* attacker) const;
 
     bool getPathTo(const Position& targetPos, std::vector<Direction>& dirList, const FindPathParams& fpp) const;
     bool getPathTo(const Position& targetPos, std::vector<Direction>& dirList, int32_t minTargetDist, int32_t maxTargetDist, bool fullPathSearch = true, bool clearSight = true, int32_t maxSearchDist = 0) const;
@@ -562,13 +563,13 @@ protected:
     bool canUseDefense = true;
 
     //creature script events
-    bool hasEventRegistered(CreatureEventType_t event) const {
-        return (0 != (scriptEventsBitField & (static_cast<uint32_t>(1) << event)));
+    bool hasEventRegistered(const CreatureEventType_t event) const {
+        return 0 != (scriptEventsBitField & static_cast<uint32_t>(1) << event);
     }
     void resetEventsRegistered() {
         scriptEventsBitField = 0;
     }
-    CreatureEventList getCreatureEvents(CreatureEventType_t type);
+    CreatureEventList getCreatureEvents(CreatureEventType_t type) const;
     CreatureEventList& getCreatureEvents() {
         return eventsList;
     }

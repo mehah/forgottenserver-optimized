@@ -206,7 +206,7 @@ namespace robin_hood {
     namespace ROBIN_HOOD_STD {
         template <class T>
         struct alignment_of
-            : std::integral_constant<std::size_t, alignof(typename std::remove_all_extents<T>::type)> {};
+            : std::integral_constant<std::size_t, alignof(std::remove_all_extents_t<T>)> {};
 
         template <class T, T... Ints>
         class integer_sequence
@@ -265,7 +265,7 @@ namespace robin_hood {
         } // namespace detail_
 
         template <class T, T N>
-        using make_integer_sequence = typename detail_::IntSeqImpl<T, 0, N, (N - 0) == 1>::TResult;
+        using make_integer_sequence = typename detail_::IntSeqImpl<T, 0, N, N - 0 == 1>::TResult;
 
         template <std::size_t N>
         using make_index_sequence = make_integer_sequence<std::size_t, N>;
@@ -314,12 +314,12 @@ namespace robin_hood {
 // 'uint64_t*' {aka 'long unsigned int*'} increases required alignment of target type". Use with
 // care!
         template <typename T>
-        inline T reinterpret_cast_no_cast_align_warning(void* ptr) noexcept {
+        T reinterpret_cast_no_cast_align_warning(void* ptr) noexcept {
             return reinterpret_cast<T>(ptr);
         }
 
         template <typename T>
-        inline T reinterpret_cast_no_cast_align_warning(void const* ptr) noexcept {
+        T reinterpret_cast_no_cast_align_warning(const void* ptr) noexcept {
             return reinterpret_cast<T>(ptr);
         }
 
@@ -347,7 +347,7 @@ namespace robin_hood {
         }
 
         template <typename T>
-        inline T unaligned_load(void const* ptr) noexcept {
+        T unaligned_load(const void* ptr) noexcept {
             // using memcpy so we don't get into unaligned load problems.
             // compiler should optimize this very well anyways.
             T t;
@@ -477,10 +477,10 @@ namespace robin_hood {
                 mListForFree = data;
 
                 // create linked list for newly allocated data
-                auto const headT =
+                const auto headT =
                     reinterpret_cast_no_cast_align_warning<T*>(reinterpret_cast<char*>(ptr) + ALIGNMENT);
 
-                auto const head = reinterpret_cast<char*>(headT);
+                const auto head = reinterpret_cast<char*>(headT);
 
                 // Visual Studio compiler automatically unrolls this loop, which is pretty cool
                 for (size_t i = 0; i < numElements; ++i) {
@@ -497,11 +497,11 @@ namespace robin_hood {
             // Called when no memory is available (mHead == 0).
             // Don't inline this slow path.
             ROBIN_HOOD(NOINLINE) T* performAllocation() {
-                size_t const numElementsToAlloc = calcNumElementsToAlloc();
+                const size_t numElementsToAlloc = calcNumElementsToAlloc();
 
                 // alloc new memory: [prev |T, T, ... T]
                 // std::cout << (sizeof(T*) + ALIGNED_SIZE * numElementsToAlloc) << " bytes" << std::endl;
-                size_t const bytes = ALIGNMENT + ALIGNED_SIZE * numElementsToAlloc;
+                const size_t bytes = ALIGNMENT + ALIGNED_SIZE * numElementsToAlloc;
                 add(assertNotNull<std::bad_alloc>(malloc(bytes)), bytes);
                 return mHead;
             }
@@ -512,7 +512,7 @@ namespace robin_hood {
                 (std::max)(std::alignment_of<T>::value, std::alignment_of<T*>::value);
 #else
             static const size_t ALIGNMENT =
-                (ROBIN_HOOD_STD::alignment_of<T>::value > ROBIN_HOOD_STD::alignment_of<T*>::value)
+                ROBIN_HOOD_STD::alignment_of<T>::value > ROBIN_HOOD_STD::alignment_of<T*>::value
                 ? ROBIN_HOOD_STD::alignment_of<T>::value
                 : +ROBIN_HOOD_STD::alignment_of<T*>::value; // the + is for walkarround
 #endif
@@ -522,7 +522,7 @@ namespace robin_hood {
             static_assert(MinNumAllocs >= 1, "MinNumAllocs");
             static_assert(MaxNumAllocs >= MinNumAllocs, "MaxNumAllocs");
             static_assert(ALIGNED_SIZE >= sizeof(T*), "ALIGNED_SIZE");
-            static_assert(0 == (ALIGNED_SIZE % sizeof(T*)), "ALIGNED_SIZE mod");
+            static_assert(0 == ALIGNED_SIZE % sizeof(T*), "ALIGNED_SIZE mod");
             static_assert(ALIGNMENT >= sizeof(T*), "ALIGNMENT");
 
             T* mHead{ nullptr };
@@ -537,7 +537,7 @@ namespace robin_hood {
         struct NodeAllocator<T, MinSize, MaxSize, true>
         {
             // we are not using the data, so just free it.
-            void addOrFree(void* ptr, size_t ROBIN_HOOD_UNUSED(numBytes) /*unused*/) noexcept {
+            static void addOrFree(void* ptr, size_t ROBIN_HOOD_UNUSED(numBytes) /*unused*/) noexcept {
                 free(ptr);
             }
         };
@@ -549,7 +549,7 @@ namespace robin_hood {
         template <typename T>
         struct identity_hash
         {
-            constexpr size_t operator()(T const& obj) const noexcept {
+            constexpr size_t operator()(const T& obj) const noexcept {
                 return static_cast<size_t>(obj);
             }
         };
@@ -578,15 +578,15 @@ namespace robin_hood {
         using second_type = T2;
 
         template <typename U1 = T1, typename U2 = T2,
-            typename = typename std::enable_if<std::is_default_constructible<U1>::value&&
-            std::is_default_constructible<U2>::value>::type>
+            typename = std::enable_if_t<std::is_default_constructible<U1>::value&&
+            std::is_default_constructible<U2>::value>>
         constexpr pair() noexcept(noexcept(U1()) && noexcept(U2()))
             : first()
             , second() {}
 
         // pair constructors are explicit so we don't accidentally call this ctor when we don't have to.
-        explicit constexpr pair(std::pair<T1, T2> const& o) noexcept(
-            noexcept(T1(std::declval<T1 const&>())) && noexcept(T2(std::declval<T2 const&>())))
+        explicit constexpr pair(const std::pair<T1, T2>& o) noexcept(
+            noexcept(T1(std::declval<const T1&>())) && noexcept(T2(std::declval<const T2&>())))
             : first(o.first)
             , second(o.second) {}
 
@@ -637,8 +637,8 @@ namespace robin_hood {
             (void)b;
         }
 
-        void swap(pair<T1, T2>& o) noexcept((detail::swappable::nothrow<T1>::value) &&
-                                            (detail::swappable::nothrow<T2>::value)) {
+        void swap(pair<T1, T2>& o) noexcept(detail::swappable::nothrow<T1>::value &&
+                                            detail::swappable::nothrow<T2>::value) {
             using std::swap;
             swap(first, o.first);
             swap(second, o.second);
@@ -649,47 +649,47 @@ namespace robin_hood {
     };
 
     template <typename A, typename B>
-    inline void swap(pair<A, B>& a, pair<A, B>& b) noexcept(
+    void swap(pair<A, B>& a, pair<A, B>& b) noexcept(
         noexcept(std::declval<pair<A, B>&>().swap(std::declval<pair<A, B>&>()))) {
         a.swap(b);
     }
 
     template <typename A, typename B>
-    inline constexpr bool operator==(pair<A, B> const& x, pair<A, B> const& y) {
-        return (x.first == y.first) && (x.second == y.second);
+    constexpr bool operator==(const pair<A, B>& x, const pair<A, B>& y) {
+        return x.first == y.first && x.second == y.second;
     }
     template <typename A, typename B>
-    inline constexpr bool operator!=(pair<A, B> const& x, pair<A, B> const& y) {
+    constexpr bool operator!=(const pair<A, B>& x, const pair<A, B>& y) {
         return !(x == y);
     }
     template <typename A, typename B>
-    inline constexpr bool operator<(pair<A, B> const& x, pair<A, B> const& y) {
+    constexpr bool operator<(const pair<A, B>& x, const pair<A, B>& y) {
         return x.first < y.first || (!(y.first < x.first) && x.second < y.second);
     }
     template <typename A, typename B>
-    inline constexpr bool operator>(pair<A, B> const& x, pair<A, B> const& y) {
+    constexpr bool operator>(const pair<A, B>& x, const pair<A, B>& y) {
         return y < x;
     }
     template <typename A, typename B>
-    inline constexpr bool operator<=(pair<A, B> const& x, pair<A, B> const& y) {
+    constexpr bool operator<=(const pair<A, B>& x, const pair<A, B>& y) {
         return !(x > y);
     }
     template <typename A, typename B>
-    inline constexpr bool operator>=(pair<A, B> const& x, pair<A, B> const& y) {
+    constexpr bool operator>=(const pair<A, B>& x, const pair<A, B>& y) {
         return !(x < y);
     }
 
     // Hash an arbitrary amount of bytes. This is basically Murmur2 hash without caring about big
     // endianness. TODO(martinus) add a fallback for very large strings?
-    static size_t hash_bytes(void const* ptr, size_t const len) noexcept {
+    static size_t hash_bytes(const void* ptr, const size_t len) noexcept {
         static constexpr uint64_t m = UINT64_C(0xc6a4a7935bd1e995);
         static constexpr uint64_t seed = UINT64_C(0xe17a1465);
         static constexpr unsigned int r = 47;
 
-        auto const data64 = static_cast<uint64_t const*>(ptr);
-        uint64_t h = seed ^ (len * m);
+        const auto data64 = static_cast<const uint64_t*>(ptr);
+        uint64_t h = seed ^ len * m;
 
-        size_t const n_blocks = len / 8;
+        const size_t n_blocks = len / 8;
         for (size_t i = 0; i < n_blocks; ++i) {
             auto k = detail::unaligned_load<uint64_t>(data64 + i);
 
@@ -701,7 +701,7 @@ namespace robin_hood {
             h *= m;
         }
 
-        auto const data8 = reinterpret_cast<uint8_t const*>(data64 + n_blocks);
+        const auto data8 = reinterpret_cast<const uint8_t*>(data64 + n_blocks);
         switch (len & 7U) {
             case 7:
                 h ^= static_cast<uint64_t>(data8[6]) << 48U;
@@ -732,7 +732,7 @@ namespace robin_hood {
         h ^= h >> r;
         h *= m;
         h ^= h >> r;
-        return static_cast<size_t>(h);
+        return h;
     }
 
     inline size_t hash_int(uint64_t obj) noexcept {
@@ -763,8 +763,8 @@ namespace robin_hood {
     template <typename T>
     struct hash : public std::hash<T>
     {
-        size_t operator()(T const& obj) const
-            noexcept(noexcept(std::declval<std::hash<T>>().operator()(std::declval<T const&>()))) {
+        size_t operator()(const T& obj) const
+            noexcept(noexcept(std::declval<std::hash<T>>().operator()(std::declval<const T&>()))) {
             // call base hash
             auto result = std::hash<T>::operator()(obj);
             // return mixed of that, to be save against identity has
@@ -775,7 +775,7 @@ namespace robin_hood {
     template <>
     struct hash<std::string>
     {
-        size_t operator()(std::string const& str) const noexcept {
+        size_t operator()(const std::string& str) const noexcept {
             return hash_bytes(str.data(), str.size());
         }
     };
@@ -826,7 +826,7 @@ namespace robin_hood {
         struct WrapHash : public T
         {
             WrapHash() = default;
-            explicit WrapHash(T const& o) noexcept(noexcept(T(std::declval<T const&>())))
+            explicit WrapHash(const T& o) noexcept(noexcept(T(std::declval<const T&>())))
                 : T(o) {}
         };
 
@@ -834,7 +834,7 @@ namespace robin_hood {
         struct WrapKeyEqual : public T
         {
             WrapKeyEqual() = default;
-            explicit WrapKeyEqual(T const& o) noexcept(noexcept(T(std::declval<T const&>())))
+            explicit WrapKeyEqual(const T& o) noexcept(noexcept(T(std::declval<const T&>())))
                 : T(o) {}
         };
 
@@ -870,11 +870,12 @@ namespace robin_hood {
         class Table
             : public WrapHash<Hash>,
             public WrapKeyEqual<KeyEqual>,
-            detail::NodeAllocator<
-            typename std::conditional<
-            std::is_void<T>::value, Key,
-            robin_hood::pair<typename std::conditional<IsFlat, Key, Key const>::type, T>>::type,
-            4, 16384, IsFlat> {
+            NodeAllocator<
+                std::conditional_t<
+                    std::is_void<T>::value, Key,
+                    pair<std::conditional_t<IsFlat, Key, const Key>, T>>,
+                4, 16384, IsFlat>
+        {
         public:
             static constexpr bool is_flat = IsFlat;
             static constexpr bool is_map = !std::is_void<T>::value;
@@ -882,9 +883,9 @@ namespace robin_hood {
 
             using key_type = Key;
             using mapped_type = T;
-            using value_type = typename std::conditional<
+            using value_type = std::conditional_t<
                 is_set, Key,
-                robin_hood::pair<typename std::conditional<is_flat, Key, Key const>::type, T>>::type;
+                pair<std::conditional_t<is_flat, Key, const Key>, T>>;
             using size_type = size_t;
             using hasher = Hash;
             using key_equal = KeyEqual;
@@ -904,7 +905,7 @@ namespace robin_hood {
             static constexpr uint32_t InitialInfoNumBits = 5;
             static constexpr uint8_t InitialInfoInc = 1U << InitialInfoNumBits;
             static constexpr uint8_t InitialInfoHashShift = sizeof(size_t) * 8 - InitialInfoNumBits;
-            using DataPool = detail::NodeAllocator<value_type, 4, 16384, IsFlat>;
+            using DataPool = NodeAllocator<value_type, 4, 16384, IsFlat>;
 
             // type needs to be wider than uint8_t.
             using InfoType = uint32_t;
@@ -932,10 +933,10 @@ namespace robin_hood {
                     : mData(std::move(n.mData)) {}
 
                 // doesn't do anything
-                void destroy(M& ROBIN_HOOD_UNUSED(map) /*unused*/) noexcept {}
-                void destroyDoNotDeallocate() noexcept {}
+                static void destroy(M& ROBIN_HOOD_UNUSED(map) /*unused*/) noexcept {}
+                static void destroyDoNotDeallocate() noexcept {}
 
-                value_type const* operator->() const noexcept {
+                const value_type* operator->() const noexcept {
                     return &mData;
                 }
                 value_type* operator->() noexcept {
@@ -952,36 +953,36 @@ namespace robin_hood {
 
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                    typename std::enable_if<is_map, typename VT::first_type&>::type getFirst() noexcept {
+                std::enable_if_t<is_map, typename VT::first_type&> getFirst() noexcept {
                     return mData.first;
                 }
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                    typename std::enable_if<is_set, VT&>::type getFirst() noexcept {
+                std::enable_if_t<is_set, VT&> getFirst() noexcept {
                     return mData;
                 }
 
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                    typename std::enable_if<is_map, typename VT::first_type const&>::type getFirst() const
+                std::enable_if_t<is_map, const typename VT::first_type&> getFirst() const
                     noexcept {
                     return mData.first;
                 }
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                    typename std::enable_if<is_set, VT const&>::type getFirst() const noexcept {
+                std::enable_if_t<is_set, const VT&> getFirst() const noexcept {
                     return mData;
                 }
 
                 template <typename MT = mapped_type>
                 ROBIN_HOOD(NODISCARD)
-                    typename std::enable_if<is_map, MT&>::type getSecond() noexcept {
+                std::enable_if_t<is_map, MT&> getSecond() noexcept {
                     return mData.second;
                 }
 
                 template <typename MT = mapped_type>
                 ROBIN_HOOD(NODISCARD)
-                    typename std::enable_if<is_set, MT const&>::type getSecond() const noexcept {
+                std::enable_if_t<is_set, const MT&> getSecond() const noexcept {
                     return mData.second;
                 }
 
@@ -1018,7 +1019,7 @@ namespace robin_hood {
                     mData->~value_type();
                 }
 
-                value_type const* operator->() const noexcept {
+                const value_type* operator->() const noexcept {
                     return mData;
                 }
 
@@ -1036,36 +1037,36 @@ namespace robin_hood {
 
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                    typename std::enable_if<is_map, typename VT::first_type&>::type getFirst() noexcept {
+                std::enable_if_t<is_map, typename VT::first_type&> getFirst() noexcept {
                     return mData->first;
                 }
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                    typename std::enable_if<is_set, VT&>::type getFirst() noexcept {
+                std::enable_if_t<is_set, VT&> getFirst() noexcept {
                     return *mData;
                 }
 
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                    typename std::enable_if<is_map, typename VT::first_type const&>::type getFirst() const
+                std::enable_if_t<is_map, const typename VT::first_type&> getFirst() const
                     noexcept {
                     return mData->first;
                 }
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                    typename std::enable_if<is_set, VT const&>::type getFirst() const noexcept {
+                std::enable_if_t<is_set, const VT&> getFirst() const noexcept {
                     return *mData;
                 }
 
                 template <typename MT = mapped_type>
                 ROBIN_HOOD(NODISCARD)
-                    typename std::enable_if<is_map, MT&>::type getSecond() noexcept {
+                std::enable_if_t<is_map, MT&> getSecond() noexcept {
                     return mData->second;
                 }
 
                 template <typename MT = mapped_type>
                 ROBIN_HOOD(NODISCARD)
-                    typename std::enable_if<is_map, MT const&>::type getSecond() const noexcept {
+                std::enable_if_t<is_map, const MT&> getSecond() const noexcept {
                     return mData->second;
                 }
 
@@ -1081,21 +1082,21 @@ namespace robin_hood {
             using Node = DataNode<Self, IsFlat>;
 
             // helpers for doInsert: extract first entry (only const required)
-            ROBIN_HOOD(NODISCARD) key_type const& getFirstConst(Node const& n) const noexcept {
+            ROBIN_HOOD(NODISCARD) const key_type& getFirstConst(const Node& n) const noexcept {
                 return n.getFirst();
             }
 
             // in case we have void mapped_type, we are not using a pair, thus we just route k through.
             // No need to disable this because it's just not used if not applicable.
-            ROBIN_HOOD(NODISCARD) key_type const& getFirstConst(key_type const& k) const noexcept {
+            ROBIN_HOOD(NODISCARD) const key_type& getFirstConst(const key_type& k) const noexcept {
                 return k;
             }
 
             // in case we have non-void mapped_type, we have a standard robin_hood::pair
             template <typename Q = mapped_type>
             ROBIN_HOOD(NODISCARD)
-                typename std::enable_if<!std::is_void<Q>::value, key_type const&>::type
-                getFirstConst(value_type const& vt) const noexcept {
+            std::enable_if_t<!std::is_void<Q>::value, const key_type&>
+                getFirstConst(const value_type& vt) const noexcept {
                 return vt.first;
             }
 
@@ -1108,10 +1109,10 @@ namespace robin_hood {
             template <typename M>
             struct Cloner<M, true>
             {
-                void operator()(M const& source, M& target) const {
-                    auto src = reinterpret_cast<char const*>(source.mKeyVals);
+                void operator()(const M& source, M& target) const {
+                    auto src = reinterpret_cast<const char*>(source.mKeyVals);
                     auto tgt = reinterpret_cast<char*>(target.mKeyVals);
-                    auto const numElementsWithBuffer = target.calcNumElementsWithBuffer(target.mMask + 1);
+                    const auto numElementsWithBuffer = target.calcNumElementsWithBuffer(target.mMask + 1);
                     std::copy(src, src + target.calcNumBytesTotal(numElementsWithBuffer), tgt);
                 }
             };
@@ -1119,8 +1120,8 @@ namespace robin_hood {
             template <typename M>
             struct Cloner<M, false>
             {
-                void operator()(M const& s, M& t) const {
-                    auto const numElementsWithBuffer = t.calcNumElementsWithBuffer(t.mMask + 1);
+                void operator()(const M& s, M& t) const {
+                    const auto numElementsWithBuffer = t.calcNumElementsWithBuffer(t.mMask + 1);
                     std::copy(s.mInfo, s.mInfo + t.calcNumBytesInfo(numElementsWithBuffer), t.mInfo);
 
                     for (size_t i = 0; i < numElementsWithBuffer; ++i) {
@@ -1139,11 +1140,11 @@ namespace robin_hood {
             template <typename M>
             struct Destroyer<M, true>
             {
-                void nodes(M& m) const noexcept {
+                static void nodes(M& m) noexcept {
                     m.mNumElements = 0;
                 }
 
-                void nodesDoNotDeallocate(M& m) const noexcept {
+                static void nodesDoNotDeallocate(M& m) noexcept {
                     m.mNumElements = 0;
                 }
             };
@@ -1154,7 +1155,7 @@ namespace robin_hood {
                 void nodes(M& m) const noexcept {
                     m.mNumElements = 0;
                     // clear also resets mInfo to 0, that's sometimes not necessary.
-                    auto const numElementsWithBuffer = m.calcNumElementsWithBuffer(m.mMask + 1);
+                    const auto numElementsWithBuffer = m.calcNumElementsWithBuffer(m.mMask + 1);
 
                     for (size_t idx = 0; idx < numElementsWithBuffer; ++idx) {
                         if (0 != m.mInfo[idx]) {
@@ -1168,7 +1169,7 @@ namespace robin_hood {
                 void nodesDoNotDeallocate(M& m) const noexcept {
                     m.mNumElements = 0;
                     // clear also resets mInfo to 0, that's sometimes not necessary.
-                    auto const numElementsWithBuffer = m.calcNumElementsWithBuffer(m.mMask + 1);
+                    const auto numElementsWithBuffer = m.calcNumElementsWithBuffer(m.mMask + 1);
                     for (size_t idx = 0; idx < numElementsWithBuffer; ++idx) {
                         if (0 != m.mInfo[idx]) {
                             Node& n = m.mKeyVals[idx];
@@ -1189,13 +1190,13 @@ namespace robin_hood {
             class Iter
             {
             private:
-                using NodePtr = typename std::conditional<IsConst, Node const*, Node*>::type;
+                using NodePtr = std::conditional_t<IsConst, const Node*, Node*>;
 
             public:
                 using difference_type = std::ptrdiff_t;
-                using value_type = typename Self::value_type;
-                using reference = typename std::conditional<IsConst, value_type const&, value_type&>::type;
-                using pointer = typename std::conditional<IsConst, value_type const*, value_type*>::type;
+                using value_type = value_type;
+                using reference = std::conditional_t<IsConst, const value_type&, value_type&>;
+                using pointer = std::conditional_t<IsConst, const value_type*, value_type*>;
                 using iterator_category = std::forward_iterator_tag;
 
                 // default constructed iterator can be compared to itself, but WON'T return true when
@@ -1207,17 +1208,17 @@ namespace robin_hood {
 
                 // Conversion constructor from iterator to const_iterator.
                 template <bool OtherIsConst,
-                    typename = typename std::enable_if<IsConst && !OtherIsConst>::type>
+                    typename = std::enable_if_t<IsConst && !OtherIsConst>>
                 // NOLINTNEXTLINE(hicpp-explicit-conversions)
-                Iter(Iter<OtherIsConst> const& other) noexcept
+                Iter(const Iter<OtherIsConst>& other) noexcept
                     : mKeyVals(other.mKeyVals)
                     , mInfo(other.mInfo) {}
 
-                Iter(NodePtr valPtr, uint8_t const* infoPtr) noexcept
+                Iter(NodePtr valPtr, const uint8_t* infoPtr) noexcept
                     : mKeyVals(valPtr)
                     , mInfo(infoPtr) {}
 
-                Iter(NodePtr valPtr, uint8_t const* infoPtr,
+                Iter(NodePtr valPtr, const uint8_t* infoPtr,
                      fast_forward_tag ROBIN_HOOD_UNUSED(tag) /*unused*/) noexcept
                     : mKeyVals(valPtr)
                     , mInfo(infoPtr) {
@@ -1225,8 +1226,8 @@ namespace robin_hood {
                 }
 
                 template <bool OtherIsConst,
-                    typename = typename std::enable_if<IsConst && !OtherIsConst>::type>
-                Iter& operator=(Iter<OtherIsConst> const& other) noexcept {
+                    typename = std::enable_if_t<IsConst && !OtherIsConst>>
+                Iter& operator=(const Iter<OtherIsConst>& other) noexcept {
                     mKeyVals = other.mKeyVals;
                     mInfo = other.mInfo;
                     return *this;
@@ -1235,7 +1236,7 @@ namespace robin_hood {
                 // prefix increment. Undefined behavior if we are at end()!
                 Iter& operator++() noexcept {
                     mInfo++;
-                    mKeyVals++;
+                    ++mKeyVals;
                     fastForward();
                     return *this;
                 }
@@ -1249,12 +1250,12 @@ namespace robin_hood {
                 }
 
                 template <bool O>
-                bool operator==(Iter<O> const& o) const noexcept {
+                bool operator==(const Iter<O>& o) const noexcept {
                     return mKeyVals == o.mKeyVals;
                 }
 
                 template <bool O>
-                bool operator!=(Iter<O> const& o) const noexcept {
+                bool operator!=(const Iter<O>& o) const noexcept {
                     return mKeyVals != o.mKeyVals;
                 }
 
@@ -1263,7 +1264,7 @@ namespace robin_hood {
                 void fastForward() noexcept {
                     int inc;
                     do {
-                        auto const n = detail::unaligned_load<size_t>(mInfo);
+                        const auto n = detail::unaligned_load<size_t>(mInfo);
 #if ROBIN_HOOD(LITTLE_ENDIAN)
                         inc = ROBIN_HOOD_COUNT_TRAILING_ZEROES(n) / 8;
 #else
@@ -1276,7 +1277,7 @@ namespace robin_hood {
 
                 friend class Table<IsFlat, MaxLoadFactor100, key_type, mapped_type, hasher, key_equal>;
                 NodePtr mKeyVals{ nullptr };
-                uint8_t const* mInfo{ nullptr };
+                const uint8_t* mInfo{ nullptr };
             };
 
             ////////////////////////////////////////////////////////////////////
@@ -1290,9 +1291,9 @@ namespace robin_hood {
                 // additional mixing step. This serves as a bad hash prevention, if the given data is badly
                 // mixed.
                 using Mix =
-                    typename std::conditional<std::is_same<::robin_hood::hash<key_type>, hasher>::value,
-                    ::robin_hood::detail::identity_hash<size_t>,
-                    ::robin_hood::hash<size_t>>::type;
+                    std::conditional_t<std::is_same<hash<key_type>, hasher>::value,
+                                     identity_hash<size_t>,
+                                     hash<size_t>>;
                 *idx = Mix{}(WHash::operator()(key));
 
                 *info = mInfoInc + static_cast<InfoType>(*idx >> mInfoHashShift);
@@ -1314,8 +1315,8 @@ namespace robin_hood {
 
             // Shift everything up by one element. Tries to move stuff around.
             void
-                shiftUp(size_t startIdx,
-                        size_t const insertion_idx) noexcept(std::is_nothrow_move_assignable<Node>::value) {
+                shiftUp(const size_t startIdx,
+                        const size_t insertion_idx) noexcept(std::is_nothrow_move_assignable<Node>::value) {
                 auto idx = startIdx;
                 ::new (static_cast<void*>(mKeyVals + idx)) Node(std::move(mKeyVals[idx - 1]));
                 while (--idx != insertion_idx) {
@@ -1355,7 +1356,7 @@ namespace robin_hood {
             // copy of find(), except that it returns iterator instead of const_iterator.
             template <typename Other>
             ROBIN_HOOD(NODISCARD)
-                size_t findIdx(Other const& key) const {
+                size_t findIdx(const Other& key) const {
                 size_t idx;
                 InfoType info;
                 keyToIdx(key, &idx, &info);
@@ -1404,8 +1405,8 @@ namespace robin_hood {
                 }
 
                 // key not found, so we are now exactly where we want to insert it.
-                auto const insertion_idx = idx;
-                auto const insertion_info = static_cast<uint8_t>(info);
+                const auto insertion_idx = idx;
+                const auto insertion_info = static_cast<uint8_t>(info);
                 if (ROBIN_HOOD_UNLIKELY(insertion_info + mInfoInc > 0xFF)) {
                     mMaxNumElementsAllowed = 0;
                 }
@@ -1518,7 +1519,7 @@ namespace robin_hood {
                     // not empty: create an exact copy. it is also possible to just iterate through all
                     // elements and insert them, but copying is probably faster.
 
-                    auto const numElementsWithBuffer = calcNumElementsWithBuffer(o.mMask + 1);
+                    const auto numElementsWithBuffer = calcNumElementsWithBuffer(o.mMask + 1);
                     mKeyVals = static_cast<Node*>(detail::assertNotNull<std::bad_alloc>(
                         malloc(calcNumBytesTotal(numElementsWithBuffer))));
                     // no need for calloc because clonData does memcpy
@@ -1535,7 +1536,7 @@ namespace robin_hood {
             // Creates a copy of the given map. Copy constructor of each entry is used.
             // Not sure why clang-tidy thinks this doesn't handle self assignment, it does
             // NOLINTNEXTLINE(bugprone-unhandled-self-assignment,cert-oop54-cpp)
-            Table& operator=(Table const& o) {
+            Table& operator=(const Table& o) {
                 ROBIN_HOOD_TRACE(this);
                 if (&o == this) {
                     // prevent assigning of itself
@@ -1556,7 +1557,7 @@ namespace robin_hood {
                     init();
                     WHash::operator=(static_cast<const WHash&>(o));
                     WKeyEqual::operator=(static_cast<const WKeyEqual&>(o));
-                    DataPool::operator=(static_cast<DataPool const&>(o));
+                    DataPool::operator=(static_cast<const DataPool&>(o));
 
                     return *this;
                 }
@@ -1571,7 +1572,7 @@ namespace robin_hood {
                         free(mKeyVals);
                     }
 
-                    auto const numElementsWithBuffer = calcNumElementsWithBuffer(o.mMask + 1);
+                    const auto numElementsWithBuffer = calcNumElementsWithBuffer(o.mMask + 1);
                     mKeyVals = static_cast<Node*>(detail::assertNotNull<std::bad_alloc>(
                         malloc(calcNumBytesTotal(numElementsWithBuffer))));
 
@@ -1581,7 +1582,7 @@ namespace robin_hood {
                 }
                 WHash::operator=(static_cast<const WHash&>(o));
                 WKeyEqual::operator=(static_cast<const WKeyEqual&>(o));
-                DataPool::operator=(static_cast<DataPool const&>(o));
+                DataPool::operator=(static_cast<const DataPool&>(o));
                 mNumElements = o.mNumElements;
                 mMask = o.mMask;
                 mMaxNumElementsAllowed = o.mMaxNumElementsAllowed;
@@ -1610,9 +1611,9 @@ namespace robin_hood {
 
                 Destroyer<Self, IsFlat&& std::is_trivially_destructible<Node>::value>{}.nodes(*this);
 
-                auto const numElementsWithBuffer = calcNumElementsWithBuffer(mMask + 1);
+                const auto numElementsWithBuffer = calcNumElementsWithBuffer(mMask + 1);
                 // clear everything, then set the sentinel again
-                uint8_t const z = 0;
+                const uint8_t z = 0;
                 std::fill(mInfo, mInfo + calcNumBytesInfo(numElementsWithBuffer), z);
                 mInfo[numElementsWithBuffer] = 1;
 
@@ -1632,7 +1633,7 @@ namespace robin_hood {
                 if (other.size() != size()) {
                     return false;
                 }
-                for (auto const& otherEntry : other) {
+                for (const auto& otherEntry : other) {
                     if (!has(otherEntry)) {
                         return false;
                     }
@@ -1647,13 +1648,13 @@ namespace robin_hood {
             }
 
             template <typename Q = mapped_type>
-            typename std::enable_if<!std::is_void<Q>::value, Q&>::type operator[](const key_type& key) {
+            std::enable_if_t<!std::is_void<Q>::value, Q&> operator[](const key_type& key) {
                 ROBIN_HOOD_TRACE(this);
                 return doCreateByKey(key);
             }
 
             template <typename Q = mapped_type>
-            typename std::enable_if<!std::is_void<Q>::value, Q&>::type operator[](key_type&& key) {
+            std::enable_if_t<!std::is_void<Q>::value, Q&> operator[](key_type&& key) {
                 ROBIN_HOOD_TRACE(this);
                 return doCreateByKey(std::move(key));
             }
@@ -1706,7 +1707,7 @@ namespace robin_hood {
             // Throws std::out_of_range if element cannot be found
             template <typename Q = mapped_type>
             // NOLINTNEXTLINE(modernize-use-nodiscard)
-            typename std::enable_if<!std::is_void<Q>::value, Q&>::type at(key_type const& key) {
+            std::enable_if_t<!std::is_void<Q>::value, Q&> at(const key_type& key) {
                 ROBIN_HOOD_TRACE(this);
                 auto kv = mKeyVals + findIdx(key);
                 if (kv == reinterpret_cast_no_cast_align_warning<Node*>(mInfo)) {
@@ -1719,7 +1720,7 @@ namespace robin_hood {
             // Throws std::out_of_range if element cannot be found
             template <typename Q = mapped_type>
             // NOLINTNEXTLINE(modernize-use-nodiscard)
-            typename std::enable_if<!std::is_void<Q>::value, Q const&>::type at(key_type const& key) const {
+            std::enable_if_t<!std::is_void<Q>::value, const Q&> at(const key_type& key) const {
                 ROBIN_HOOD_TRACE(this);
                 auto kv = mKeyVals + findIdx(key);
                 if (kv == reinterpret_cast_no_cast_align_warning<Node*>(mInfo)) {
@@ -1799,7 +1800,7 @@ namespace robin_hood {
             iterator erase(iterator pos) {
                 ROBIN_HOOD_TRACE(this);
                 // we assume that pos always points to a valid entry, and not end().
-                auto const idx = static_cast<size_t>(pos.mKeyVals - mKeyVals);
+                const auto idx = static_cast<size_t>(pos.mKeyVals - mKeyVals);
 
                 shiftDown(idx);
                 --mNumElements;
@@ -1835,15 +1836,15 @@ namespace robin_hood {
 
             // reserves space for the specified number of elements. Makes sure the old data fits.
             // exactly the same as reserve(c).
-            void rehash(size_t c) {
+            void rehash(const size_t c) {
                 reserve(c);
             }
 
             // reserves space for the specified number of elements. Makes sure the old data fits.
             // Exactly the same as resize(c). Use resize(0) to shrink to fit.
-            void reserve(size_t c) {
+            void reserve(const size_t c) {
                 ROBIN_HOOD_TRACE(this);
-                auto const minElementsAllowed = (std::max)(c, mNumElements);
+                const auto minElementsAllowed = (std::max)(c, mNumElements);
                 auto newSize = InitialNumElements;
                 while (calcMaxNumElementsAllowed(newSize) < minElementsAllowed && newSize != 0) {
                     newSize *= 2;
@@ -1886,25 +1887,25 @@ namespace robin_hood {
                 return mMask;
             }
 
-            ROBIN_HOOD(NODISCARD) size_t calcMaxNumElementsAllowed(size_t maxElements) const noexcept {
+            ROBIN_HOOD(NODISCARD) size_t calcMaxNumElementsAllowed(const size_t maxElements) const noexcept {
                 if (ROBIN_HOOD_LIKELY(maxElements <= (std::numeric_limits<size_t>::max)() / 100)) {
                     return maxElements * MaxLoadFactor100 / 100;
                 }
 
                 // we might be a bit inprecise, but since maxElements is quite large that doesn't matter
-                return (maxElements / 100) * MaxLoadFactor100;
+                return maxElements / 100 * MaxLoadFactor100;
             }
 
-            ROBIN_HOOD(NODISCARD) size_t calcNumBytesInfo(size_t numElements) const noexcept {
+            ROBIN_HOOD(NODISCARD) size_t calcNumBytesInfo(const size_t numElements) const noexcept {
                 // we add a uint64_t, which houses the sentinel (first byte) and padding so we can load
                 // 64bit types.
                 return numElements + sizeof(uint64_t);
             }
 
             ROBIN_HOOD(NODISCARD)
-                size_t calcNumElementsWithBuffer(size_t numElements) const noexcept {
-                auto maxNumElementsAllowed = calcMaxNumElementsAllowed(numElements);
-                return numElements + (std::min)(maxNumElementsAllowed, (static_cast<size_t>(0xFF)));
+                size_t calcNumElementsWithBuffer(const size_t numElements) const noexcept {
+                    const auto maxNumElementsAllowed = calcMaxNumElementsAllowed(numElements);
+                return numElements + (std::min)(maxNumElementsAllowed, static_cast<size_t>(0xFF));
             }
 
             // calculation only allowed for 2^n values
@@ -1930,7 +1931,7 @@ namespace robin_hood {
         private:
             template <typename Q = mapped_type>
             ROBIN_HOOD(NODISCARD)
-                typename std::enable_if<!std::is_void<Q>::value, bool>::type has(const value_type& e) const {
+            std::enable_if_t<!std::is_void<Q>::value, bool> has(const value_type& e) const {
                 ROBIN_HOOD_TRACE(this);
                 auto it = find(e.first);
                 return it != end() && it->second == e.second;
@@ -1938,18 +1939,18 @@ namespace robin_hood {
 
             template <typename Q = mapped_type>
             ROBIN_HOOD(NODISCARD)
-                typename std::enable_if<std::is_void<Q>::value, bool>::type has(const value_type& e) const {
+            std::enable_if_t<std::is_void<Q>::value, bool> has(const value_type& e) const {
                 ROBIN_HOOD_TRACE(this);
                 return find(e) != end();
             }
 
             // reserves space for at least the specified number of elements.
             // only works if numBuckets if power of two
-            void rehashPowerOfTwo(size_t numBuckets) {
+            void rehashPowerOfTwo(const size_t numBuckets) {
                 ROBIN_HOOD_TRACE(this);
 
                 Node* const oldKeyVals = mKeyVals;
-                uint8_t const* const oldInfo = mInfo;
+                const uint8_t* const oldInfo = mInfo;
 
                 const size_t oldMaxElementsWithBuffer = calcNumElementsWithBuffer(mMask + 1);
 
@@ -1977,12 +1978,12 @@ namespace robin_hood {
 #endif
             }
 
-            void init_data(size_t max_elements) {
+            void init_data(const size_t max_elements) {
                 mNumElements = 0;
                 mMask = max_elements - 1;
                 mMaxNumElementsAllowed = calcMaxNumElementsAllowed(max_elements);
 
-                auto const numElementsWithBuffer = calcNumElementsWithBuffer(max_elements);
+                const auto numElementsWithBuffer = calcNumElementsWithBuffer(max_elements);
 
                 // calloc also zeroes everything
                 mKeyVals = reinterpret_cast<Node*>(detail::assertNotNull<std::bad_alloc>(
@@ -1997,7 +1998,7 @@ namespace robin_hood {
             }
 
             template <typename Arg, typename Q = mapped_type>
-            typename std::enable_if<!std::is_void<Q>::value, Q&>::type doCreateByKey(Arg&& key) {
+            std::enable_if_t<!std::is_void<Q>::value, Q&> doCreateByKey(Arg&& key) {
                 while (true) {
                     size_t idx;
                     InfoType info;
@@ -2021,8 +2022,8 @@ namespace robin_hood {
                     }
 
                     // key not found, so we are now exactly where we want to insert it.
-                    auto const insertion_idx = idx;
-                    auto const insertion_info = info;
+                    const auto insertion_idx = idx;
+                    const auto insertion_info = info;
                     if (ROBIN_HOOD_UNLIKELY(insertion_info + mInfoInc > 0xFF)) {
                         mMaxNumElementsAllowed = 0;
                     }
@@ -2080,8 +2081,8 @@ namespace robin_hood {
                     }
 
                     // key not found, so we are now exactly where we want to insert it.
-                    auto const insertion_idx = idx;
-                    auto const insertion_info = info;
+                    const auto insertion_idx = idx;
+                    const auto insertion_info = info;
                     if (ROBIN_HOOD_UNLIKELY(insertion_info + mInfoInc > 0xFF)) {
                         mMaxNumElementsAllowed = 0;
                     }
@@ -2121,12 +2122,12 @@ namespace robin_hood {
                 // remove one bit of the hash, leaving more space for the distance info.
                 // This is extremely fast because we can operate on 8 bytes at once.
                 ++mInfoHashShift;
-                auto const numElementsWithBuffer = calcNumElementsWithBuffer(mMask + 1);
+                const auto numElementsWithBuffer = calcNumElementsWithBuffer(mMask + 1);
 
                 for (size_t i = 0; i < numElementsWithBuffer; i += 8) {
                     auto val = unaligned_load<uint64_t>(mInfo + i);
-                    val = (val >> 1U) & UINT64_C(0x7f7f7f7f7f7f7f7f);
-                    std::memcpy(mInfo + i, &val, sizeof(val));
+                    val = val >> 1U & UINT64_C(0x7f7f7f7f7f7f7f7f);
+                    std::memcpy(mInfo + i, &val, sizeof val);
                 }
                 // update sentinel, which might have been cleared out!
                 mInfo[numElementsWithBuffer] = 1;
@@ -2142,7 +2143,7 @@ namespace robin_hood {
                     return;
                 }
 
-                auto const maxNumElementsAllowed = calcMaxNumElementsAllowed(mMask + 1);
+                const auto maxNumElementsAllowed = calcMaxNumElementsAllowed(mMask + 1);
                 if (mNumElements < maxNumElementsAllowed && try_increase_info()) {
                     return;
                 }
@@ -2212,9 +2213,9 @@ namespace robin_hood {
     template <typename Key, typename T, typename Hash = hash<Key>,
         typename KeyEqual = std::equal_to<Key>, size_t MaxLoadFactor100 = 80>
     using unordered_map =
-        detail::Table<sizeof(robin_hood::pair<Key, T>) <= sizeof(size_t) * 6 &&
-        std::is_nothrow_move_constructible<robin_hood::pair<Key, T>>::value&&
-        std::is_nothrow_move_assignable<robin_hood::pair<Key, T>>::value,
+        detail::Table<sizeof(pair<Key, T>) <= sizeof(size_t) * 6 &&
+        std::is_nothrow_move_constructible<pair<Key, T>>::value&&
+        std::is_nothrow_move_assignable<pair<Key, T>>::value,
         MaxLoadFactor100, Key, T, Hash, KeyEqual>;
 
     // set
