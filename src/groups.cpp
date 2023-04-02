@@ -70,7 +70,7 @@ const std::unordered_map<std::string, PlayerFlags> ParsePlayerFlagMap = {
 bool Groups::load()
 {
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file("data/XML/groups.xml");
+    const pugi::xml_parse_result result = doc.load_file("data/XML/groups.xml");
     if (!result) {
         printXMLError("Error - Groups::load", "data/XML/groups.xml", result);
         return false;
@@ -104,7 +104,7 @@ bool Groups::load()
     return true;
 }
 
-Group* Groups::getGroup(uint16_t id)
+Group* Groups::getGroup(const uint16_t id)
 {
     for (Group& group : groups) {
         if (group.id == id) {

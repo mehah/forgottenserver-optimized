@@ -40,12 +40,13 @@ public:
     void addThing(int32_t index, Thing* thing) override;
     void internalAddThing(uint32_t index, Thing* thing) override;
 
-    House* getHouse() {
+    House* getHouse() const
+    {
         return house;
     }
 
 private:
-    void updateHouse(Item* item);
+    void updateHouse(Item* item) const;
 
     House* house;
 };

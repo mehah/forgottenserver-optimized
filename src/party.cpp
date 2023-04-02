@@ -25,7 +25,6 @@
 #include "configmanager.h"
 #include "events.h"
 
-extern Game g_game;
 extern ConfigManager g_config;
 extern Events* g_events;
 
@@ -64,7 +63,7 @@ void Party::disband()
     }
 
     for (Player* member : memberList) {
-        for (Player* otherMember : memberList) {
+        for (const Player* otherMember : memberList) {
             otherMember->sendPlayerPartyIcons(member);
         }
 
@@ -106,7 +105,7 @@ bool Party::leaveParty(Player* player)
     }
 
     //since we already passed the leadership, we remove the player from the list
-    auto it = std::find(memberList.begin(), memberList.end(), player);
+    const auto it = std::find(memberList.begin(), memberList.end(), player);
     if (it != memberList.end()) {
         memberList.erase(it);
     }
@@ -153,7 +152,7 @@ bool Party::passPartyLeadership(Player* player)
     }
 
     //Remove it before to broadcast the message correctly
-    auto it = std::find(memberList.begin(), memberList.end(), player);
+    const auto it = std::find(memberList.begin(), memberList.end(), player);
     if (it != memberList.end()) {
         memberList.erase(it);
     }
@@ -179,7 +178,7 @@ bool Party::passPartyLeadership(Player* player)
 #endif
     }
 
-    for (Player* invitee : inviteList) {
+    for (const Player* invitee : inviteList) {
         invitee->sendCreatureShield(oldLeader);
         invitee->sendCreatureShield(leader);
     }
@@ -202,7 +201,7 @@ bool Party::joinParty(Player& player)
         return false;
     }
 
-    auto it = std::find(inviteList.begin(), inviteList.end(), &player);
+    const auto it = std::find(inviteList.begin(), inviteList.end(), &player);
     if (it == inviteList.end()) {
         return false;
     }
@@ -245,9 +244,9 @@ bool Party::joinParty(Player& player)
     return true;
 }
 
-bool Party::removeInvite(Player& player, bool removeFromPlayer/* = true*/)
+bool Party::removeInvite(Player& player, const bool removeFromPlayer/* = true*/)
 {
-    auto it = std::find(inviteList.begin(), inviteList.end(), &player);
+    const auto it = std::find(inviteList.begin(), inviteList.end(), &player);
     if (it == inviteList.end()) {
         return false;
     }
@@ -266,7 +265,7 @@ bool Party::removeInvite(Player& player, bool removeFromPlayer/* = true*/)
     }
 #if CLIENT_VERSION >= 1000 && CLIENT_VERSION < 1185
     else {
-        for (Player* member : memberList) {
+        for (const Player* member : memberList) {
             g_game.updatePlayerHelpers(*member);
         }
 
@@ -309,7 +308,7 @@ bool Party::invitePlayer(Player& player)
     inviteList.push_back(&player);
 
 #if CLIENT_VERSION >= 1000 && CLIENT_VERSION < 1185
-    for (Player* member : memberList) {
+    for (const Player* member : memberList) {
         g_game.updatePlayerHelpers(*member);
     }
     g_game.updatePlayerHelpers(*leader);
@@ -331,7 +330,7 @@ bool Party::isPlayerInvited(const Player* player) const
     return std::find(inviteList.begin(), inviteList.end(), player) != inviteList.end();
 }
 
-void Party::updateAllPartyIcons()
+void Party::updateAllPartyIcons() const
 {
 #if GAME_FEATURE_PARTY_LIST > 0
     for (Player* member : memberList) {
@@ -356,16 +355,16 @@ void Party::updateAllPartyIcons()
 #endif
 }
 
-void Party::broadcastPartyMessage(MessageClasses msgClass, const std::string& msg, bool sendToInvitations /*= false*/)
+void Party::broadcastPartyMessage(const MessageClasses msgClass, const std::string& msg, const bool sendToInvitations /*= false*/) const
 {
-    for (Player* member : memberList) {
+    for (const Player* member : memberList) {
         member->sendTextMessage(msgClass, msg);
     }
 
     leader->sendTextMessage(msgClass, msg);
 
     if (sendToInvitations) {
-        for (Player* invitee : inviteList) {
+        for (const Player* invitee : inviteList) {
             invitee->sendTextMessage(msgClass, msg);
         }
     }
@@ -374,7 +373,7 @@ void Party::broadcastPartyMessage(MessageClasses msgClass, const std::string& ms
 void Party::updateSharedExperience()
 {
     if (sharedExpActive) {
-        bool result = canEnableSharedExperience();
+        const bool result = canEnableSharedExperience();
         if (result != sharedExpEnabled) {
             sharedExpEnabled = result;
             updateAllPartyIcons();
@@ -382,7 +381,7 @@ void Party::updateSharedExperience()
     }
 }
 
-bool Party::setSharedExperience(Player* player, bool sharedExpActive)
+bool Party::setSharedExperience(const Player* player, const bool sharedExpActive)
 {
     if (!player || leader != player) {
         return false;
@@ -410,7 +409,7 @@ bool Party::setSharedExperience(Player* player, bool sharedExpActive)
     return true;
 }
 
-void Party::shareExperience(uint64_t experience, Creature* source/* = nullptr*/)
+void Party::shareExperience(const uint64_t experience, Creature* source/* = nullptr*/)
 {
     uint64_t shareExperience = experience;
     g_events->eventPartyOnShareExperience(this, shareExperience);
@@ -428,13 +427,13 @@ bool Party::canUseSharedExperience(const Player* player) const
     }
 
     uint32_t highestLevel = leader->getLevel();
-    for (Player* member : memberList) {
+    for (const Player* member : memberList) {
         if (member->getLevel() > highestLevel) {
             highestLevel = member->getLevel();
         }
     }
 
-    uint32_t minLevel = static_cast<uint32_t>(std::ceil((static_cast<float>(highestLevel) * 2) / 3));
+    const auto minLevel = static_cast<uint32_t>(std::ceil(static_cast<float>(highestLevel) * 2 / 3));
     if (player->getLevel() < minLevel) {
         return false;
     }
@@ -445,12 +444,12 @@ bool Party::canUseSharedExperience(const Player* player) const
 
     if (!player->hasFlag(PlayerFlag_NotGainInFight)) {
         //check if the player has healed/attacked anything recently
-        auto it = ticksMap.find(player->getID());
+        const auto it = ticksMap.find(player->getID());
         if (it == ticksMap.end()) {
             return false;
         }
 
-        uint64_t timeDiff = OTSYS_TIME() - it->second;
+        const uint64_t timeDiff = OTSYS_TIME() - it->second;
         if (timeDiff > static_cast<uint64_t>(g_config.getNumber(ConfigManager::PZ_LOCKED))) {
             return false;
         }
@@ -458,13 +457,13 @@ bool Party::canUseSharedExperience(const Player* player) const
     return true;
 }
 
-bool Party::canEnableSharedExperience()
+bool Party::canEnableSharedExperience() const
 {
     if (!canUseSharedExperience(leader)) {
         return false;
     }
 
-    for (Player* member : memberList) {
+    for (const Player* member : memberList) {
         if (!canUseSharedExperience(member)) {
             return false;
         }
@@ -472,7 +471,7 @@ bool Party::canEnableSharedExperience()
     return true;
 }
 
-void Party::updatePlayerTicks(Player* player, uint32_t points)
+void Party::updatePlayerTicks(const Player* player, const uint32_t points)
 {
     if (points != 0 && !player->hasFlag(PlayerFlag_NotGainInFight)) {
         ticksMap[player->getID()] = OTSYS_TIME();
@@ -482,16 +481,16 @@ void Party::updatePlayerTicks(Player* player, uint32_t points)
 
 void Party::clearPlayerPoints(Player* player)
 {
-    auto it = ticksMap.find(player->getID());
+    const auto it = ticksMap.find(player->getID());
     if (it != ticksMap.end()) {
         ticksMap.erase(it);
         updateSharedExperience();
     }
 }
 
-bool Party::canOpenCorpse(uint32_t ownerId) const
+bool Party::canOpenCorpse(const uint32_t ownerId) const
 {
-    if (Player* player = g_game.getPlayerByID(ownerId)) {
+    if (const Player* player = g_game.getPlayerByID(ownerId)) {
         return leader->getID() == ownerId || player->getParty() == this;
     }
     return false;

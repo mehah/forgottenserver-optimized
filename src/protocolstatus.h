@@ -35,12 +35,12 @@ public:
         return "status protocol";
     }
 
-    explicit ProtocolStatus(Connection_ptr connection) : Protocol(connection) {}
+    explicit ProtocolStatus(const Connection_ptr& connection) : Protocol(connection) {}
 
     void onRecvFirstMessage(NetworkMessage& msg) override;
 
     void sendStatusString();
-    void sendInfo(uint16_t requestedInfo, const std::string& characterName);
+    void sendInfo(uint16_t requestedInfo, const std::string& characterName) const;
 
     static const uint64_t start;
 

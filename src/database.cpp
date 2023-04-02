@@ -41,7 +41,7 @@ extern ConfigManager g_config;
 
 bool Database::init()
 {
-    if (mysql_library_init(0, NULL, NULL) != 0) {
+    if (mysql_library_init(0, nullptr, nullptr) != 0) {
         std::cout << std::endl << "Failed to initialize MySQL client library." << std::endl;
         return false;
     }
@@ -69,7 +69,7 @@ bool Database::connect()
     }
 
     // automatic reconnect
-    bool reconnect = true;
+    const bool reconnect = true;
     mysql_options(handle, MYSQL_OPT_RECONNECT, &reconnect);
 
     // connects to database
@@ -78,7 +78,7 @@ bool Database::connect()
         return false;
     }
 
-    DBResult_ptr result = storeQuery("SHOW VARIABLES LIKE 'max_allowed_packet'");
+    const DBResult_ptr result = storeQuery("SHOW VARIABLES LIKE 'max_allowed_packet'");
     if (result) {
         maxPacketSize = result->getNumber<uint64_t>("Value");
     }
@@ -95,7 +95,7 @@ void Database::disconnect()
     mysql_thread_end();
 }
 
-bool Database::beginTransaction()
+bool Database::beginTransaction() const
 {
     if (!executeQuery("BEGIN")) {
         return false;
@@ -104,7 +104,7 @@ bool Database::beginTransaction()
     return true;
 }
 
-bool Database::rollback()
+bool Database::rollback() const
 {
     if (mysql_rollback(handle) != 0) {
         std::cout << "[Error - mysql_rollback] Message: " << mysql_error(handle) << std::endl;
@@ -114,7 +114,7 @@ bool Database::rollback()
     return true;
 }
 
-bool Database::commit()
+bool Database::commit() const
 {
     if (mysql_commit(handle) != 0) {
         std::cout << "[Error - mysql_commit] Message: " << mysql_error(handle) << std::endl;
@@ -124,14 +124,14 @@ bool Database::commit()
     return true;
 }
 
-bool Database::executeQuery(const std::string& query)
+bool Database::executeQuery(const std::string& query) const
 {
     bool success = true;
 
     // executes the query
     while (mysql_real_query(handle, query.c_str(), query.length()) != 0) {
         std::cout << "[Error - mysql_real_query] Query: " << query.substr(0, 256) << std::endl << "Message: " << mysql_error(handle) << std::endl;
-        auto error = mysql_errno(handle);
+        const auto error = mysql_errno(handle);
         if (error != CR_SERVER_LOST && error != CR_SERVER_GONE_ERROR && error != CR_CONN_HOST_ERROR && error != 1053/*ER_SERVER_SHUTDOWN*/ && error != CR_CONNECTION_ERROR) {
             success = false;
             break;
@@ -147,12 +147,12 @@ bool Database::executeQuery(const std::string& query)
     return success;
 }
 
-DBResult_ptr Database::storeQuery(const std::string& query)
+DBResult_ptr Database::storeQuery(const std::string& query) const
 {
 retry:
     while (mysql_real_query(handle, query.c_str(), query.length()) != 0) {
         std::cout << "[Error - mysql_real_query] Query: " << query << std::endl << "Message: " << mysql_error(handle) << std::endl;
-        auto error = mysql_errno(handle);
+        const auto error = mysql_errno(handle);
         if (error != CR_SERVER_LOST && error != CR_SERVER_GONE_ERROR && error != CR_CONN_HOST_ERROR && error != 1053/*ER_SERVER_SHUTDOWN*/ && error != CR_CONNECTION_ERROR) {
             break;
         }
@@ -164,7 +164,7 @@ retry:
     MYSQL_RES* res = mysql_store_result(handle);
     if (res == nullptr) {
         std::cout << "[Error - mysql_store_result] Query: " << query << std::endl << "Message: " << mysql_error(handle) << std::endl;
-        auto error = mysql_errno(handle);
+        const auto error = mysql_errno(handle);
         if (error != CR_SERVER_LOST && error != CR_SERVER_GONE_ERROR && error != CR_CONN_HOST_ERROR && error != 1053/*ER_SERVER_SHUTDOWN*/ && error != CR_CONNECTION_ERROR) {
             return nullptr;
         }
@@ -172,7 +172,7 @@ retry:
     }
 
     // retrieving results of query
-    DBResult_ptr result = std::make_shared<DBResult>(res);
+    auto result = std::make_shared<DBResult>(res);
     if (!result->hasNext()) {
         return nullptr;
     }
@@ -184,10 +184,10 @@ std::string Database::escapeString(const std::string& s) const
     return escapeBlob(s.c_str(), s.length());
 }
 
-std::string Database::escapeBlob(const char* s, uint32_t length) const
+std::string Database::escapeBlob(const char* s, const uint32_t length) const
 {
     // the worst case is 2n + 1
-    size_t maxLength = (length * 2) + 1;
+    const size_t maxLength = length * 2 + 1;
 
     std::string escaped;
     escaped.resize(maxLength + 2);
@@ -207,7 +207,7 @@ DBResult::DBResult(MYSQL_RES* res)
 {
     handle = res;
 
-    unsigned int num_fields = mysql_num_fields(handle);
+    const unsigned int num_fields = mysql_num_fields(handle);
     listNames.reserve(num_fields);
 
     MYSQL_FIELD* fields = mysql_fetch_fields(handle);
@@ -226,14 +226,14 @@ DBResult::~DBResult()
 
 std::string DBResult::getString(const std::string& s) const
 {
-    auto it = listNames.find(s);
+    const auto it = listNames.find(s);
     if (it == listNames.end()) {
         std::cout << "[Error - DBResult::getString] Column '" << s << "' does not exist in result set." << std::endl;
-        return std::string();
+        return {};
     }
 
     if (row[it->second] == nullptr) {
-        return std::string();
+        return {};
     }
 
     return std::string(row[it->second], lengths[it->second]);
@@ -241,7 +241,7 @@ std::string DBResult::getString(const std::string& s) const
 
 const char* DBResult::getStream(const std::string& s, unsigned long& size) const
 {
-    auto it = listNames.find(s);
+    const auto it = listNames.find(s);
     if (it == listNames.end()) {
         std::cout << "[Error - DBResult::getStream] Column '" << s << "' doesn't exist in the result set" << std::endl;
         size = 0;
@@ -259,7 +259,7 @@ const char* DBResult::getStream(const std::string& s, unsigned long& size) const
 
 size_t DBResult::countResults() const
 {
-    return static_cast<size_t>(mysql_num_rows(handle));
+    return mysql_num_rows(handle);
 }
 
 bool DBResult::hasNext() const
@@ -306,7 +306,7 @@ bool DBInsert::addRow(const std::string& row)
 
 bool DBInsert::addRow(std::ostringstream& row)
 {
-    bool ret = addRow(row.str());
+    const bool ret = addRow(row.str());
     row.str(std::string());
     return ret;
 }
@@ -318,7 +318,7 @@ bool DBInsert::execute()
     }
 
     // executes buffer
-    bool res = dtb->executeQuery(query + values);
+    const bool res = dtb->executeQuery(query + values);
     values.clear();
     length = query.length();
     return res;

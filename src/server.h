@@ -63,32 +63,32 @@ public:
 class ServicePort : public std::enable_shared_from_this<ServicePort>
 {
 public:
-    explicit ServicePort(boost::asio::io_service& io_service) : io_service(io_service) {}
+    explicit ServicePort(asio::io_service& io_service) : io_service(io_service) {}
     ~ServicePort();
 
     // non-copyable
     ServicePort(const ServicePort&) = delete;
     ServicePort& operator=(const ServicePort&) = delete;
 
-    static void openAcceptor(std::weak_ptr<ServicePort> weak_service, uint16_t port);
+    static void openAcceptor(const std::weak_ptr<ServicePort>& weak_service, uint16_t port);
     void open(uint16_t port);
-    void close();
+    void close() const;
     bool is_single_socket() const;
     std::string get_protocol_names() const;
 
     bool add_service(const Service_ptr& new_svc);
     Protocol_ptr make_protocol(bool checksummed, NetworkMessage& msg, const Connection_ptr& connection) const;
 
-    void onStopServer();
-    void onAccept(Connection_ptr connection, const boost::system::error_code& error);
+    void onStopServer() const;
+    void onAccept(const Connection_ptr& connection, const std::error_code& error);
 
 private:
     void accept();
 
-    boost::asio::io_service& io_service;
-    std::unique_ptr<boost::asio::ip::tcp::acceptor> acceptor;
+    asio::io_service& io_service;
+    std::unique_ptr<asio::ip::tcp::acceptor> acceptor;
     std::vector<Service_ptr> services;
-    boost::asio::deadline_timer deadline_timer{ io_service };
+    asio::high_resolution_timer deadline_timer{ io_service };
 
     uint16_t serverPort = 0;
     bool pendingStart = false;
@@ -119,9 +119,9 @@ private:
 
     std::unordered_map<uint16_t, ServicePort_ptr> acceptors;
 
-    boost::asio::io_service io_service;
+    asio::io_service io_service;
     Signals signals{ io_service };
-    boost::asio::deadline_timer death_timer{ io_service };
+    asio::high_resolution_timer death_timer{ io_service };
     bool running = false;
 };
 
@@ -135,7 +135,7 @@ bool ServiceManager::add(uint16_t port)
 
     ServicePort_ptr service_port;
 
-    auto foundServicePort = acceptors.find(port);
+    const auto foundServicePort = acceptors.find(port);
 
     if (foundServicePort == acceptors.end()) {
         service_port = std::make_shared<ServicePort>(io_service);

@@ -26,8 +26,6 @@
 #include "pugicast.h"
 #include "weapons.h"
 
-extern Game g_game;
-extern Vocations g_vocations;
 extern ConfigManager g_config;
 extern Weapons* g_weapons;
 
@@ -47,14 +45,14 @@ const Weapon* Weapons::getWeapon(const Item* item) const
         return nullptr;
     }
 
-    auto it = weapons.find(item->getID());
+    const auto it = weapons.find(item->getID());
     if (it == weapons.end()) {
         return nullptr;
     }
     return it->second.get();
 }
 
-void Weapons::clear(bool fromLua)
+void Weapons::clear(const bool fromLua)
 {
     for (auto it = weapons.begin(); it != weapons.end(); ) {
         if (fromLua == it->second->fromLua) {
@@ -89,7 +87,7 @@ void Weapons::loadDefaults()
             case WEAPON_AXE:
             case WEAPON_SWORD:
             case WEAPON_CLUB: {
-                WeaponMelee* weapon = new WeaponMelee(&scriptInterface);
+                const auto weapon = new WeaponMelee(&scriptInterface);
                 weapon->configureWeapon(it);
                 weapons[i].reset(weapon);
                 break;
@@ -101,7 +99,7 @@ void Weapons::loadDefaults()
                     continue;
                 }
 
-                WeaponDistance* weapon = new WeaponDistance(&scriptInterface);
+                const auto weapon = new WeaponDistance(&scriptInterface);
                 weapon->configureWeapon(it);
                 weapons[i].reset(weapon);
                 break;
@@ -116,18 +114,20 @@ void Weapons::loadDefaults()
 Event_ptr Weapons::getEvent(const std::string& nodeName)
 {
     if (strcasecmp(nodeName.c_str(), "melee") == 0) {
-        return Event_ptr(new WeaponMelee(&scriptInterface));
-    } else if (strcasecmp(nodeName.c_str(), "distance") == 0) {
-        return Event_ptr(new WeaponDistance(&scriptInterface));
-    } else if (strcasecmp(nodeName.c_str(), "wand") == 0) {
-        return Event_ptr(new WeaponWand(&scriptInterface));
+        return std::make_unique<WeaponMelee>(&scriptInterface);
+    }
+    if (strcasecmp(nodeName.c_str(), "distance") == 0) {
+        return std::make_unique<WeaponDistance>(&scriptInterface);
+    }
+    if (strcasecmp(nodeName.c_str(), "wand") == 0) {
+        return std::make_unique<WeaponWand>(&scriptInterface);
     }
     return nullptr;
 }
 
 bool Weapons::registerEvent(Event_ptr event, const pugi::xml_node&)
 {
-    Weapon* weapon = static_cast<Weapon*>(event.release());
+    const auto weapon = static_cast<Weapon*>(event.release());
     weapons[weapon->getID()].reset(weapon);
     return true;
 }
@@ -139,15 +139,15 @@ bool Weapons::registerLuaEvent(Weapon* weapon)
 }
 
 //monsters
-int32_t Weapons::getMaxMeleeDamage(int32_t attackSkill, int32_t attackValue)
+int32_t Weapons::getMaxMeleeDamage(const int32_t attackSkill, const int32_t attackValue)
 {
-    return static_cast<int32_t>(std::ceil((attackSkill * (attackValue * 0.05)) + (attackValue * 0.5)));
+    return static_cast<int32_t>(std::ceil(attackSkill * (attackValue * 0.05) + attackValue * 0.5));
 }
 
 //players
-int32_t Weapons::getMaxWeaponDamage(uint32_t level, int32_t attackSkill, int32_t attackValue, float attackFactor)
+int32_t Weapons::getMaxWeaponDamage(const uint32_t level, const int32_t attackSkill, const int32_t attackValue, const float attackFactor)
 {
-    return static_cast<int32_t>(std::round((level / 5) + (((((attackSkill / 4.) + 1) * (attackValue / 3.)) * 1.03) / attackFactor)));
+    return static_cast<int32_t>(std::round(level / 5 + (attackSkill / 4. + 1) * (attackValue / 3.) * 1.03 / attackFactor));
 }
 
 bool Weapon::configureEvent(const pugi::xml_node& node)
@@ -208,10 +208,10 @@ bool Weapon::configureEvent(const pugi::xml_node& node)
             continue;
         }
 
-        int32_t vocationId = g_vocations.getVocationId(attr.as_string());
+        const int32_t vocationId = g_vocations.getVocationId(attr.as_string());
         if (vocationId != -1) {
             vocWeaponMap[vocationId] = true;
-            int32_t promotedVocation = g_vocations.getPromotedVocation(vocationId);
+            const int32_t promotedVocation = g_vocations.getPromotedVocation(vocationId);
             if (promotedVocation != VOCATION_NONE) {
                 vocWeaponMap[promotedVocation] = true;
             }
@@ -276,7 +276,7 @@ std::string Weapon::getScriptEventName() const
     return "onUseWeapon";
 }
 
-int32_t Weapon::playerWeaponCheck(Player* player, Creature* target, uint8_t shootRange) const
+int32_t Weapon::playerWeaponCheck(const Player* player, const Creature* target, const uint8_t shootRange) const
 {
     const Position& playerPos = player->getPosition();
     const Position& targetPos = target->getPosition();
@@ -317,11 +317,11 @@ int32_t Weapon::playerWeaponCheck(Player* player, Creature* target, uint8_t shoo
 
         int32_t damageModifier = 100;
         if (player->getLevel() < getReqLevel()) {
-            damageModifier = (isWieldedUnproperly() ? damageModifier / 2 : 0);
+            damageModifier = isWieldedUnproperly() ? damageModifier / 2 : 0;
         }
 
         if (player->getMagicLevel() < getReqMagLv()) {
-            damageModifier = (isWieldedUnproperly() ? damageModifier / 2 : 0);
+            damageModifier = isWieldedUnproperly() ? damageModifier / 2 : 0;
         }
         return damageModifier;
     }
@@ -331,7 +331,7 @@ int32_t Weapon::playerWeaponCheck(Player* player, Creature* target, uint8_t shoo
 
 bool Weapon::useWeapon(Player* player, Item* item, Creature* target) const
 {
-    int32_t damageModifier = playerWeaponCheck(player, target, item->getShootRange());
+    const int32_t damageModifier = playerWeaponCheck(player, target, item->getShootRange());
     if (damageModifier == 0) {
         return false;
     }
@@ -346,11 +346,11 @@ bool Weapon::useFist(Player* player, Creature* target)
         return false;
     }
 
-    float attackFactor = player->getAttackFactor();
-    int32_t attackSkill = player->getSkillLevel(SKILL_FIST);
-    int32_t attackValue = 7;
+    const float attackFactor = player->getAttackFactor();
+    const int32_t attackSkill = player->getSkillLevel(SKILL_FIST);
+    const int32_t attackValue = 7;
 
-    int32_t maxDamage = Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor);
+    const int32_t maxDamage = Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor);
 
     CombatParams params;
     params.combatType = COMBAT_PHYSICALDAMAGE;
@@ -370,7 +370,7 @@ bool Weapon::useFist(Player* player, Creature* target)
     return true;
 }
 
-void Weapon::internalUseWeapon(Player* player, Item* item, Creature* target, int32_t damageModifier) const
+void Weapon::internalUseWeapon(Player* player, Item* item, Creature* target, const int32_t damageModifier) const
 {
     if (scripted) {
         LuaVariant var;
@@ -379,14 +379,14 @@ void Weapon::internalUseWeapon(Player* player, Item* item, Creature* target, int
         executeUseWeapon(player, var);
     } else {
         CombatDamage damage;
-        WeaponType_t weaponType = item->getWeaponType();
+        const WeaponType_t weaponType = item->getWeaponType();
         if (weaponType == WEAPON_AMMO || weaponType == WEAPON_DISTANCE) {
             damage.origin = ORIGIN_RANGED;
         } else {
             damage.origin = ORIGIN_MELEE;
         }
         damage.primary.type = params.combatType;
-        damage.primary.value = (getWeaponDamage(player, target, item) * damageModifier) / 100;
+        damage.primary.value = getWeaponDamage(player, target, item) * damageModifier / 100;
         damage.secondary.type = getElementType();
         damage.secondary.value = getElementDamage(player, target, item);
         Combat::doTargetCombat(player, target, damage, params);
@@ -420,13 +420,13 @@ void Weapon::onUsedWeapon(Player* player, Item* item, Tile* destTile) const
         }
     }
 
-    uint32_t manaCost = getManaCost(player);
+    const uint32_t manaCost = getManaCost(player);
     if (manaCost != 0) {
         player->addManaSpent(manaCost);
         player->changeMana(-static_cast<int32_t>(manaCost));
     }
 
-    uint32_t healthCost = getHealthCost(player);
+    const uint32_t healthCost = getHealthCost(player);
     if (healthCost != 0) {
         player->changeHealth(-static_cast<int32_t>(healthCost));
     }
@@ -436,17 +436,17 @@ void Weapon::onUsedWeapon(Player* player, Item* item, Tile* destTile) const
     }
 
     if (breakChance != 0 && uniform_random(1, 100) <= breakChance) {
-        Weapon::decrementItemCount(item);
+        decrementItemCount(item);
         return;
     }
 
     switch (action) {
         case WEAPONACTION_REMOVECOUNT:
-            Weapon::decrementItemCount(item);
+            decrementItemCount(item);
             break;
 
         case WEAPONACTION_REMOVECHARGE: {
-            uint16_t charges = item->getCharges();
+            const uint16_t charges = item->getCharges();
             if (charges != 0) {
                 g_game.transformItem(item, item->getID(), charges - 1);
             }
@@ -472,7 +472,7 @@ uint32_t Weapon::getManaCost(const Player* player) const
         return 0;
     }
 
-    return (player->getMaxMana() * manaPercent) / 100;
+    return player->getMaxMana() * manaPercent / 100;
 }
 
 int32_t Weapon::getHealthCost(const Player* player) const
@@ -485,7 +485,7 @@ int32_t Weapon::getHealthCost(const Player* player) const
         return 0;
     }
 
-    return (player->getMaxHealth() * healthPercent) / 100;
+    return player->getMaxHealth() * healthPercent / 100;
 }
 
 bool Weapon::executeUseWeapon(Player* player, const LuaVariant& var) const
@@ -511,7 +511,7 @@ bool Weapon::executeUseWeapon(Player* player, const LuaVariant& var) const
 
 void Weapon::decrementItemCount(Item* item)
 {
-    uint16_t count = item->getItemCount();
+    const uint16_t count = item->getItemCount();
     if (count > 1) {
         g_game.transformItem(item, item->getID(), count - 1);
     } else {
@@ -543,7 +543,7 @@ void WeaponMelee::configureWeapon(const ItemType& it)
 
 bool WeaponMelee::useWeapon(Player* player, Item* item, Creature* target) const
 {
-    int32_t damageModifier = playerWeaponCheck(player, target, item->getShootRange());
+    const int32_t damageModifier = playerWeaponCheck(player, target, item->getShootRange());
     if (damageModifier == 0) {
         return false;
     }
@@ -561,7 +561,7 @@ bool WeaponMelee::getSkillType(const Player* player, const Item* item,
         skillpoint = 0;
     }
 
-    WeaponType_t weaponType = item->getWeaponType();
+    const WeaponType_t weaponType = item->getWeaponType();
     switch (weaponType) {
         case WEAPON_SWORD: {
             skill = SKILL_SWORD;
@@ -590,21 +590,21 @@ int32_t WeaponMelee::getElementDamage(const Player* player, const Creature*, con
         return 0;
     }
 
-    int32_t attackSkill = player->getWeaponSkill(item);
-    int32_t attackValue = elementDamage;
-    float attackFactor = player->getAttackFactor();
+    const int32_t attackSkill = player->getWeaponSkill(item);
+    const int32_t attackValue = elementDamage;
+    const float attackFactor = player->getAttackFactor();
 
-    int32_t maxValue = Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor);
+    const int32_t maxValue = Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor);
     return -normal_random(0, static_cast<int32_t>(maxValue * player->getVocation()->meleeDamageMultiplier));
 }
 
-int32_t WeaponMelee::getWeaponDamage(const Player* player, const Creature*, const Item* item, bool maxDamage /*= false*/) const
+int32_t WeaponMelee::getWeaponDamage(const Player* player, const Creature*, const Item* item, const bool maxDamage /*= false*/) const
 {
-    int32_t attackSkill = player->getWeaponSkill(item);
-    int32_t attackValue = std::max<int32_t>(0, item->getAttack());
-    float attackFactor = player->getAttackFactor();
+    const int32_t attackSkill = player->getWeaponSkill(item);
+    const int32_t attackValue = std::max<int32_t>(0, item->getAttack());
+    const float attackFactor = player->getAttackFactor();
 
-    int32_t maxValue = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor) * player->getVocation()->meleeDamageMultiplier);
+    const auto maxValue = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor) * player->getVocation()->meleeDamageMultiplier);
     if (maxDamage) {
         return -maxValue;
     }
@@ -641,7 +641,7 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
     int32_t damageModifier;
     const ItemType& it = Item::items[id];
     if (it.weaponType == WEAPON_AMMO) {
-        Item* mainWeaponItem = player->getWeapon(true);
+        const Item* mainWeaponItem = player->getWeapon(true);
         const Weapon* mainWeapon = g_weapons->getWeapon(mainWeaponItem);
         if (mainWeapon) {
             damageModifier = mainWeapon->playerWeaponCheck(player, target, mainWeaponItem->getShootRange());
@@ -659,10 +659,10 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
     int32_t chance;
     if (it.hitChance == 0) {
         //hit chance is based on distance to target and distance skill
-        uint32_t skill = player->getSkillLevel(SKILL_DISTANCE);
+        const uint32_t skill = player->getSkillLevel(SKILL_DISTANCE);
         const Position& playerPos = player->getPosition();
         const Position& targetPos = target->getPosition();
-        uint32_t distance = std::max<uint32_t>(Position::getDistanceX(playerPos, targetPos), Position::getDistanceY(playerPos, targetPos));
+        const uint32_t distance = std::max<uint32_t>(Position::getDistanceX(playerPos, targetPos), Position::getDistanceY(playerPos, targetPos));
 
         uint32_t maxHitChance;
         if (it.maxHitChance != -1) {
@@ -683,19 +683,19 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
                     chance = std::min<uint32_t>(skill, 74) + 1;
                     break;
                 case 2:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 28) * 2.40f) + 8;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 28) * 2.40F) + 8;
                     break;
                 case 3:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 45) * 1.55f) + 6;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 45) * 1.55F) + 6;
                     break;
                 case 4:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 58) * 1.25f) + 3;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 58) * 1.25F) + 3;
                     break;
                 case 6:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 90) * 0.80f) + 3;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 90) * 0.80F) + 3;
                     break;
                 case 7:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 104) * 0.70f) + 2;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 104) * 0.70F) + 2;
                     break;
                 default:
                     chance = it.hitChance;
@@ -706,16 +706,16 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
             switch (distance) {
                 case 1:
                 case 5:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 74) * 1.20f) + 1;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 74) * 1.20F) + 1;
                     break;
                 case 2:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 28) * 3.20f);
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 28) * 3.20F);
                     break;
                 case 3:
                     chance = std::min<uint32_t>(skill, 45) * 2;
                     break;
                 case 4:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 58) * 1.55f);
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 58) * 1.55F);
                     break;
                 case 6:
                 case 7:
@@ -729,22 +729,22 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
             switch (distance) {
                 case 1:
                 case 5:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 73) * 1.35f) + 1;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 73) * 1.35F) + 1;
                     break;
                 case 2:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 30) * 3.20f) + 4;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 30) * 3.20F) + 4;
                     break;
                 case 3:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 48) * 2.05f) + 2;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 48) * 2.05F) + 2;
                     break;
                 case 4:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 65) * 1.50f) + 2;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 65) * 1.50F) + 2;
                     break;
                 case 6:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 87) * 1.20f) - 4;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 87) * 1.20F) - 4;
                     break;
                 case 7:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 90) * 1.10f) + 1;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 90) * 1.10F) + 1;
                     break;
                 default:
                     chance = it.hitChance;
@@ -758,14 +758,14 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
     }
 
     if (item->getWeaponType() == WEAPON_AMMO) {
-        Item* bow = player->getWeapon(true);
+        const Item* bow = player->getWeapon(true);
         if (bow && bow->getHitChance() != 0) {
             chance += bow->getHitChance();
         }
     }
 
     if (chance >= uniform_random(1, 100)) {
-        Weapon::internalUseWeapon(player, item, target, damageModifier);
+        internalUseWeapon(player, item, target, damageModifier);
     } else {
         //miss target
         Tile* destTile = target->getTile();
@@ -778,7 +778,7 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
             };
             std::shuffle(destList.begin(), destList.end(), getRandomGenerator());
 
-            Position destPos = target->getPosition();
+            const Position destPos = target->getPosition();
 
             for (const auto& dir : destList) {
                 // Blocking tiles or tiles without ground ain't valid targets for spears
@@ -790,7 +790,7 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
             }
         }
 
-        Weapon::internalUseWeapon(player, item, destTile);
+        internalUseWeapon(player, item, destTile);
     }
     return true;
 }
@@ -803,17 +803,17 @@ int32_t WeaponDistance::getElementDamage(const Player* player, const Creature* t
 
     int32_t attackValue = elementDamage;
     if (item->getWeaponType() == WEAPON_AMMO) {
-        Item* weapon = player->getWeapon(true);
+        const Item* weapon = player->getWeapon(true);
         if (weapon) {
             attackValue += weapon->getAttack();
         }
     }
 
-    int32_t attackSkill = player->getSkillLevel(SKILL_DISTANCE);
-    float attackFactor = player->getAttackFactor();
+    const int32_t attackSkill = player->getSkillLevel(SKILL_DISTANCE);
+    const float attackFactor = player->getAttackFactor();
 
     int32_t minValue = 0;
-    int32_t maxValue = Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor);
+    const int32_t maxValue = Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor);
     if (target) {
         if (target->getPlayer()) {
             minValue = static_cast<int32_t>(std::ceil(player->getLevel() * 0.1));
@@ -825,21 +825,21 @@ int32_t WeaponDistance::getElementDamage(const Player* player, const Creature* t
     return -normal_random(minValue, static_cast<int32_t>(maxValue * player->getVocation()->distDamageMultiplier));
 }
 
-int32_t WeaponDistance::getWeaponDamage(const Player* player, const Creature* target, const Item* item, bool maxDamage /*= false*/) const
+int32_t WeaponDistance::getWeaponDamage(const Player* player, const Creature* target, const Item* item, const bool maxDamage /*= false*/) const
 {
     int32_t attackValue = item->getAttack();
 
     if (item->getWeaponType() == WEAPON_AMMO) {
-        Item* weapon = player->getWeapon(true);
+        const Item* weapon = player->getWeapon(true);
         if (weapon) {
             attackValue += weapon->getAttack();
         }
     }
 
-    int32_t attackSkill = player->getSkillLevel(SKILL_DISTANCE);
-    float attackFactor = player->getAttackFactor();
+    const int32_t attackSkill = player->getSkillLevel(SKILL_DISTANCE);
+    const float attackFactor = player->getAttackFactor();
 
-    int32_t maxValue = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor) * player->getVocation()->distDamageMultiplier);
+    const auto maxValue = static_cast<int32_t>(Weapons::getMaxWeaponDamage(player->getLevel(), attackSkill, attackValue, attackFactor) * player->getVocation()->distDamageMultiplier);
     if (maxDamage) {
         return -maxValue;
     }
@@ -904,7 +904,7 @@ bool WeaponWand::configureEvent(const pugi::xml_node& node)
         return true;
     }
 
-    std::string tmpStrValue = asLowerCaseString(attr.as_string());
+    const std::string tmpStrValue = asLowerCaseString(attr.as_string());
     if (!tfs_strcmp(tmpStrValue.c_str(), "earth")) {
         params.combatType = COMBAT_EARTHDAMAGE;
     } else if (!tfs_strcmp(tmpStrValue.c_str(), "ice")) {
@@ -932,7 +932,7 @@ void WeaponWand::configureWeapon(const ItemType& it)
     Weapon::configureWeapon(it);
 }
 
-int32_t WeaponWand::getWeaponDamage(const Player*, const Creature*, const Item*, bool maxDamage /*= false*/) const
+int32_t WeaponWand::getWeaponDamage(const Player*, const Creature*, const Item*, const bool maxDamage /*= false*/) const
 {
     if (maxDamage) {
         return -maxChange;

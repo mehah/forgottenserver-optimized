@@ -23,15 +23,14 @@
 #include "bed.h"
 #include "game.h"
 #include "iologindata.h"
+#include "tasks.h"
 
-extern Game g_game;
-
-BedItem::BedItem(uint16_t id) : Item(id)
+BedItem::BedItem(const uint16_t id) : Item(id)
 {
     internalRemoveSleeper();
 }
 
-Attr_ReadValue BedItem::readAttr(AttrTypes_t attr, PropStream& propStream)
+Attr_ReadValue BedItem::readAttr(const AttrTypes_t attr, PropStream& propStream)
 {
     switch (attr) {
         case ATTR_SLEEPERGUID: {
@@ -41,7 +40,7 @@ Attr_ReadValue BedItem::readAttr(AttrTypes_t attr, PropStream& propStream)
             }
 
             if (guid != 0) {
-                std::string name = IOLoginData::getNameByGuid(guid);
+                const std::string name = IOLoginData::getNameByGuid(guid);
                 if (!name.empty()) {
                     setSpecialDescription(name + " is sleeping there.");
                     g_game.setBedSleeper(this, guid);
@@ -83,17 +82,17 @@ void BedItem::serializeAttr(PropWriteStream& propWriteStream) const
 
 BedItem* BedItem::getNextBedItem() const
 {
-    Direction dir = Item::items[getID()].bedPartnerDir;
-    Position targetPos = getNextPosition(dir, getPosition());
+    const Direction dir = items[getID()].bedPartnerDir;
+    const Position targetPos = getNextPosition(dir, getPosition());
 
-    Tile* tile = g_game.map.getTile(targetPos);
+    const Tile* tile = g_game.map.getTile(targetPos);
     if (!tile) {
         return nullptr;
     }
     return tile->getBedItem();
 }
 
-bool BedItem::canUse(Player* player)
+bool BedItem::canUse(const Player* player) const
 {
     if (!player || !house || !player->isPremium()) {
         return false;
@@ -118,14 +117,14 @@ bool BedItem::canUse(Player* player)
     return true;
 }
 
-bool BedItem::trySleep(Player* player)
+bool BedItem::trySleep(const Player* player)
 {
     if (!house || player->isRemoved()) {
         return false;
     }
 
     if (sleeperGUID != 0) {
-        if (Item::items[getID()].transformToFree != 0 && house->getOwner() == player->getGUID()) {
+        if (items[getID()].transformToFree != 0 && house->getOwner() == player->getGUID()) {
             wakeUp(nullptr);
         }
 
@@ -164,7 +163,9 @@ bool BedItem::sleep(Player* player)
 
     // kick player after he sees himself walk onto the bed and it change id
     uint32_t playerId = player->getID();
-    g_dispatcher.addEvent(SERVER_BEAT_MILISECONDS, std::bind(&Game::kickPlayer, &g_game, playerId, false));
+    g_dispatcher.addEvent(SERVER_BEAT_MILISECONDS, [ObjectPtr = &g_game, playerId] {
+        ObjectPtr->kickPlayer(playerId, false);
+    });
 
     // change self and partner's appearance
     updateAppearance(player);
@@ -223,8 +224,8 @@ void BedItem::regeneratePlayer(Player* player) const
     if (condition) {
         uint32_t regen;
         if (condition->getTicks() != -1) {
-            regen = std::min<int32_t>((condition->getTicks() / 1000), sleptTime) / 30;
-            const int32_t newRegenTicks = condition->getTicks() - (regen * 30000);
+            regen = std::min<int32_t>(condition->getTicks() / 1000, sleptTime) / 30;
+            const int32_t newRegenTicks = condition->getTicks() - regen * 30000;
             if (newRegenTicks <= 0) {
                 player->removeCondition(condition);
             } else {
@@ -244,15 +245,15 @@ void BedItem::regeneratePlayer(Player* player) const
 
 void BedItem::updateAppearance(const Player* player)
 {
-    const ItemType& it = Item::items[getID()];
+    const ItemType& it = items[getID()];
     if (it.type == ITEM_TYPE_BED) {
         if (player && it.transformToOnUse[player->getSex()] != 0) {
-            const ItemType& newType = Item::items[it.transformToOnUse[player->getSex()]];
+            const ItemType& newType = items[it.transformToOnUse[player->getSex()]];
             if (newType.type == ITEM_TYPE_BED) {
                 g_game.transformItem(this, it.transformToOnUse[player->getSex()]);
             }
         } else if (it.transformToFree != 0) {
-            const ItemType& newType = Item::items[it.transformToFree];
+            const ItemType& newType = items[it.transformToFree];
             if (newType.type == ITEM_TYPE_BED) {
                 g_game.transformItem(this, it.transformToFree);
             }
@@ -262,7 +263,7 @@ void BedItem::updateAppearance(const Player* player)
 
 void BedItem::internalSetSleeper(const Player* player)
 {
-    std::string desc_str = player->getName() + " is sleeping there.";
+    const std::string desc_str = player->getName() + " is sleeping there.";
 
     sleeperGUID = player->getGUID();
     sleepStart = time(nullptr);

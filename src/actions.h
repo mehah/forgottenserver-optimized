@@ -44,21 +44,21 @@ public:
     bool getAllowFarUse() const {
         return allowFarUse;
     }
-    void setAllowFarUse(bool v) {
+    void setAllowFarUse(const bool v) {
         allowFarUse = v;
     }
 
     bool getCheckLineOfSight() const {
         return checkLineOfSight;
     }
-    void setCheckLineOfSight(bool v) {
+    void setCheckLineOfSight(const bool v) {
         checkLineOfSight = v;
     }
 
     bool getCheckFloor() const {
         return checkFloor;
     }
-    void setCheckFloor(bool v) {
+    void setCheckFloor(const bool v) {
         checkFloor = v;
     }
 
@@ -106,7 +106,7 @@ class Actions final : public BaseEvents
 {
 public:
     Actions();
-    ~Actions();
+    ~Actions() override;
 
     // non-copyable
     Actions(const Actions&) = delete;
@@ -115,16 +115,16 @@ public:
     bool useItem(Player* player, const Position& pos, uint8_t index, Item* item, bool isHotkey);
     bool useItemEx(Player* player, const Position& fromPos, const Position& toPos, uint8_t toStackPos, Item* item, bool isHotkey, Creature* creature = nullptr);
 
-    ReturnValue canUse(const Player* player, const Position& pos);
+    static ReturnValue canUse(const Player* player, const Position& pos);
     ReturnValue canUse(const Player* player, const Position& pos, const Item* item);
-    ReturnValue canUseFar(const Creature* creature, const Position& toPos, bool checkLineOfSight, bool checkFloor);
+    static ReturnValue canUseFar(const Creature* creature, const Position& toPos, bool checkLineOfSight, bool checkFloor);
 
     bool registerLuaEvent(Action_ptr& event);
-    void clear(bool fromLua) override final;
+    void clear(bool fromLua);
 
 private:
     ReturnValue internalUseItem(Player* player, const Position& pos, uint8_t index, Item* item, bool isHotkey);
-    static void showUseHotkeyMessage(Player* player, const Item* item, uint32_t count);
+    static void showUseHotkeyMessage(const Player* player, const Item* item, uint32_t count);
 
     LuaScriptInterface& getScriptInterface() override;
     std::string getScriptBaseName() const override;
@@ -137,7 +137,7 @@ private:
     ActionUseMap actionItemMap;
 
     Action* getAction(const Item* item);
-    void clearMap(ActionUseMap& map, bool fromLua);
+    static void clearMap(ActionUseMap& map, bool fromLua);
 
     LuaScriptInterface scriptInterface;
 };

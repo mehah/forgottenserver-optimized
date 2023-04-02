@@ -38,6 +38,8 @@
 #include "script.h"
 #include <fstream>
 
+#include "tasks.h"
+
 Database g_database;
 DatabaseTasks g_databaseTasks;
 Dispatcher g_dispatcher;
@@ -83,7 +85,7 @@ int main(int argc, char* argv[])
     ServiceManager serviceManager;
 
     g_dispatcher.start();
-    g_dispatcher.addTask(std::bind(mainLoader, argc, argv, &serviceManager));
+    g_dispatcher.addTask([argc, argv, capture0 = &serviceManager] { return mainLoader(argc, argv, capture0); });
 
     g_loaderSignal.wait(g_loaderUniqueLock);
 
@@ -196,15 +198,15 @@ void mainLoader(int, char* [], ServiceManager* services)
     }
 #endif
 
-    const char* p("14299623962416399520070177382898895550795403345466153217470516082934737582776038882967213386204600674145392845853859217990626450972452084065728686565928113");
-    const char* q("7630979195970404721891201847792002125535401292779123937207447574596692788513647179235335529307251350570728407373705564708871762033017096809910315212884101");
+    auto p("14299623962416399520070177382898895550795403345466153217470516082934737582776038882967213386204600674145392845853859217990626450972452084065728686565928113");
+    auto q("7630979195970404721891201847792002125535401292779123937207447574596692788513647179235335529307251350570728407373705564708871762033017096809910315212884101");
     try {
         if (!g_RSA.loadPEM("key.pem")) {
             // file doesn't exist - switch to base10-hardcoded keys
             std::cout << ">> File key.pem doesn't exist - loading standard rsa key\n";
             g_RSA.setKey(p, q);
         }
-    } catch (std::exception const& e) {
+    } catch (const std::exception& e) {
         std::cout << ">> Loading RSA Key from key.pem failed: " << e.what() << "\n";
         g_RSA.setKey(p, q);
     }
@@ -250,7 +252,7 @@ void mainLoader(int, char* [], ServiceManager* services)
             startupErrorMessage("Unable to load items (OTB)!");
             return;
         }
-    } catch (std::exception const& e) {
+    } catch (const std::exception& e) {
         std::cout << "[Fatal Error - Items::loadFromOtb] " << e.what() << std::endl;
         startupErrorMessage("Unable to load items (OTB)!");
         return;

@@ -22,7 +22,6 @@
 
 #include "networkmessage.h"
 
-#include "container.h"
 #include "creature.h"
 
 std::string NetworkMessage::getString(uint16_t stringLen/* = 0*/)
@@ -32,10 +31,10 @@ std::string NetworkMessage::getString(uint16_t stringLen/* = 0*/)
     }
 
     if (!canRead(stringLen)) {
-        return std::string();
+        return {};
     }
 
-    char* v = reinterpret_cast<char*>(buffer) + info.position; //does not break strict aliasing
+    const char* v = reinterpret_cast<char*>(buffer) + info.position; //does not break strict aliasing
     info.position += stringLen;
     return std::string(v, stringLen);
 }
@@ -51,7 +50,7 @@ Position NetworkMessage::getPosition()
 
 void NetworkMessage::addString(const std::string& value)
 {
-    size_t stringLen = value.length();
+    const size_t stringLen = value.length();
     if (!canAdd(stringLen + 2)) {
         return;
     }
@@ -62,7 +61,7 @@ void NetworkMessage::addString(const std::string& value)
     info.length += stringLen;
 }
 
-void NetworkMessage::addBytes(const char* bytes, size_t size)
+void NetworkMessage::addBytes(const char* bytes, const size_t size)
 {
     if (!canAdd(size)) {
         return;
@@ -73,7 +72,7 @@ void NetworkMessage::addBytes(const char* bytes, size_t size)
     info.length += size;
 }
 
-void NetworkMessage::addPaddingBytes(size_t n)
+void NetworkMessage::addPaddingBytes(const size_t n)
 {
 #define canAdd(size) ((size + info.position) < NETWORKMESSAGE_MAXSIZE)
     if (!canAdd(n)) {
@@ -92,7 +91,7 @@ void NetworkMessage::addPosition(const Position& pos)
     addByte(pos.z);
 }
 
-void NetworkMessage::addItemId(uint16_t itemId)
+void NetworkMessage::addItemId(const uint16_t itemId)
 {
     add<uint16_t>(Item::items[itemId].clientId);
 }

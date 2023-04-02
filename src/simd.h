@@ -67,7 +67,7 @@
 
 #ifdef _MSC_VER
 #include <intrin.h>
-__forceinline unsigned int _mm_ctz(unsigned int value)
+__forceinline unsigned int _mm_ctz(const unsigned int value)
 {
     unsigned long i = 0;
     _BitScanForward(&i, value);

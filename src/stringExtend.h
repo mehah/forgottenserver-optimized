@@ -36,62 +36,79 @@ namespace std
     {
     public:
         stringExtended() = default;
-        stringExtended(size_t reserveSize) { outStr.reserve(reserveSize); }
+        stringExtended(const size_t reserveSize) { outStr.reserve(reserveSize); }
 
-        inline string::iterator begin() noexcept {
+        string::iterator begin() noexcept {
             return outStr.begin();
         }
-        inline string::iterator end() noexcept {
+
+        string::iterator end() noexcept {
             return outStr.end();
         }
-        inline string::const_iterator begin() const noexcept {
+
+        string::const_iterator begin() const noexcept {
             return outStr.begin();
         }
-        inline string::const_iterator end() const noexcept {
+
+        string::const_iterator end() const noexcept {
             return outStr.end();
         }
-        inline size_t length() const noexcept {
+
+        size_t length() const noexcept {
             return outStr.length();
         }
-        inline void clear() noexcept {
+
+        void clear() noexcept {
             outStr.clear();
         }
-        inline void reserve(size_t count) noexcept {
+
+        void reserve(const size_t count) noexcept {
             outStr.reserve(count);
         }
-        inline void insert(string::iterator it, string::value_type element) {
+
+        void insert(const string::iterator it, const string::value_type element) {
             outStr.insert(it, element);
         }
-        inline void push_back(string::value_type element) {
+
+        void push_back(const string::value_type element) {
             outStr.push_back(element);
         }
-        inline string substr(size_t pos, size_t len = std::string::npos) {
+
+        string substr(const size_t pos, const size_t len = std::string::npos) const
+        {
             return outStr.substr(pos, len);
         }
-        inline stringExtended& append(const string& str) {
+
+        stringExtended& append(const string& str) {
             outStr.append(str);
-            return (*this);
+            return *this;
         }
-        inline stringExtended& append(const string& str, size_t subpos, size_t sublen) {
+
+        stringExtended& append(const string& str, const size_t subpos, const size_t sublen) {
             outStr.append(str, subpos, sublen);
-            return (*this);
+            return *this;
         }
-        inline stringExtended& append(const char* str) {
+
+        stringExtended& append(const char* str) {
             outStr.append(str);
-            return (*this);
+            return *this;
         }
-        inline stringExtended& append(const char* str, size_t n) {
+
+        stringExtended& append(const char* str, const size_t n) {
             outStr.append(str, n);
-            return (*this);
+            return *this;
         }
-        inline stringExtended& append(size_t n, char c) {
+
+        stringExtended& append(const size_t n, const char c) {
             outStr.append(n, c);
-            return (*this);
+            return *this;
         }
-        inline string::reference operator[](size_t index) {
+
+        string::reference operator[](const size_t index) {
             return outStr.operator[](index);
         }
-        inline string::const_reference operator[](size_t index) const {
+
+        string::const_reference operator[](const size_t index) const {
             return outStr.operator[](index);
         }
 
@@ -101,7 +118,7 @@ namespace std
             char* ptrBuffer = ptrBufferEnd;
 
             while (value >= 100) {
-                uint32_t index = static_cast<uint32_t>((value % 100) * 2);
+                const auto index = static_cast<uint32_t>(value % 100 * 2);
                 value /= 100;
 
                 ptrBuffer -= 2;
@@ -112,15 +129,15 @@ namespace std
                 return append(ptrBuffer, std::distance(ptrBuffer, ptrBufferEnd));
             }
 
-            uint32_t index = static_cast<uint32_t>(value * 2);
+            const auto index = static_cast<uint32_t>(value * 2);
             ptrBuffer -= 2;
             memcpy(ptrBuffer, ext_digits + index, 2);
             return append(ptrBuffer, std::distance(ptrBuffer, ptrBufferEnd));
         }
 
-        stringExtended& appendInt(int64_t value) {
-            uint64_t abs_value = static_cast<uint64_t>(value);
-            bool neg = (value < 0);
+        stringExtended& appendInt(const int64_t value) {
+            auto abs_value = static_cast<uint64_t>(value);
+            const bool neg = value < 0;
             if (neg) {
                 abs_value = 0 - abs_value;
             }
@@ -130,7 +147,7 @@ namespace std
             char* ptrBuffer = ptrBufferEnd;
 
             while (abs_value >= 100) {
-                uint32_t index = static_cast<uint32_t>((abs_value % 100) * 2);
+                const auto index = static_cast<uint32_t>(abs_value % 100 * 2);
                 abs_value /= 100;
 
                 ptrBuffer -= 2;
@@ -144,7 +161,7 @@ namespace std
                 return append(ptrBuffer, std::distance(ptrBuffer, ptrBufferEnd));
             }
 
-            uint32_t index = static_cast<uint32_t>(abs_value * 2);
+            const auto index = static_cast<uint32_t>(abs_value * 2);
             ptrBuffer -= 2;
             memcpy(ptrBuffer, ext_digits + index, 2);
             if (neg) {
@@ -153,12 +170,12 @@ namespace std
             return append(ptrBuffer, std::distance(ptrBuffer, ptrBufferEnd));
         }
 
-        inline stringExtended& appendInt(uint32_t value) { return appendInt(static_cast<uint64_t>(value)); }
-        inline stringExtended& appendInt(uint16_t value) { return appendInt(static_cast<uint64_t>(value)); }
-        inline stringExtended& appendInt(uint8_t value) { return appendInt(static_cast<uint64_t>(value)); }
-        inline stringExtended& appendInt(int32_t value) { return appendInt(static_cast<int64_t>(value)); }
-        inline stringExtended& appendInt(int16_t value) { return appendInt(static_cast<int64_t>(value)); }
-        inline stringExtended& appendInt(int8_t value) { return appendInt(static_cast<int64_t>(value)); }
+        stringExtended& appendInt(const uint32_t value) { return appendInt(static_cast<uint64_t>(value)); }
+        stringExtended& appendInt(const uint16_t value) { return appendInt(static_cast<uint64_t>(value)); }
+        stringExtended& appendInt(const uint8_t value) { return appendInt(static_cast<uint64_t>(value)); }
+        stringExtended& appendInt(const int32_t value) { return appendInt(static_cast<int64_t>(value)); }
+        stringExtended& appendInt(const int16_t value) { return appendInt(static_cast<int64_t>(value)); }
+        stringExtended& appendInt(const int8_t value) { return appendInt(static_cast<int64_t>(value)); }
 
         stringExtended& appendIntShowPos(uint64_t value) {
             char str_buffer[22]; // Should be able to contain uint64_t max value + sign
@@ -166,7 +183,7 @@ namespace std
             char* ptrBuffer = ptrBufferEnd;
 
             while (value >= 100) {
-                uint32_t index = static_cast<uint32_t>((value % 100) * 2);
+                const auto index = static_cast<uint32_t>(value % 100 * 2);
                 value /= 100;
 
                 ptrBuffer -= 2;
@@ -178,16 +195,16 @@ namespace std
                 return append(ptrBuffer, std::distance(ptrBuffer, ptrBufferEnd));
             }
 
-            uint32_t index = static_cast<uint32_t>(value * 2);
+            const auto index = static_cast<uint32_t>(value * 2);
             ptrBuffer -= 2;
             memcpy(ptrBuffer, ext_digits + index, 2);
             *--ptrBuffer = '+';
             return append(ptrBuffer, std::distance(ptrBuffer, ptrBufferEnd));
         }
 
-        stringExtended& appendIntShowPos(int64_t value) {
-            uint64_t abs_value = static_cast<uint64_t>(value);
-            bool neg = (value < 0);
+        stringExtended& appendIntShowPos(const int64_t value) {
+            auto abs_value = static_cast<uint64_t>(value);
+            const bool neg = value < 0;
             if (neg) {
                 abs_value = 0 - abs_value;
             }
@@ -197,7 +214,7 @@ namespace std
             char* ptrBuffer = ptrBufferEnd;
 
             while (abs_value >= 100) {
-                uint32_t index = static_cast<uint32_t>((abs_value % 100) * 2);
+                const auto index = static_cast<uint32_t>(abs_value % 100 * 2);
                 abs_value /= 100;
 
                 ptrBuffer -= 2;
@@ -213,7 +230,7 @@ namespace std
                 return append(ptrBuffer, std::distance(ptrBuffer, ptrBufferEnd));
             }
 
-            uint32_t index = static_cast<uint32_t>(abs_value * 2);
+            const auto index = static_cast<uint32_t>(abs_value * 2);
             ptrBuffer -= 2;
             memcpy(ptrBuffer, ext_digits + index, 2);
             if (neg) {
@@ -224,34 +241,34 @@ namespace std
             return append(ptrBuffer, std::distance(ptrBuffer, ptrBufferEnd));
         }
 
-        inline stringExtended& appendIntShowPos(uint32_t value) { return appendIntShowPos(static_cast<uint64_t>(value)); }
-        inline stringExtended& appendIntShowPos(uint16_t value) { return appendIntShowPos(static_cast<uint64_t>(value)); }
-        inline stringExtended& appendIntShowPos(uint8_t value) { return appendIntShowPos(static_cast<uint64_t>(value)); }
-        inline stringExtended& appendIntShowPos(int32_t value) { return appendIntShowPos(static_cast<int64_t>(value)); }
-        inline stringExtended& appendIntShowPos(int16_t value) { return appendIntShowPos(static_cast<int64_t>(value)); }
-        inline stringExtended& appendIntShowPos(int8_t value) { return appendIntShowPos(static_cast<int64_t>(value)); }
+        stringExtended& appendIntShowPos(const uint32_t value) { return appendIntShowPos(static_cast<uint64_t>(value)); }
+        stringExtended& appendIntShowPos(const uint16_t value) { return appendIntShowPos(static_cast<uint64_t>(value)); }
+        stringExtended& appendIntShowPos(const uint8_t value) { return appendIntShowPos(static_cast<uint64_t>(value)); }
+        stringExtended& appendIntShowPos(const int32_t value) { return appendIntShowPos(static_cast<int64_t>(value)); }
+        stringExtended& appendIntShowPos(const int16_t value) { return appendIntShowPos(static_cast<int64_t>(value)); }
+        stringExtended& appendIntShowPos(const int8_t value) { return appendIntShowPos(static_cast<int64_t>(value)); }
 
-        inline stringExtended& operator<< (const string& str) { return append(str); }
-        inline stringExtended& operator<< (const char* str) { return append(str); }
-        inline stringExtended& operator<< (const char c) { return append(1, c); }
+        stringExtended& operator<< (const string& str) { return append(str); }
+        stringExtended& operator<< (const char* str) { return append(str); }
+        stringExtended& operator<< (const char c) { return append(1, c); }
 
-        inline stringExtended& operator<< (uint64_t value) { return appendInt(value); }
-        inline stringExtended& operator<< (uint32_t value) { return appendInt(value); }
-        inline stringExtended& operator<< (uint16_t value) { return appendInt(value); }
-        inline stringExtended& operator<< (uint8_t value) { return appendInt(value); }
-        inline stringExtended& operator<< (int64_t value) { return appendInt(value); }
-        inline stringExtended& operator<< (int32_t value) { return appendInt(value); }
-        inline stringExtended& operator<< (int16_t value) { return appendInt(value); }
-        inline stringExtended& operator<< (int8_t value) { return appendInt(value); }
+        stringExtended& operator<< (const uint64_t value) { return appendInt(value); }
+        stringExtended& operator<< (const uint32_t value) { return appendInt(value); }
+        stringExtended& operator<< (const uint16_t value) { return appendInt(value); }
+        stringExtended& operator<< (const uint8_t value) { return appendInt(value); }
+        stringExtended& operator<< (const int64_t value) { return appendInt(value); }
+        stringExtended& operator<< (const int32_t value) { return appendInt(value); }
+        stringExtended& operator<< (const int16_t value) { return appendInt(value); }
+        stringExtended& operator<< (const int8_t value) { return appendInt(value); }
 
-        inline stringExtended& operator<<= (uint64_t value) { return appendIntShowPos(value); }
-        inline stringExtended& operator<<= (uint32_t value) { return appendIntShowPos(value); }
-        inline stringExtended& operator<<= (uint16_t value) { return appendIntShowPos(value); }
-        inline stringExtended& operator<<= (uint8_t value) { return appendIntShowPos(value); }
-        inline stringExtended& operator<<= (int64_t value) { return appendIntShowPos(value); }
-        inline stringExtended& operator<<= (int32_t value) { return appendIntShowPos(value); }
-        inline stringExtended& operator<<= (int16_t value) { return appendIntShowPos(value); }
-        inline stringExtended& operator<<= (int8_t value) { return appendIntShowPos(value); }
+        stringExtended& operator<<= (const uint64_t value) { return appendIntShowPos(value); }
+        stringExtended& operator<<= (const uint32_t value) { return appendIntShowPos(value); }
+        stringExtended& operator<<= (const uint16_t value) { return appendIntShowPos(value); }
+        stringExtended& operator<<= (const uint8_t value) { return appendIntShowPos(value); }
+        stringExtended& operator<<= (const int64_t value) { return appendIntShowPos(value); }
+        stringExtended& operator<<= (const int32_t value) { return appendIntShowPos(value); }
+        stringExtended& operator<<= (const int16_t value) { return appendIntShowPos(value); }
+        stringExtended& operator<<= (const int8_t value) { return appendIntShowPos(value); }
 
         //Allow implicit conversion to std::string&
         operator string& () { return outStr; }

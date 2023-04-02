@@ -23,8 +23,6 @@
 #include "tasks.h"
 #include "game.h"
 
-extern Game g_game;
-
 void Dispatcher::threadMain()
 {
     io_service.run();
@@ -34,12 +32,12 @@ void Dispatcher::threadMain()
 void Dispatcher::addTask(std::function<void(void)> functor)
 {
 #if BOOST_VERSION >= 106600
-    boost::asio::post(io_service,
+    post(io_service,
 #else
     io_service.post(
 #endif
 #ifdef __cpp_generic_lambdas
-    [this, f = std::move(functor)]() {
+         [this, f = std::move(functor)] {
         ++dispatcherCycle;
 
         // execute it
@@ -55,25 +53,25 @@ void Dispatcher::addTask(std::function<void(void)> functor)
 #endif
 }
 
-uint64_t Dispatcher::addEvent(uint32_t delay, std::function<void(void)> functor)
+uint64_t Dispatcher::addEvent(const uint32_t delay, std::function<void(void)> functor)
 {
     if (getState() == THREAD_STATE_TERMINATED) {
         return 0;
     }
 
     uint64_t eventId = ++lastEventId;
-    auto res = eventIds.emplace(std::piecewise_construct, std::forward_as_tuple(eventId), std::forward_as_tuple(io_service));
+    const auto res = eventIds.emplace(std::piecewise_construct, std::forward_as_tuple(eventId), std::forward_as_tuple(io_service));
 
-    boost::asio::deadline_timer& timer = res.first->second;
-    timer.expires_from_now(boost::posix_time::milliseconds(delay));
+    asio::high_resolution_timer& timer = res.first->second;
+    timer.expires_from_now(asio::chrono::milliseconds(delay));
 #ifdef __cpp_generic_lambdas
-    timer.async_wait([this, eventId, f = std::move(functor)](const boost::system::error_code& error) {
+    timer.async_wait([this, eventId, f = std::move(functor)](const std::error_code& error) {
 #else
-    timer.async_wait([this, eventId, functor](const boost::system::error_code& error) {
+    timer.async_wait([this, eventId, functor](const std::error_code& error) {
 #endif
         eventIds.erase(eventId);
 
-        if (error == boost::asio::error::operation_aborted || getState() == THREAD_STATE_TERMINATED) {
+        if (error == asio::error::operation_aborted || getState() == THREAD_STATE_TERMINATED) {
             return;
         }
 
@@ -89,9 +87,9 @@ uint64_t Dispatcher::addEvent(uint32_t delay, std::function<void(void)> functor)
     return eventId;
     }
 
-void Dispatcher::stopEvent(uint64_t eventId)
+void Dispatcher::stopEvent(const uint64_t eventId)
 {
-    auto it = eventIds.find(eventId);
+    const auto it = eventIds.find(eventId);
     if (it != eventIds.end()) {
         it->second.cancel();
     }
@@ -101,11 +99,11 @@ void Dispatcher::shutdown()
 {
     setState(THREAD_STATE_TERMINATED);
 #if BOOST_VERSION >= 106600
-    boost::asio::post(io_service,
+    post(io_service,
 #else
     io_service.post(
 #endif
-    [this]() {
+         [this] {
         for (auto& it : eventIds) {
             it.second.cancel();
         }

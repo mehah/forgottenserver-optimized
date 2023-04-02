@@ -39,26 +39,26 @@ class Spells final : public BaseEvents
 {
 public:
     Spells();
-    ~Spells();
+    ~Spells() override;
 
     // non-copyable
     Spells(const Spells&) = delete;
     Spells& operator=(const Spells&) = delete;
 
-    std::vector<uint16_t> getSpellsByVocation(uint16_t vocationId);
+    std::vector<uint16_t> getSpellsByVocation(uint16_t vocationId) const;
     Spell* getSpellByName(const std::string& name);
     RuneSpell* getRuneSpell(uint16_t id);
     RuneSpell* getRuneSpellById(uint8_t id);
     RuneSpell* getRuneSpellByName(const std::string& name);
 
     InstantSpell* getInstantSpell(const std::string& words);
-    InstantSpell* getInstantSpellByName(const std::string& name);
+    InstantSpell* getInstantSpellByName(const std::string& name) const;
 
-    InstantSpell* getInstantSpellById(uint8_t spellId);
+    InstantSpell* getInstantSpellById(uint8_t spellId) const;
 
     TalkActionResult_t playerSaySpell(Player* player, std::string& words, const std::string& lowerWords);
 
-    static Position getCasterPosition(Creature* creature, Direction dir);
+    static Position getCasterPosition(const Creature* creature, Direction dir);
     std::string getScriptBaseName() const override;
 
 #if GAME_FEATURE_ROBINHOOD_HASH_MAP > 0
@@ -72,7 +72,7 @@ public:
 #endif
 
     void clearMaps(bool fromLua);
-    void clear(bool fromLua) override final;
+    void clear(bool fromLua) override;
     bool registerInstantLuaEvent(InstantSpell* event);
     bool registerRuneLuaEvent(RuneSpell* event);
 
@@ -108,7 +108,7 @@ class CombatSpell final : public Event, public BaseSpell
 {
 public:
     CombatSpell(Combat* combat, bool needTarget, bool needDirection);
-    ~CombatSpell();
+    ~CombatSpell() override;
 
     // non-copyable
     CombatSpell(const CombatSpell&) = delete;
@@ -121,10 +121,11 @@ public:
     }
 
     //scripting
-    bool executeCastSpell(Creature* creature, const LuaVariant& var);
+    bool executeCastSpell(Creature* creature, const LuaVariant& var) const;
 
     bool loadScriptCombat();
-    Combat* getCombat() {
+    Combat* getCombat() const
+    {
         return combat;
     }
 
@@ -154,7 +155,7 @@ public:
     uint8_t getId() const {
         return spellId;
     }
-    void setId(uint8_t id) {
+    void setId(const uint8_t id) {
         spellId = id;
     }
 
@@ -165,43 +166,43 @@ public:
     uint32_t getSoulCost() const {
         return soul;
     }
-    void setSoulCost(uint32_t s) {
+    void setSoulCost(const uint32_t s) {
         soul = s;
     }
     uint32_t getLevel() const {
         return level;
     }
-    void setLevel(uint32_t lvl) {
+    void setLevel(const uint32_t lvl) {
         level = lvl;
     }
     uint32_t getMagicLevel() const {
         return magLevel;
     }
-    void setMagicLevel(uint32_t lvl) {
+    void setMagicLevel(const uint32_t lvl) {
         magLevel = lvl;
     }
     uint32_t getMana() const {
         return mana;
     }
-    void setMana(uint32_t m) {
+    void setMana(const uint32_t m) {
         mana = m;
     }
     uint32_t getManaPercent() const {
         return manaPercent;
     }
-    void setManaPercent(uint32_t m) {
+    void setManaPercent(const uint32_t m) {
         manaPercent = m;
     }
     bool isPremium() const {
         return premium;
     }
-    void setPremium(bool p) {
+    void setPremium(const bool p) {
         premium = p;
     }
     bool isEnabled() const {
         return enabled;
     }
-    void setEnabled(bool e) {
+    void setEnabled(const bool e) {
         enabled = e;
     }
 
@@ -209,96 +210,96 @@ public:
     bool isLearnable() const {
         return learnable;
     }
-    void setLearnable(bool l) {
+    void setLearnable(const bool l) {
         learnable = l;
     }
 
     const VocSpellMap& getVocMap() const {
         return vocSpellMap;
     }
-    void addVocMap(uint16_t n, bool b) {
+    void addVocMap(const uint16_t n, const bool b) {
         vocSpellMap[n] = b;
     }
 
     const SpellGroup_t getGroup() const {
         return group;
     }
-    void setGroup(SpellGroup_t g) {
+    void setGroup(const SpellGroup_t g) {
         group = g;
     }
     const SpellGroup_t getSecondaryGroup() const {
         return secondaryGroup;
     }
-    void setSecondaryGroup(SpellGroup_t g) {
+    void setSecondaryGroup(const SpellGroup_t g) {
         secondaryGroup = g;
     }
 
     uint32_t getCooldown() const {
         return cooldown;
     }
-    void setCooldown(uint32_t cd) {
+    void setCooldown(const uint32_t cd) {
         cooldown = cd;
     }
     uint32_t getSecondaryCooldown() const {
         return secondaryGroupCooldown;
     }
-    void setSecondaryCooldown(uint32_t cd) {
+    void setSecondaryCooldown(const uint32_t cd) {
         secondaryGroupCooldown = cd;
     }
     uint32_t getGroupCooldown() const {
         return groupCooldown;
     }
-    void setGroupCooldown(uint32_t cd) {
+    void setGroupCooldown(const uint32_t cd) {
         groupCooldown = cd;
     }
 
     int32_t getRange() const {
         return range;
     }
-    void setRange(int32_t r) {
+    void setRange(const int32_t r) {
         range = r;
     }
 
     bool getNeedTarget() const {
         return needTarget;
     }
-    void setNeedTarget(bool n) {
+    void setNeedTarget(const bool n) {
         needTarget = n;
     }
     bool getNeedWeapon() const {
         return needWeapon;
     }
-    void setNeedWeapon(bool n) {
+    void setNeedWeapon(const bool n) {
         needWeapon = n;
     }
     bool getNeedLearn() const {
         return learnable;
     }
-    void setNeedLearn(bool n) {
+    void setNeedLearn(const bool n) {
         learnable = n;
     }
     bool getSelfTarget() const {
         return selfTarget;
     }
-    void setSelfTarget(bool s) {
+    void setSelfTarget(const bool s) {
         selfTarget = s;
     }
     bool getBlockingSolid() const {
         return blockingSolid;
     }
-    void setBlockingSolid(bool b) {
+    void setBlockingSolid(const bool b) {
         blockingSolid = b;
     }
     bool getBlockingCreature() const {
         return blockingCreature;
     }
-    void setBlockingCreature(bool b) {
+    void setBlockingCreature(const bool b) {
         blockingCreature = b;
     }
     bool getAggressive() const {
         return aggressive;
     }
-    void setAggressive(bool a) {
+    void setAggressive(const bool a) {
         aggressive = a;
     }
 
@@ -306,8 +307,8 @@ public:
 
 protected:
     bool playerSpellCheck(Player* player) const;
-    bool playerInstantSpellCheck(Player* player, const Position& toPos);
-    bool playerRuneSpellCheck(Player* player, const Position& toPos);
+    bool playerInstantSpellCheck(const Player* player, const Position& toPos) const;
+    bool playerRuneSpellCheck(Player* player, const Position& toPos) const;
 
     VocSpellMap vocSpellMap;
 
@@ -356,7 +357,7 @@ public:
     bool castSpell(Creature* creature, Creature* target) override;
 
     //scripting
-    bool executeCastSpell(Creature* creature, const LuaVariant& var);
+    bool executeCastSpell(Creature* creature, const LuaVariant& var) const;
 
     bool isInstant() const override {
         return true;
@@ -364,31 +365,31 @@ public:
     bool getHasParam() const {
         return hasParam;
     }
-    void setHasParam(bool p) {
+    void setHasParam(const bool p) {
         hasParam = p;
     }
     bool getHasPlayerNameParam() const {
         return hasPlayerNameParam;
     }
-    void setHasPlayerNameParam(bool p) {
+    void setHasPlayerNameParam(const bool p) {
         hasPlayerNameParam = p;
     }
     bool getNeedDirection() const {
         return needDirection;
     }
-    void setNeedDirection(bool n) {
+    void setNeedDirection(const bool n) {
         needDirection = n;
     }
     bool getNeedCasterTargetOrDirection() const {
         return casterTargetOrDirection;
     }
-    void setNeedCasterTargetOrDirection(bool d) {
+    void setNeedCasterTargetOrDirection(const bool d) {
         casterTargetOrDirection = d;
     }
     bool getBlockWalls() const {
         return checkLineOfSight;
     }
-    void setBlockWalls(bool w) {
+    void setBlockWalls(const bool w) {
         checkLineOfSight = w;
     }
     bool canCast(const Player* player) const;
@@ -397,7 +398,7 @@ public:
 private:
     std::string getScriptEventName() const override;
 
-    bool internalCastSpell(Creature* creature, const LuaVariant& var);
+    bool internalCastSpell(Creature* creature, const LuaVariant& var) const;
 
     bool needDirection = false;
     bool hasParam = false;
@@ -427,7 +428,7 @@ public:
     bool castSpell(Creature* creature, Creature* target) override;
 
     //scripting
-    bool executeCastSpell(Creature* creature, const LuaVariant& var, bool isHotkey);
+    bool executeCastSpell(Creature* creature, const LuaVariant& var, bool isHotkey) const;
 
     bool isInstant() const override {
         return false;
@@ -435,13 +436,13 @@ public:
     uint16_t getRuneItemId() const {
         return runeId;
     }
-    void setRuneItemId(uint16_t i) {
+    void setRuneItemId(const uint16_t i) {
         runeId = i;
     }
     uint32_t getCharges() const {
         return charges;
     }
-    void setCharges(uint32_t c) {
+    void setCharges(const uint32_t c) {
         if (c > 0) {
             hasCharges = true;
         }

@@ -22,8 +22,6 @@
 #define FS_GLOBALEVENT_H_B3FB9B848EA3474B9AFC326873947E3C
 #include "baseevents.h"
 
-#include "const.h"
-
 enum GlobalEvent_t
 {
     GLOBALEVENT_NONE,
@@ -42,7 +40,7 @@ class GlobalEvents final : public BaseEvents
 {
 public:
     GlobalEvents();
-    ~GlobalEvents();
+    ~GlobalEvents() override;
 
     // non-copyable
     GlobalEvents(const GlobalEvents&) = delete;
@@ -58,7 +56,7 @@ public:
     static void clearMap(GlobalEventMap& map, bool fromLua);
 
     bool registerLuaEvent(GlobalEvent* event);
-    void clear(bool fromLua) override final;
+    void clear(bool fromLua);
 
 private:
     std::string getScriptBaseName() const override {
@@ -84,13 +82,13 @@ public:
 
     bool configureEvent(const pugi::xml_node& node) override;
 
-    bool executeRecord(uint32_t current, uint32_t old);
+    bool executeRecord(uint32_t current, uint32_t old) const;
     bool executeEvent() const;
 
     GlobalEvent_t getEventType() const {
         return eventType;
     }
-    void setEventType(GlobalEvent_t type) {
+    void setEventType(const GlobalEvent_t type) {
         eventType = type;
     }
 
@@ -104,14 +102,14 @@ public:
     uint32_t getInterval() const {
         return interval;
     }
-    void setInterval(uint32_t eventInterval) {
+    void setInterval(const uint32_t eventInterval) {
         interval |= eventInterval;
     }
 
     int64_t getNextExecution() const {
         return nextExecution;
     }
-    void setNextExecution(int64_t time) {
+    void setNextExecution(const int64_t time) {
         nextExecution = time;
     }
 

@@ -25,7 +25,7 @@
 
 namespace pugi {
     template<typename T>
-    T cast(const pugi::char_t* str)
+    T cast(const char_t* str)
     {
         T value;
         try {

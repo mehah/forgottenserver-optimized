@@ -23,12 +23,11 @@
 
 #include "item.h"
 #include "cylinder.h"
-#include "const.h"
 
 class Mailbox final : public Item, public Cylinder
 {
 public:
-    explicit Mailbox(uint16_t itemId) : Item(itemId) {}
+    explicit Mailbox(const uint16_t itemId) : Item(itemId) {}
 
     Mailbox* getMailbox() override {
         return this;
@@ -58,8 +57,8 @@ public:
     void postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t link = LINK_OWNER) override;
 
 private:
-    bool getReceiver(Item* item, std::string& name, uint32_t& depotId) const;
-    bool sendItem(Item* item) const;
+    static bool getReceiver(Item* item, std::string& name, uint32_t& depotId);
+    static bool sendItem(Item* item);
 
     static bool canSend(const Item* item);
 };

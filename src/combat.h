@@ -39,7 +39,7 @@ struct Position;
 class ValueCallback final : public CallBack
 {
 public:
-    explicit ValueCallback(formulaType_t type) : type(type) {}
+    explicit ValueCallback(const formulaType_t type) : type(type) {}
     void getMinMaxValues(Player* player, CombatDamage& damage, bool useCharges) const;
 
 private:
@@ -49,7 +49,7 @@ private:
 class TileCallback final : public CallBack
 {
 public:
-    void onTileCombat(Creature* creature, Tile* tile) const;
+    void onTileCombat(Creature* creature, const Tile* tile) const;
 };
 
 class TargetCallback final : public CallBack
@@ -106,7 +106,7 @@ enum EffectStatus_t : uint16_t
 class MatrixArea
 {
 public:
-    typedef std::conditional < 8 < sizeof(size_t), uint32_t, uint64_t > ::type _Ty;
+    using _Ty = std::conditional < 8 < sizeof(size_t), uint32_t, uint64_t > ::type;
     enum : ptrdiff_t
     {
         _Bitsperword = static_cast<ptrdiff_t>(CHAR_BIT * sizeof(_Ty)),
@@ -126,15 +126,15 @@ public:
         delete[] data_;
     }
 
-    void setupArea(uint32_t rows, uint32_t cols) {
+    void setupArea(const uint32_t rows, const uint32_t cols) {
         delete[] data_;
 
         this->centerX = 0;
         this->centerY = 0;
         this->rows = rows;
         this->cols = cols;
-        data_ = new _Ty[(((rows * cols) - 1) / _Bitsperword) + 1];
-        for (uint32_t i = 0; i < (rows * cols); i += _Bitsperword) {
+        data_ = new _Ty[(rows * cols - 1) / _Bitsperword + 1];
+        for (uint32_t i = 0; i < rows * cols; i += _Bitsperword) {
             data_[i / _Bitsperword] = 0;
         }
     }
@@ -143,20 +143,20 @@ public:
         data_ = nullptr;
     }
 
-    void setValue(uint32_t row, uint32_t col, bool value) const {
-        uint32_t index = (row * cols) + col;
+    void setValue(const uint32_t row, const uint32_t col, const bool value) const {
+        const uint32_t index = row * cols + col;
         if (value) {
-            data_[index / _Bitsperword] |= (static_cast<_Ty>(1) << (index % _Bitsperword));
+            data_[index / _Bitsperword] |= static_cast<_Ty>(1) << index % _Bitsperword;
         } else {
-            data_[index / _Bitsperword] &= ~(static_cast<_Ty>(1) << (index % _Bitsperword));
+            data_[index / _Bitsperword] &= ~(static_cast<_Ty>(1) << index % _Bitsperword);
         }
     }
-    bool getValue(uint32_t row, uint32_t col) const {
-        uint32_t index = (row * cols) + col;
-        return ((data_[index / _Bitsperword] & (static_cast<_Ty>(1) << (index % _Bitsperword))) != 0);
+    bool getValue(const uint32_t row, const uint32_t col) const {
+        const uint32_t index = row * cols + col;
+        return (data_[index / _Bitsperword] & static_cast<_Ty>(1) << index % _Bitsperword) != 0;
     }
 
-    void setCenter(uint32_t y, uint32_t x) {
+    void setCenter(const uint32_t y, const uint32_t x) {
         centerX = x;
         centerY = y;
     }
@@ -219,8 +219,8 @@ private:
     static void copyArea(const MatrixArea* input, MatrixArea* output, MatrixOperation_t op);
 
     MatrixArea* getArea(const Position& centerPos, const Position& targetPos) const {
-        int32_t dx = Position::getOffsetX(targetPos, centerPos);
-        int32_t dy = Position::getOffsetY(targetPos, centerPos);
+        const int32_t dx = Position::getOffsetX(targetPos, centerPos);
+        const int32_t dy = Position::getOffsetY(targetPos, centerPos);
 
         Direction dir;
         if (dx < 0) {
@@ -286,7 +286,7 @@ public:
     static void doAreaCombat(Creature* caster, const Position& position, const AreaCombat* area, CombatDamage& damage, const CombatParams& params);
 
     bool setCallback(CallBackParam_t key);
-    CallBack* getCallback(CallBackParam_t key);
+    CallBack* getCallback(CallBackParam_t key) const;
 
     bool setParam(CombatParam_t param, uint32_t value);
     void setArea(AreaCombat* area) {
@@ -304,10 +304,10 @@ public:
         postCombatEffects(caster, pos, params);
     }
 
-    void setOrigin(CombatOrigin origin) {
+    void setOrigin(const CombatOrigin origin) {
         params.origin = origin;
     }
-    void setDirectionArea(bool directionalArea) {
+    void setDirectionArea(const bool directionalArea) {
         params.directionalArea = directionalArea;
     }
 
@@ -325,7 +325,7 @@ private:
     static void combatTileEffects(const SpectatorVector& spectators, NetworkMessage& effectMsg, EffectParams& effectParams, Creature* caster, Tile* tile, const CombatParams& params);
 #endif
     static void combatTileEffects(const SpectatorVector& spectators, Creature* caster, Tile* tile, const CombatParams& params);
-    CombatDamage getCombatDamage(Creature* creature, Creature* target) const;
+    CombatDamage getCombatDamage(Creature* creature, const Creature* target) const;
 
     //configureable
     CombatParams params;
@@ -345,7 +345,7 @@ private:
 class MagicField final : public Item
 {
 public:
-    explicit MagicField(uint16_t type) : Item(type), createTime(OTSYS_TIME()) {}
+    explicit MagicField(const uint16_t type) : Item(type), createTime(OTSYS_TIME()) {}
 
     MagicField* getMagicField() override {
         return this;
@@ -355,7 +355,7 @@ public:
     }
 
     bool isReplaceable() const {
-        return Item::items[getID()].replaceable;
+        return items[getID()].replaceable;
     }
     CombatType_t getCombatType() const {
         const ItemType& it = items[getID()];

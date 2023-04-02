@@ -41,16 +41,16 @@ enum Direction : uint8_t
 struct Position
 {
     constexpr Position() = default;
-    constexpr Position(uint16_t x, uint16_t y, uint8_t z) : x(x), y(y), z(z) {}
+    constexpr Position(const uint16_t x, const uint16_t y, const uint8_t z) : x(x), y(y), z(z) {}
 
     template<int_fast32_t deltax, int_fast32_t deltay>
     static bool areInRange(const Position& p1, const Position& p2) {
-        return Position::getDistanceX(p1, p2) <= deltax && Position::getDistanceY(p1, p2) <= deltay;
+        return getDistanceX(p1, p2) <= deltax && getDistanceY(p1, p2) <= deltay;
     }
 
     template<int_fast32_t deltax, int_fast32_t deltay, int_fast16_t deltaz>
     static bool areInRange(const Position& p1, const Position& p2) {
-        return Position::getDistanceX(p1, p2) <= deltax && Position::getDistanceY(p1, p2) <= deltay && Position::getDistanceZ(p1, p2) <= deltaz;
+        return getDistanceX(p1, p2) <= deltax && getDistanceY(p1, p2) <= deltay && getDistanceZ(p1, p2) <= deltaz;
     }
 
     static int_fast32_t getOffsetX(const Position& p1, const Position& p2) {
@@ -64,13 +64,13 @@ struct Position
     }
 
     static int32_t getDistanceX(const Position& p1, const Position& p2) {
-        return std::abs(Position::getOffsetX(p1, p2));
+        return std::abs(getOffsetX(p1, p2));
     }
     static int32_t getDistanceY(const Position& p1, const Position& p2) {
-        return std::abs(Position::getOffsetY(p1, p2));
+        return std::abs(getOffsetY(p1, p2));
     }
     static int16_t getDistanceZ(const Position& p1, const Position& p2) {
-        return std::abs(Position::getOffsetZ(p1, p2));
+        return std::abs(getOffsetZ(p1, p2));
     }
 
     uint16_t x = 0;
@@ -118,11 +118,11 @@ struct Position
     }
 
     Position operator+(const Position& p1) const {
-        return Position(x + p1.x, y + p1.y, z + p1.z);
+        return { static_cast<uint16_t>(x + p1.x), static_cast<uint16_t>(y + p1.y), static_cast<uint8_t>(z + p1.z) };
     }
 
     Position operator-(const Position& p1) const {
-        return Position(x - p1.x, y - p1.y, z - p1.z);
+        return { static_cast<uint16_t>(x - p1.x), static_cast<uint16_t>(y - p1.y), static_cast<uint8_t>(z - p1.z) };
     }
 
     int_fast32_t getX() const { return x; }

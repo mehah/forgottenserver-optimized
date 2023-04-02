@@ -55,7 +55,7 @@ namespace fs = boost::filesystem;
     |--- OTBM_ITEM_DEF (not implemented)
 */
 
-Tile* IOMap::createTile(Item*& ground, Item* item, uint16_t x, uint16_t y, uint8_t z)
+Tile* IOMap::createTile(Item*& ground, const Item* item, const uint16_t x, const uint16_t y, const uint8_t z)
 {
     if (!ground) {
         return new StaticTile(x, y, z);
@@ -81,7 +81,7 @@ bool IOMap::loadMap(Map* map, const std::string& fileName)
         return false;
     }
 
-    int64_t start = OTSYS_TIME();
+    const int64_t start = OTSYS_TIME();
     OTB::Loader loader{ fileName, OTB::Identifier{{'O', 'T', 'B', 'M'}} };
     auto& root = loader.parseTree();
 
@@ -97,7 +97,7 @@ bool IOMap::loadMap(Map* map, const std::string& fileName)
         return false;
     }
 
-    uint32_t headerVersion = root_header.version;
+    const uint32_t headerVersion = root_header.version;
     if (headerVersion > 2) {
         setLastErrorString("Unknown OTBM version detected.");
         return false;
@@ -128,7 +128,7 @@ bool IOMap::loadMap(Map* map, const std::string& fileName)
 
     for (auto& mapDataNode : mapNode.children) {
         if (mapDataNode.type == OTBM_TILE_AREA) {
-            if (!parseTileArea(loader, mapDataNode, *map, (headerVersion == 0))) {
+            if (!parseTileArea(loader, mapDataNode, *map, headerVersion == 0)) {
                 return false;
             }
         } else if (mapDataNode.type == OTBM_TOWNS) {
@@ -145,7 +145,7 @@ bool IOMap::loadMap(Map* map, const std::string& fileName)
         }
     }
 
-    std::cout << "> Map loading time: " << (OTSYS_TIME() - start) / (1000.) << " seconds." << std::endl;
+    std::cout << "> Map loading time: " << (OTSYS_TIME() - start) / 1000. << " seconds." << std::endl;
     return true;
 }
 
@@ -292,7 +292,7 @@ bool IOMap::parseTileArea(OTB::Loader& loader, const OTB::Node& tileAreaNode, Ma
                 }
 
                 case OTBM_ATTR_ITEM: {
-                    Item* item = (_legacy ? Item::CreateItem_legacy(propStream) : Item::CreateItem(propStream));
+                    Item* item = _legacy ? Item::CreateItem_legacy(propStream) : Item::CreateItem(propStream);
                     if (!item) {
                         std::stringExtended ss(128);
                         ss << "[x:" << x << ", y:" << y << ", z:" << z << "] Failed to create item.";
@@ -347,7 +347,7 @@ bool IOMap::parseTileArea(OTB::Loader& loader, const OTB::Node& tileAreaNode, Ma
                 return false;
             }
 
-            Item* item = (_legacy ? Item::CreateItem_legacy(stream) : Item::CreateItem(stream));
+            Item* item = _legacy ? Item::CreateItem_legacy(stream) : Item::CreateItem(stream);
             if (!item) {
                 std::stringExtended ss(128);
                 ss << "[x:" << x << ", y:" << y << ", z:" << z << "] Failed to create item.";
@@ -391,7 +391,7 @@ bool IOMap::parseTileArea(OTB::Loader& loader, const OTB::Node& tileAreaNode, Ma
             tile = createTile(ground_item, nullptr, x, y, z);
         }
 
-        tile->setFlag(static_cast<tileflags_t>(tileflags));
+        tile->setFlag(tileflags);
 
         map.setTile(x, y, z, tile);
     }

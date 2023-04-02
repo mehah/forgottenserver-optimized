@@ -21,13 +21,12 @@
 #ifndef FS_IOMAPSERIALIZE_H_7E903658F34E44F9BE03A713B55A3D6D
 #define FS_IOMAPSERIALIZE_H_7E903658F34E44F9BE03A713B55A3D6D
 
-#include "database.h"
 #include "map.h"
 
 class IOMapSerialize
 {
 public:
-    static void loadHouseItems(Map* map);
+    static void loadHouseItems(const Map* map);
     static bool saveHouseItems();
     static bool loadHouseInfo();
     static bool saveHouseInfo();

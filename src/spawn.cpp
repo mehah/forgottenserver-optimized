@@ -26,10 +26,10 @@
 #include "configmanager.h"
 
 #include "pugicast.h"
+#include "tasks.h"
 
 extern ConfigManager g_config;
 extern Monsters g_monsters;
-extern Game g_game;
 
 static constexpr int32_t MINSPAWN_INTERVAL = 1000; // 1 second
 static constexpr int32_t MAXSPAWN_INTERVAL = 86400000; // 1 day
@@ -44,7 +44,7 @@ bool Spawns::loadFromXml(const std::string& filename)
     spawnList.reserve(1000);
 
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file(filename.c_str());
+    const pugi::xml_parse_result result = doc.load_file(filename.c_str());
     if (!result) {
         printXMLError("Error - Spawns::loadFromXml", filename, result);
         return false;
@@ -97,7 +97,7 @@ bool Spawns::loadFromXml(const std::string& filename)
                     centerPos.y + pugi::cast<uint16_t>(childNode.attribute("y").value()),
                     centerPos.z
                 );
-                int64_t interval = pugi::cast<int64_t>(childNode.attribute("spawntime").value()) * 1000;
+                const int64_t interval = pugi::cast<int64_t>(childNode.attribute("spawntime").value()) * 1000;
                 if (interval >= MINSPAWN_INTERVAL && interval <= MAXSPAWN_INTERVAL) {
                     spawn.addMonster(nameAttribute.as_string(), pos, dir, static_cast<uint32_t>(interval));
                 } else {
@@ -170,20 +170,20 @@ void Spawns::clear()
     filename.clear();
 }
 
-bool Spawns::isInZone(const Position& centerPos, int32_t radius, const Position& pos)
+bool Spawns::isInZone(const Position& centerPos, const int32_t radius, const Position& pos)
 {
     if (radius == -1) {
         return true;
     }
 
-    return ((pos.getX() >= centerPos.getX() - radius) && (pos.getX() <= centerPos.getX() + radius) &&
-            (pos.getY() >= centerPos.getY() - radius) && (pos.getY() <= centerPos.getY() + radius));
+    return pos.getX() >= centerPos.getX() - radius && pos.getX() <= centerPos.getX() + radius &&
+        pos.getY() >= centerPos.getY() - radius && pos.getY() <= centerPos.getY() + radius;
 }
 
 void Spawn::startSpawnCheck()
 {
     if (checkSpawnEvent == 0) {
-        checkSpawnEvent = g_dispatcher.addEvent(getInterval(), std::bind(&Spawn::checkSpawn, this));
+        checkSpawnEvent = g_dispatcher.addEvent(getInterval(), [this] { checkSpawn(); });
     }
 }
 
@@ -209,7 +209,7 @@ bool Spawn::findPlayer(const Position& pos)
     return false;
 }
 
-bool Spawn::spawnMonster(spawnBlock_t& sb, bool startup /*= false*/)
+bool Spawn::spawnMonster(spawnBlock_t& sb, const bool startup /*= false*/)
 {
     std::unique_ptr<Monster> monster_ptr(new Monster(sb.mType));
     monster_ptr->setDirection(sb.direction);
@@ -288,11 +288,11 @@ void Spawn::checkSpawn()
     }
 
     if (spawnedCount < spawnMap.size()) {
-        checkSpawnEvent = g_dispatcher.addEvent(getInterval(), std::bind(&Spawn::checkSpawn, this));
+        checkSpawnEvent = g_dispatcher.addEvent(getInterval(), [this] { checkSpawn(); });
     }
 }
 
-void Spawn::scheduleSpawn(uint32_t spawnId, int32_t interval)
+void Spawn::scheduleSpawn(uint32_t spawnId, const int32_t interval)
 {
     if (spawnId >= static_cast<uint32_t>(spawnMap.size())) {
         return;
@@ -306,7 +306,7 @@ void Spawn::scheduleSpawn(uint32_t spawnId, int32_t interval)
         }
     } else {
         g_game.addMagicEffect(sb.pos, CONST_ME_TELEPORT);
-        g_dispatcher.addEvent(1500, std::bind(&Spawn::scheduleSpawn, this, spawnId, interval - 1500));
+        g_dispatcher.addEvent(1500, [this, spawnId, capture0 = interval - 1500] { scheduleSpawn(spawnId, capture0); });
     }
 }
 

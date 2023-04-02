@@ -34,7 +34,7 @@ class ChatChannel
 {
 public:
     ChatChannel() = default;
-    ChatChannel(uint16_t channelId, std::string channelName) :
+    ChatChannel(const uint16_t channelId, std::string channelName) :
         id(channelId), name(std::move(channelName)) {}
 
     virtual ~ChatChannel() = default;
@@ -65,10 +65,10 @@ public:
 
     bool isPublicChannel() const { return publicChannel; }
 
-    bool executeOnJoinEvent(const Player& player);
-    bool executeCanJoinEvent(const Player& player);
-    bool executeOnLeaveEvent(const Player& player);
-    bool executeOnSpeakEvent(const Player& player, SpeakClasses& type, const std::string& message);
+    bool executeOnJoinEvent(const Player& player) const;
+    bool executeCanJoinEvent(const Player& player) const;
+    bool executeOnLeaveEvent(const Player& player) const;
+    bool executeOnSpeakEvent(const Player& player, SpeakClasses& type, const std::string& message) const;
 
 protected:
     UsersMap users;
@@ -91,13 +91,13 @@ private:
 class PrivateChatChannel final : public ChatChannel
 {
 public:
-    PrivateChatChannel(uint16_t channelId, std::string channelName) :
+    PrivateChatChannel(const uint16_t channelId, std::string channelName) :
         ChatChannel(channelId, std::move(channelName)) {}
 
     uint32_t getOwner() const override {
         return owner;
     }
-    void setOwner(uint32_t owner) {
+    void setOwner(const uint32_t owner) {
         this->owner = owner;
     }
 

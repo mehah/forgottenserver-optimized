@@ -41,7 +41,7 @@ class Weapons final : public BaseEvents
 {
 public:
     Weapons();
-    ~Weapons();
+    ~Weapons() override;
 
     // non-copyable
     Weapons(const Weapons&) = delete;
@@ -54,7 +54,7 @@ public:
     static int32_t getMaxWeaponDamage(uint32_t level, int32_t attackSkill, int32_t attackValue, float attackFactor);
 
     bool registerLuaEvent(Weapon* weapon);
-    void clear(bool fromLua) override final;
+    void clear(bool fromLua);
 
 private:
     LuaScriptInterface& getScriptInterface() override;
@@ -81,7 +81,7 @@ public:
         return false;
     }
 
-    int32_t playerWeaponCheck(Player* player, Creature* target, uint8_t shootRange) const;
+    int32_t playerWeaponCheck(const Player* player, const Creature* target, uint8_t shootRange) const;
     static bool useFist(Player* player, Creature* target);
     virtual bool useWeapon(Player* player, Item* item, Creature* target) const;
 
@@ -92,96 +92,96 @@ public:
     uint16_t getID() const {
         return id;
     }
-    void setID(uint16_t newId) {
+    void setID(const uint16_t newId) {
         id = newId;
     }
 
     uint32_t getReqLevel() const {
         return level;
     }
-    void setRequiredLevel(uint32_t reqlvl) {
+    void setRequiredLevel(const uint32_t reqlvl) {
         level = reqlvl;
     }
 
     uint32_t getReqMagLv() const {
         return magLevel;
     }
-    void setRequiredMagLevel(uint32_t reqlvl) {
+    void setRequiredMagLevel(const uint32_t reqlvl) {
         magLevel = reqlvl;
     }
 
     bool isPremium() const {
         return premium;
     }
-    void setNeedPremium(bool prem) {
+    void setNeedPremium(const bool prem) {
         premium = prem;
     }
 
     bool isWieldedUnproperly() const {
         return wieldUnproperly;
     }
-    void setWieldUnproperly(bool unproperly) {
+    void setWieldUnproperly(const bool unproperly) {
         wieldUnproperly = unproperly;
     }
 
     uint32_t getMana() const {
         return mana;
     }
-    void setMana(uint32_t m) {
+    void setMana(const uint32_t m) {
         mana = m;
     }
 
     uint32_t getManaPercent() const {
         return manaPercent;
     }
-    void setManaPercent(uint32_t m) {
+    void setManaPercent(const uint32_t m) {
         manaPercent = m;
     }
 
     int32_t getHealth() const {
         return health;
     }
-    void setHealth(int32_t h) {
+    void setHealth(const int32_t h) {
         health = h;
     }
 
     uint32_t getHealthPercent() const {
         return healthPercent;
     }
-    void setHealthPercent(uint32_t m) {
+    void setHealthPercent(const uint32_t m) {
         healthPercent = m;
     }
 
     uint32_t getSoul() const {
         return soul;
     }
-    void setSoul(uint32_t s) {
+    void setSoul(const uint32_t s) {
         soul = s;
     }
 
     uint8_t getBreakChance() const {
         return breakChance;
     }
-    void setBreakChance(uint8_t b) {
+    void setBreakChance(const uint8_t b) {
         breakChance = b;
     }
 
     bool isEnabled() const {
         return enabled;
     }
-    void setIsEnabled(bool e) {
+    void setIsEnabled(const bool e) {
         enabled = e;
     }
 
     uint32_t getWieldInfo() const {
         return wieldInfo;
     }
-    void setWieldInfo(uint32_t info) {
+    void setWieldInfo(const uint32_t info) {
         wieldInfo |= info;
     }
 
     void addVocWeaponMap(const std::string& vocName) {
-        int32_t vocationId = g_vocations.getVocationId(vocName);
+        const int32_t vocationId = g_vocations.getVocationId(vocName);
         if (vocationId != -1) {
             vocWeaponMap[vocationId] = true;
         }
@@ -225,9 +225,9 @@ private:
     bool enabled = true;
     bool premium = false;
     bool wieldUnproperly = false;
-    std::string vocationString = "";
+    std::string vocationString;
 
-    std::string getScriptEventName() const override final;
+    std::string getScriptEventName() const final;
 
     bool executeUseWeapon(Player* player, const LuaVariant& var) const;
     void onUsedWeapon(Player* player, Item* item, Tile* destTile) const;
@@ -292,11 +292,11 @@ public:
     int32_t getElementDamage(const Player*, const Creature*, const Item*) const override { return 0; }
     CombatType_t getElementType() const override { return COMBAT_NONE; }
 
-    void setMinChange(int32_t change) {
+    void setMinChange(const int32_t change) {
         minChange = change;
     }
 
-    void setMaxChange(int32_t change) {
+    void setMaxChange(const int32_t change) {
         maxChange = change;
     }
 

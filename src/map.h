@@ -23,9 +23,7 @@
 
 #include "position.h"
 #include "item.h"
-#include "fileloader.h"
 
-#include "tools.h"
 #include "tile.h"
 #include "town.h"
 #include "house.h"
@@ -59,8 +57,8 @@ public:
 
     bool createOpenNode(AStarNode* parent, uint32_t x, uint32_t y, int_fast32_t f, int_fast32_t heuristic, int_fast32_t extraCost);
     AStarNode* getBestNode();
-    void closeNode(AStarNode* node);
-    void openNode(AStarNode* node);
+    void closeNode(const AStarNode* node);
+    void openNode(const AStarNode* node);
     int32_t getClosedNodes() const;
     AStarNode* getNodeByPosition(uint32_t x, uint32_t y);
 
@@ -86,7 +84,7 @@ using SpectatorCache = std::map<Position, SpectatorVector>;
 //SECTOR_SIZE must be power of 2 value
 //The bigger the SECTOR_SIZE is the less hash map collision there should be but it'll consume more memory
 static constexpr int32_t SECTOR_SIZE = 16;
-static constexpr int32_t SECTOR_MASK = (SECTOR_SIZE - 1);
+static constexpr int32_t SECTOR_MASK = SECTOR_SIZE - 1;
 
 class FrozenPathingConditionCall;
 
@@ -130,10 +128,10 @@ private:
 class Map
 {
 public:
-    static constexpr int32_t maxClientViewportX = (CLIENT_MAP_WIDTH_OFFSET - 1);
-    static constexpr int32_t maxClientViewportY = (CLIENT_MAP_HEIGHT_OFFFSET - 1);
-    static constexpr int32_t maxViewportX = (CLIENT_MAP_WIDTH_OFFSET + 1); //min value: maxClientViewportX + 1(needs to be at least + 1 from Monster::canSee)
-    static constexpr int32_t maxViewportY = (CLIENT_MAP_HEIGHT_OFFFSET + 1); //min value: maxClientViewportY + 1(needs to be at least + 1 from Monster::canSee)
+    static constexpr int32_t maxClientViewportX = CLIENT_MAP_WIDTH_OFFSET - 1;
+    static constexpr int32_t maxClientViewportY = CLIENT_MAP_HEIGHT_OFFFSET - 1;
+    static constexpr int32_t maxViewportX = CLIENT_MAP_WIDTH_OFFSET + 1; //min value: maxClientViewportX + 1(needs to be at least + 1 from Monster::canSee)
+    static constexpr int32_t maxViewportY = CLIENT_MAP_HEIGHT_OFFFSET + 1; //min value: maxClientViewportY + 1(needs to be at least + 1 from Monster::canSee)
 
     uint32_t clean() const;
 
@@ -208,7 +206,7 @@ public:
       *	\returns The result if you can throw there or not
       */
     bool canThrowObjectTo(const Position& fromPos, const Position& toPos, SightLines_t lineOfSight = SightLine_CheckSightLine,
-                          int32_t rangex = Map::maxClientViewportX, int32_t rangey = Map::maxClientViewportY) const;
+                          int32_t rangex = maxClientViewportX, int32_t rangey = maxClientViewportY) const;
 
     /**
       * Checks if path is clear from fromPos to toPos

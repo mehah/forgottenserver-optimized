@@ -28,7 +28,7 @@
 bool Vocations::loadFromXml()
 {
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file("data/XML/vocations.xml");
+    const pugi::xml_parse_result result = doc.load_file("data/XML/vocations.xml");
     if (!result) {
         printXMLError("Error - Vocations::loadFromXml", "data/XML/vocations.xml", result);
         return false;
@@ -41,10 +41,10 @@ bool Vocations::loadFromXml()
             continue;
         }
 
-        uint16_t id = pugi::cast<uint16_t>(attr.value());
+        auto id = pugi::cast<uint16_t>(attr.value());
 
-        auto res = vocationsMap.emplace(std::piecewise_construct,
-                std::forward_as_tuple(id), std::forward_as_tuple(id));
+        const auto res = vocationsMap.emplace(std::piecewise_construct,
+                                              std::forward_as_tuple(id), std::forward_as_tuple(id));
         Vocation& voc = res.first->second;
 
         if ((attr = vocationNode.attribute("name"))) {
@@ -115,7 +115,7 @@ bool Vocations::loadFromXml()
             if (strcasecmp(childNode.name(), "skill") == 0) {
                 pugi::xml_attribute skillIdAttribute = childNode.attribute("id");
                 if (skillIdAttribute) {
-                    uint16_t skill_id = pugi::cast<uint16_t>(skillIdAttribute.value());
+                    const auto skill_id = pugi::cast<uint16_t>(skillIdAttribute.value());
                     if (skill_id <= SKILL_LAST) {
                         voc.skillMultipliers[skill_id] = pugi::cast<double>(childNode.attribute("multiplier").value());
                     } else {
@@ -150,9 +150,9 @@ bool Vocations::loadFromXml()
     return true;
 }
 
-Vocation* Vocations::getVocation(uint16_t id)
+Vocation* Vocations::getVocation(const uint16_t id)
 {
-    auto it = vocationsMap.find(id);
+    const auto it = vocationsMap.find(id);
     if (it == vocationsMap.end()) {
         std::cout << "[Warning - Vocations::getVocation] Vocation " << id << " not found." << std::endl;
         return nullptr;
@@ -170,7 +170,7 @@ int32_t Vocations::getVocationId(const std::string& name) const
     return -1;
 }
 
-uint16_t Vocations::getPromotedVocation(uint16_t vocationId) const
+uint16_t Vocations::getPromotedVocation(const uint16_t vocationId) const
 {
     for (const auto& it : vocationsMap) {
         if (it.second.fromVocation == vocationId && it.first != vocationId) {
@@ -182,7 +182,7 @@ uint16_t Vocations::getPromotedVocation(uint16_t vocationId) const
 
 uint32_t Vocation::skillBase[SKILL_LAST + 1] = { 50, 50, 50, 50, 30, 100, 20 };
 
-uint64_t Vocation::getReqSkillTries(uint8_t skill, uint32_t level)
+uint64_t Vocation::getReqSkillTries(const uint8_t skill, uint32_t level)
 {
     if (skill > SKILL_LAST || level <= 10) {
         return 0;
@@ -202,7 +202,7 @@ uint64_t Vocation::getReqSkillTries(uint8_t skill, uint32_t level)
     return tries;
 }
 
-uint64_t Vocation::getReqMana(uint32_t magLevel)
+uint64_t Vocation::getReqMana(const uint32_t magLevel)
 {
     if (magLevel == 0) {
         return 0;

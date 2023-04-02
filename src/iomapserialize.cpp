@@ -24,13 +24,11 @@
 #include "game.h"
 #include "bed.h"
 
-extern Game g_game;
-
-void IOMapSerialize::loadHouseItems(Map* map)
+void IOMapSerialize::loadHouseItems(const Map* map)
 {
-    int64_t start = OTSYS_TIME();
+    const int64_t start = OTSYS_TIME();
 
-    DBResult_ptr result = g_database.storeQuery("SELECT `data` FROM `tile_store`");
+    const DBResult_ptr result = g_database.storeQuery("SELECT `data` FROM `tile_store`");
     if (!result) {
         return;
     }
@@ -42,7 +40,8 @@ void IOMapSerialize::loadHouseItems(Map* map)
         PropStream propStream;
         propStream.init(attr, attrSize);
 
-        uint16_t x, y;
+        uint16_t x;
+        uint16_t y;
         uint8_t z;
         if (!propStream.read<uint16_t>(x) || !propStream.read<uint16_t>(y) || !propStream.read<uint8_t>(z)) {
             continue;
@@ -62,12 +61,12 @@ void IOMapSerialize::loadHouseItems(Map* map)
             loadItem(propStream, tile);
         }
     } while (result->next());
-    std::cout << "> Loaded house items in: " << (OTSYS_TIME() - start) / (1000.) << " s" << std::endl;
+    std::cout << "> Loaded house items in: " << (OTSYS_TIME() - start) / 1000. << " s" << std::endl;
 }
 
 bool IOMapSerialize::saveHouseItems()
 {
-    int64_t start = OTSYS_TIME();
+    const int64_t start = OTSYS_TIME();
 
     //Start the transaction
     DBTransaction transaction(&g_database);
@@ -86,8 +85,8 @@ bool IOMapSerialize::saveHouseItems()
     PropWriteStream stream;
     for (auto& it : g_game.map.houses.getHouses()) {
         //save house items
-        House* house = &it.second;
-        for (HouseTile* tile : house->getTiles()) {
+        const House* house = &it.second;
+        for (const HouseTile* tile : house->getTiles()) {
             saveTile(stream, tile);
 
             size_t attributesSize;
@@ -108,9 +107,9 @@ bool IOMapSerialize::saveHouseItems()
     }
 
     //End the transaction
-    bool success = transaction.commit();
+    const bool success = transaction.commit();
     std::cout << "> Saved house items in: " <<
-        (OTSYS_TIME() - start) / (1000.) << " s" << std::endl;
+        (OTSYS_TIME() - start) / 1000. << " s" << std::endl;
     return success;
 }
 
@@ -199,10 +198,12 @@ bool IOMapSerialize::loadItem(PropStream& propStream, Cylinder* parent)
                 if (findItem->getID() == id) {
                     item = findItem;
                     break;
-                } else if (iType.isDoor() && findItem->getDoor()) {
+                }
+                if (iType.isDoor() && findItem->getDoor()) {
                     item = findItem;
                     break;
-                } else if (iType.isBed() && findItem->getBed()) {
+                }
+                if (iType.isBed() && findItem->getBed()) {
                     item = findItem;
                     break;
                 }
@@ -222,7 +223,7 @@ bool IOMapSerialize::loadItem(PropStream& propStream, Cylinder* parent)
             }
         } else {
             //The map changed since the last save, just read the attributes
-            std::unique_ptr<Item> dummy(Item::CreateItem(id));
+            const std::unique_ptr<Item> dummy(Item::CreateItem(id));
             if (dummy) {
                 dummy->unserializeAttr(propStream);
                 Container* container = dummy->getContainer();
@@ -230,8 +231,8 @@ bool IOMapSerialize::loadItem(PropStream& propStream, Cylinder* parent)
                     if (!loadContainer(propStream, container)) {
                         return false;
                     }
-                } else if (BedItem* bedItem = dynamic_cast<BedItem*>(dummy.get())) {
-                    uint32_t sleeperGUID = bedItem->getSleeper();
+                } else if (const auto bedItem = dynamic_cast<BedItem*>(dummy.get())) {
+                    const uint32_t sleeperGUID = bedItem->getSleeper();
                     if (sleeperGUID != 0) {
                         g_game.removeBedSleeper(sleeperGUID);
                     }
@@ -269,7 +270,7 @@ void IOMapSerialize::saveItem(PropWriteStream& stream, const Item* item)
         container = savingContainers.back().first;
         ItemDeque::const_reverse_iterator& it = savingContainers.back().second;
         for (auto end = container->getReversedEnd(); it != end; ++it) {
-            item = (*it);
+            item = *it;
             container = item->getContainer();
             if (!container) {
                 // Write ID & props
@@ -372,7 +373,7 @@ bool IOMapSerialize::saveHouseInfo()
 
     std::stringExtended query(1024);
     for (auto& it : g_game.map.houses.getHouses()) {
-        House* house = &it.second;
+        const House* house = &it.second;
 
         const std::string& escapedName = g_database.escapeString(house->getName());
         query.clear();
@@ -399,7 +400,7 @@ bool IOMapSerialize::saveHouseInfo()
 
     DBInsert stmt(&g_database, "INSERT INTO `house_lists` (`house_id` , `listid` , `list`) VALUES ");
     for (auto& it : g_game.map.houses.getHouses()) {
-        House* house = &it.second;
+        const House* house = &it.second;
 
         std::string listText;
         if (house->getAccessList(GUEST_LIST, listText) && !listText.empty()) {
@@ -422,7 +423,7 @@ bool IOMapSerialize::saveHouseInfo()
             listText.clear();
         }
 
-        for (Door* door : house->getDoors()) {
+        for (const Door* door : house->getDoors()) {
             if (door->getAccessList(listText) && !listText.empty()) {
                 query.clear();
                 query << house->getId() << ',' << door->getDoorId() << ',' << g_database.escapeString(listText);

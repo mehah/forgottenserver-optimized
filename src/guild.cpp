@@ -24,13 +24,11 @@
 
 #include "game.h"
 
-extern Game g_game;
-
 void Guild::addMember(Player* player)
 {
     membersOnline.push_back(player);
 #if CLIENT_VERSION >= 1000 && CLIENT_VERSION < 1185
-    for (Player* member : membersOnline) {
+    for (const Player* member : membersOnline) {
         g_game.updatePlayerHelpers(*member);
     }
 #endif
@@ -40,7 +38,7 @@ void Guild::removeMember(Player* player)
 {
     membersOnline.remove(player);
 #if CLIENT_VERSION >= 1000 && CLIENT_VERSION < 1185
-    for (Player* member : membersOnline) {
+    for (const Player* member : membersOnline) {
         g_game.updatePlayerHelpers(*member);
     }
     g_game.updatePlayerHelpers(*player);
@@ -52,7 +50,7 @@ void Guild::removeMember(Player* player)
     }
 }
 
-GuildRank* Guild::getRankById(uint32_t rankId)
+GuildRank* Guild::getRankById(const uint32_t rankId)
 {
     for (auto& rank : ranks) {
         if (rank.id == rankId) {
@@ -72,7 +70,7 @@ const GuildRank* Guild::getRankByName(const std::string& name) const
     return nullptr;
 }
 
-const GuildRank* Guild::getRankByLevel(uint8_t level) const
+const GuildRank* Guild::getRankByLevel(const uint8_t level) const
 {
     for (const auto& rank : ranks) {
         if (rank.level == level) {
