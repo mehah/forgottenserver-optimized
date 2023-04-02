@@ -23,7 +23,6 @@
 #include "databasetasks.h"
 #include "tasks.h"
 
-
 void DatabaseTasks::threadMain()
 {
     std::unique_lock<std::mutex> taskLockUnique(taskLock, std::defer_lock);

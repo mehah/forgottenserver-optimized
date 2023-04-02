@@ -32,7 +32,6 @@
 
 extern ConfigManager g_config;
 
-
 House::House(const uint32_t houseId) : id(houseId) {}
 
 void House::addTile(HouseTile* tile)

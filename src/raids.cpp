@@ -29,7 +29,6 @@
 #include "monster.h"
 #include "tasks.h"
 
-
 extern ConfigManager g_config;
 
 Raids::Raids()

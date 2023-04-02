@@ -24,7 +24,6 @@
 #include "game.h"
 #include "bed.h"
 
-
 void IOMapSerialize::loadHouseItems(const Map* map)
 {
     const int64_t start = OTSYS_TIME();

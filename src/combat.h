@@ -106,7 +106,7 @@ enum EffectStatus_t : uint16_t
 class MatrixArea
 {
 public:
-    using _Ty = std::conditional<8 < sizeof(size_t), uint32_t, uint64_t>::type;
+    using _Ty = std::conditional < 8 < sizeof(size_t), uint32_t, uint64_t > ::type;
     enum : ptrdiff_t
     {
         _Bitsperword = static_cast<ptrdiff_t>(CHAR_BIT * sizeof(_Ty)),

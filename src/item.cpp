@@ -34,7 +34,6 @@
 #include "actions.h"
 #include "spells.h"
 
-
 extern Spells* g_spells;
 extern Vocations g_vocations;
 

@@ -26,7 +26,6 @@
 #include "events.h"
 #include "tasks.h"
 
-
 extern Monsters g_monsters;
 extern Events* g_events;
 

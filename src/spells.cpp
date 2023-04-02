@@ -27,7 +27,6 @@
 #include "pugicast.h"
 #include "spells.h"
 
-
 extern Spells* g_spells;
 extern Monsters g_monsters;
 extern Vocations g_vocations;

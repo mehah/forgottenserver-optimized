@@ -24,7 +24,6 @@
 #include "game.h"
 #include "pugicast.h"
 
-
 extern LuaEnvironment g_luaEnvironment;
 
 uint32_t Npc::npcAutoID = 0x80000000;

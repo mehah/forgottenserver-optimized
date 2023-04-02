@@ -28,7 +28,6 @@
 
 extern ConfigManager g_config;
 
-
 std::map<uint32_t, int64_t> ProtocolStatus::ipConnectMap;
 const uint64_t ProtocolStatus::start = OTSYS_TIME();
 

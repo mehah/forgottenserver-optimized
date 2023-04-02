@@ -29,7 +29,6 @@
 #include "configmanager.h"
 #include "events.h"
 
-
 extern Weapons* g_weapons;
 extern ConfigManager g_config;
 extern Events* g_events;

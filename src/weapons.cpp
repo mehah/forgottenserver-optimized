@@ -26,7 +26,6 @@
 #include "pugicast.h"
 #include "weapons.h"
 
-
 extern ConfigManager g_config;
 extern Weapons* g_weapons;
 

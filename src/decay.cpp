@@ -23,7 +23,6 @@
 #include "game.h"
 #include "tasks.h"
 
-
 Decay g_decay;
 
 void Decay::startDecay(Item* item, const int32_t duration)

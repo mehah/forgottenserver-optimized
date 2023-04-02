@@ -23,7 +23,6 @@
 #include "teleport.h"
 #include "game.h"
 
-
 Attr_ReadValue Teleport::readAttr(const AttrTypes_t attr, PropStream& propStream)
 {
     if (attr == ATTR_TELE_DEST) {

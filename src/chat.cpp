@@ -27,7 +27,6 @@
 
 extern Chat* g_chat;
 
-
 bool PrivateChatChannel::isInvited(const uint32_t guid) const
 {
     if (guid == getOwner()) {

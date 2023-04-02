@@ -30,7 +30,6 @@
 
 extern ConfigManager g_config;
 
-
 #if GAME_FEATURE_MARKET > 0
 MarketOfferList IOMarket::getActiveOffers(const MarketAction_t action, const uint16_t itemId)
 {

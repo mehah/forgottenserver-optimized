@@ -23,7 +23,6 @@
 #include "tasks.h"
 #include "game.h"
 
-
 void Dispatcher::threadMain()
 {
     io_service.run();

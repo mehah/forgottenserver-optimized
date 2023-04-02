@@ -580,7 +580,7 @@ namespace robin_hood {
         template <typename U1 = T1, typename U2 = T2,
             typename = std::enable_if_t<std::is_default_constructible<U1>::value&&
             std::is_default_constructible<U2>::value>>
-        constexpr pair() noexcept(noexcept(U1()) && noexcept(U2()))
+            constexpr pair() noexcept(noexcept(U1()) && noexcept(U2()))
             : first()
             , second() {}
 
@@ -637,7 +637,7 @@ namespace robin_hood {
             (void)b;
         }
 
-        void swap(pair<T1, T2>& o) noexcept(detail::swappable::nothrow<T1>::value &&
+        void swap(pair<T1, T2>& o) noexcept(detail::swappable::nothrow<T1>::value&&
                                             detail::swappable::nothrow<T2>::value) {
             using std::swap;
             swap(first, o.first);
@@ -871,10 +871,10 @@ namespace robin_hood {
             : public WrapHash<Hash>,
             public WrapKeyEqual<KeyEqual>,
             NodeAllocator<
-                std::conditional_t<
-                    std::is_void<T>::value, Key,
-                    pair<std::conditional_t<IsFlat, Key, const Key>, T>>,
-                4, 16384, IsFlat>
+            std::conditional_t<
+            std::is_void<T>::value, Key,
+            pair<std::conditional_t<IsFlat, Key, const Key>, T>>,
+            4, 16384, IsFlat>
         {
         public:
             static constexpr bool is_flat = IsFlat;
@@ -953,36 +953,36 @@ namespace robin_hood {
 
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                std::enable_if_t<is_map, typename VT::first_type&> getFirst() noexcept {
+                    std::enable_if_t<is_map, typename VT::first_type&> getFirst() noexcept {
                     return mData.first;
                 }
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                std::enable_if_t<is_set, VT&> getFirst() noexcept {
+                    std::enable_if_t<is_set, VT&> getFirst() noexcept {
                     return mData;
                 }
 
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                std::enable_if_t<is_map, const typename VT::first_type&> getFirst() const
+                    std::enable_if_t<is_map, const typename VT::first_type&> getFirst() const
                     noexcept {
                     return mData.first;
                 }
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                std::enable_if_t<is_set, const VT&> getFirst() const noexcept {
+                    std::enable_if_t<is_set, const VT&> getFirst() const noexcept {
                     return mData;
                 }
 
                 template <typename MT = mapped_type>
                 ROBIN_HOOD(NODISCARD)
-                std::enable_if_t<is_map, MT&> getSecond() noexcept {
+                    std::enable_if_t<is_map, MT&> getSecond() noexcept {
                     return mData.second;
                 }
 
                 template <typename MT = mapped_type>
                 ROBIN_HOOD(NODISCARD)
-                std::enable_if_t<is_set, const MT&> getSecond() const noexcept {
+                    std::enable_if_t<is_set, const MT&> getSecond() const noexcept {
                     return mData.second;
                 }
 
@@ -1037,36 +1037,36 @@ namespace robin_hood {
 
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                std::enable_if_t<is_map, typename VT::first_type&> getFirst() noexcept {
+                    std::enable_if_t<is_map, typename VT::first_type&> getFirst() noexcept {
                     return mData->first;
                 }
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                std::enable_if_t<is_set, VT&> getFirst() noexcept {
+                    std::enable_if_t<is_set, VT&> getFirst() noexcept {
                     return *mData;
                 }
 
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                std::enable_if_t<is_map, const typename VT::first_type&> getFirst() const
+                    std::enable_if_t<is_map, const typename VT::first_type&> getFirst() const
                     noexcept {
                     return mData->first;
                 }
                 template <typename VT = value_type>
                 ROBIN_HOOD(NODISCARD)
-                std::enable_if_t<is_set, const VT&> getFirst() const noexcept {
+                    std::enable_if_t<is_set, const VT&> getFirst() const noexcept {
                     return *mData;
                 }
 
                 template <typename MT = mapped_type>
                 ROBIN_HOOD(NODISCARD)
-                std::enable_if_t<is_map, MT&> getSecond() noexcept {
+                    std::enable_if_t<is_map, MT&> getSecond() noexcept {
                     return mData->second;
                 }
 
                 template <typename MT = mapped_type>
                 ROBIN_HOOD(NODISCARD)
-                std::enable_if_t<is_map, const MT&> getSecond() const noexcept {
+                    std::enable_if_t<is_map, const MT&> getSecond() const noexcept {
                     return mData->second;
                 }
 
@@ -1095,7 +1095,7 @@ namespace robin_hood {
             // in case we have non-void mapped_type, we have a standard robin_hood::pair
             template <typename Q = mapped_type>
             ROBIN_HOOD(NODISCARD)
-            std::enable_if_t<!std::is_void<Q>::value, const key_type&>
+                std::enable_if_t<!std::is_void<Q>::value, const key_type&>
                 getFirstConst(const value_type& vt) const noexcept {
                 return vt.first;
             }
@@ -1209,8 +1209,8 @@ namespace robin_hood {
                 // Conversion constructor from iterator to const_iterator.
                 template <bool OtherIsConst,
                     typename = std::enable_if_t<IsConst && !OtherIsConst>>
-                // NOLINTNEXTLINE(hicpp-explicit-conversions)
-                explicit Iter(const Iter<OtherIsConst>& other) noexcept
+                    // NOLINTNEXTLINE(hicpp-explicit-conversions)
+                    explicit Iter(const Iter<OtherIsConst>& other) noexcept
                     : mKeyVals(other.mKeyVals)
                     , mInfo(other.mInfo) {}
 
@@ -1227,7 +1227,7 @@ namespace robin_hood {
 
                 template <bool OtherIsConst,
                     typename = std::enable_if_t<IsConst && !OtherIsConst>>
-                Iter& operator=(const Iter<OtherIsConst>& other) noexcept {
+                    Iter & operator=(const Iter<OtherIsConst>& other) noexcept {
                     mKeyVals = other.mKeyVals;
                     mInfo = other.mInfo;
                     return *this;
@@ -1292,8 +1292,8 @@ namespace robin_hood {
                 // mixed.
                 using Mix =
                     std::conditional_t<std::is_same<hash<key_type>, hasher>::value,
-                                     identity_hash<size_t>,
-                                     hash<size_t>>;
+                    identity_hash<size_t>,
+                    hash<size_t>>;
                 *idx = Mix{}(WHash::operator()(key));
 
                 *info = mInfoInc + static_cast<InfoType>(*idx >> mInfoHashShift);
@@ -1904,7 +1904,7 @@ namespace robin_hood {
 
             ROBIN_HOOD(NODISCARD)
                 size_t calcNumElementsWithBuffer(const size_t numElements) const noexcept {
-                    const auto maxNumElementsAllowed = calcMaxNumElementsAllowed(numElements);
+                const auto maxNumElementsAllowed = calcMaxNumElementsAllowed(numElements);
                 return numElements + (std::min)(maxNumElementsAllowed, static_cast<size_t>(0xFF));
             }
 
@@ -1931,7 +1931,7 @@ namespace robin_hood {
         private:
             template <typename Q = mapped_type>
             ROBIN_HOOD(NODISCARD)
-            std::enable_if_t<!std::is_void<Q>::value, bool> has(const value_type& e) const {
+                std::enable_if_t<!std::is_void<Q>::value, bool> has(const value_type& e) const {
                 ROBIN_HOOD_TRACE(this);
                 auto it = find(e.first);
                 return it != end() && it->second == e.second;
@@ -1939,7 +1939,7 @@ namespace robin_hood {
 
             template <typename Q = mapped_type>
             ROBIN_HOOD(NODISCARD)
-            std::enable_if_t<std::is_void<Q>::value, bool> has(const value_type& e) const {
+                std::enable_if_t<std::is_void<Q>::value, bool> has(const value_type& e) const {
                 ROBIN_HOOD_TRACE(this);
                 return find(e) != end();
             }

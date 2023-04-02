@@ -28,7 +28,6 @@
 
 extern ConfigManager g_config;
 
-
 namespace {
     struct Wait
     {

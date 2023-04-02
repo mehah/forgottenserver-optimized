@@ -28,7 +28,6 @@
 #include "pugicast.h"
 #include "spells.h"
 
-
 extern Spells* g_spells;
 extern Actions* g_actions;
 extern ConfigManager g_config;

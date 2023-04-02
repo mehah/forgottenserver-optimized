@@ -42,7 +42,6 @@
 #define lua_strlen lua_rawlen
 #endif
 
-
 namespace {
     std::string getGlobalString(lua_State* L, const char* identifier, const char* defaultValue)
     {

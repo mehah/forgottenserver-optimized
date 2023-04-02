@@ -25,7 +25,6 @@
 
 #include "game.h"
 
-
 void ProtocolOld::disconnectClient(const std::string& message, const uint16_t version) const
 {
     const auto output = OutputMessagePool::getOutputMessage();

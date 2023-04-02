@@ -24,7 +24,6 @@
 
 #include "game.h"
 
-
 void Guild::addMember(Player* player)
 {
     membersOnline.push_back(player);

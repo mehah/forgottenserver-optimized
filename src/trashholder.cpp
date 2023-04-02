@@ -23,7 +23,6 @@
 #include "trashholder.h"
 #include "game.h"
 
-
 ReturnValue TrashHolder::queryAdd(int32_t, const Thing&, uint32_t, uint32_t, Creature*) const
 {
     return RETURNVALUE_NOERROR;

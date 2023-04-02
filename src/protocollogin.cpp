@@ -32,7 +32,6 @@
 
 extern ConfigManager g_config;
 
-
 void ProtocolLogin::disconnectClient(const std::string& message, const uint32_t version) const
 {
     const auto output = OutputMessagePool::getOutputMessage();
@@ -266,10 +265,9 @@ void ProtocolLogin::onRecvFirstMessage(NetworkMessage& msg)
     auto thisPtr = std::static_pointer_cast<ProtocolLogin>(shared_from_this());
     g_dispatcher.addTask(
         [thisPtr, capture0 = std::move(accountName), capture1 = std::move(password), capture2 = std::move(authToken),
-            clientVersion]
-        {
-            thisPtr->getCharacterList(capture0, capture1, capture2, clientVersion);
-        });
+            clientVersion] {
+        thisPtr->getCharacterList(capture0, capture1, capture2, clientVersion);
+    });
 #else
     auto thisPtr = std::static_pointer_cast<ProtocolLogin>(shared_from_this());
     g_dispatcher.addTask(std::bind(&ProtocolLogin::getCharacterList, thisPtr, std::move(accountName), std::move(password), clientVersion));

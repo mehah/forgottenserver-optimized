@@ -23,7 +23,6 @@
 #include "condition.h"
 #include "game.h"
 
-
 bool Condition::setParam(const ConditionParam_t param, const int32_t value)
 {
     switch (param) {

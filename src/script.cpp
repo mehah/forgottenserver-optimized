@@ -74,8 +74,7 @@ bool Scripts::loadScripts(const std::string& folderName, const bool isLib, const
     }
     sort(v.begin(), v.end());
     std::string redir;
-    for (auto& it : v)
-    {
+    for (auto& it : v) {
         const std::string scriptFile = it.string();
         if (!isLib) {
             if (redir.empty() || redir != it.parent_path().string()) {

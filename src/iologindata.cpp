@@ -27,7 +27,6 @@
 
 extern ConfigManager g_config;
 
-
 Account IOLoginData::loadAccount(const uint32_t accno)
 {
     Account account;
@@ -571,8 +570,8 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
                 player->internalAddThing(pid, item);
                 item->startDecaying();
             }
+            }
         }
-    }
 
 #if GAME_FEATURE_STORE_INBOX > 0
     if (!player->inventory[CONST_SLOT_STORE_INBOX]) {
@@ -679,7 +678,7 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
     player->updateInventoryWeight();
     player->updateItemsLight(true);
     return true;
-}
+    }
 
 void IOLoginData::saveItem(PropWriteStream & stream, const Item * item)
 {
@@ -952,8 +951,8 @@ bool IOLoginData::savePlayer(Player * player)
                     continue;
                 }
                 itemList.emplace_back(static_cast<int32_t>(it.first), *item);
-            }
-        }
+                }
+                }
 
         propWriteStream.clear();
         if (!saveItems(player, itemList, query, propWriteStream, "depotlockeritems")) {
@@ -974,7 +973,7 @@ bool IOLoginData::savePlayer(Player * player)
         if (!saveItems(player, itemList, query, propWriteStream, "depotitems")) {
             return false;
         }
-    }
+            }
 
 #if GAME_FEATURE_MARKET > 0
     //save inbox items
@@ -1014,7 +1013,7 @@ bool IOLoginData::savePlayer(Player * player)
 
     //End the transaction
     return transaction.commit();
-}
+        }
 
 std::string IOLoginData::getNameByGuid(const uint32_t guid)
 {

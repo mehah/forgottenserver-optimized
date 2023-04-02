@@ -26,7 +26,6 @@
 
 #include "movement.h"
 
-
 MoveEvents::MoveEvents() :
     scriptInterface("MoveEvents Interface")
 {

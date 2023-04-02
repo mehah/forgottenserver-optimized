@@ -24,7 +24,6 @@
 #include "iomap.h"
 #include "game.h"
 
-
 Container::Container(const uint16_t type) :
     Container(type, items[type].maxItems) {}
 

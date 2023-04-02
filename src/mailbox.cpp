@@ -24,7 +24,6 @@
 #include "game.h"
 #include "iologindata.h"
 
-
 ReturnValue Mailbox::queryAdd(int32_t, const Thing& thing, uint32_t, uint32_t, Creature*) const
 {
     const Item* item = thing.getItem();

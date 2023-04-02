@@ -25,7 +25,6 @@
 #include "configmanager.h"
 #include "events.h"
 
-
 extern ConfigManager g_config;
 extern Events* g_events;
 

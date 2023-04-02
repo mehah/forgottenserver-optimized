@@ -137,7 +137,6 @@ void Connection::accept()
 
         // Read size of the first packet
         asio::async_read(socket, asio::buffer(msg.getBuffer(), NetworkMessage::HEADER_LENGTH), std::bind(&Connection::parseHeader, shared_from_this(), std::placeholders::_1));
-
     } catch (std::system_error& e) {
         std::cout << "[Network error - Connection::accept] " << e.what() << std::endl;
         close(FORCE_CLOSE);

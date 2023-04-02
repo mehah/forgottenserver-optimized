@@ -453,7 +453,7 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 #else
     g_dispatcher.addTask(std::bind(&ProtocolGame::login, getThis(), std::move(accountName), std::move(password), std::move(characterName), operatingSystem, TFCoperatingSystem));
 #endif
-}
+    }
 
 void ProtocolGame::onConnect()
 {
@@ -849,7 +849,7 @@ void ProtocolGame::checkCreatureAsKnown(const uint32_t id, bool& known, uint32_t
     } else {
         removedKnown = 0;
     }
-}
+    }
 
 bool ProtocolGame::canSee(const Creature * c) const
 {
@@ -2948,7 +2948,6 @@ void ProtocolGame::sendTextMessage(const TextMessage & message)
         //Backward compatibility
 #if CLIENT_VERSION < 900
         switch (message.type) {
-
             case MESSAGE_DAMAGE_DEALT:
             case MESSAGE_DAMAGE_RECEIVED:
             case MESSAGE_DAMAGE_OTHERS: {

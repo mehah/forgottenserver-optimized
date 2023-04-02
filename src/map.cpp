@@ -27,7 +27,6 @@
 #include "monster.h"
 #include "game.h"
 
-
 bool Map::loadMap(const std::string& identifier, const bool loadHouses)
 {
     try {
