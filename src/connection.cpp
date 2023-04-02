@@ -160,7 +160,7 @@ void Connection::parseProxyIdentification(const std::error_code& error)
     uint8_t* msgBuffer = msg.getBuffer();
     const std::string serverName = g_config.getString(ConfigManager::SERVER_NAME) + "\n";
     if (connectionState == CONNECTION_STATE_IDENTIFYING) {
-        if (msgBuffer[1] == 0x00 || strncasecmp(reinterpret_cast<char*>(msgBuffer), &serverName[0], 2) != 0) {
+        if (msgBuffer[1] == 0x00 || strncasecmp(reinterpret_cast<char*>(msgBuffer), serverName.data(), 2) != 0) {
             //Probably not proxy identification so let's try standard parsing method
             connectionState = CONNECTION_STATE_OPEN;
             parseHeader(error);

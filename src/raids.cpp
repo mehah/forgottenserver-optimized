@@ -29,7 +29,7 @@
 #include "monster.h"
 #include "tasks.h"
 
-extern Game g_game;
+
 extern ConfigManager g_config;
 
 Raids::Raids()
@@ -51,7 +51,8 @@ bool Raids::loadFromXml()
     }
 
     for (auto raidNode : doc.child("raids").children()) {
-        std::string name, file;
+        std::string name;
+        std::string file;
         uint32_t margin;
 
         pugi::xml_attribute attr;

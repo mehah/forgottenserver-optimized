@@ -31,7 +31,7 @@
 #include "teleport.h"
 #include "trashholder.h"
 
-extern Game g_game;
+
 extern MoveEvents* g_moveEvents;
 
 StaticTile real_nullptr_tile(0xFFFF, 0xFFFF, 0xFF);

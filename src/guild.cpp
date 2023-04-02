@@ -24,7 +24,6 @@
 
 #include "game.h"
 
-extern Game g_game;
 
 void Guild::addMember(Player* player)
 {

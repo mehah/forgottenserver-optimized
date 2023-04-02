@@ -58,7 +58,7 @@ public:
 
 private:
     static bool getReceiver(Item* item, std::string& name, uint32_t& depotId);
-    bool sendItem(Item* item) const;
+    static bool sendItem(Item* item);
 
     static bool canSend(const Item* item);
 };

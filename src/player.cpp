@@ -36,9 +36,9 @@
 #include "weapons.h"
 
 extern ConfigManager g_config;
-extern Game g_game;
+
 extern Chat* g_chat;
-extern Vocations g_vocations;
+
 extern MoveEvents* g_moveEvents;
 extern Weapons* g_weapons;
 extern CreatureEvents* g_creatureEvents;
@@ -50,7 +50,7 @@ uint32_t Player::playerAutoID = 0x10000000;
 
 #if GAME_FEATURE_MARKET > 0
 Player::Player(ProtocolGame_ptr p) :
-    Creature(), lastPing(OTSYS_TIME()), lastPong(lastPing), inbox(new Inbox(ITEM_INBOX)), client(std::move(p))
+    lastPing(OTSYS_TIME()), lastPong(lastPing), inbox(new Inbox(ITEM_INBOX)), client(std::move(p))
 {
     inbox->incrementReferenceCounter();
 }
@@ -397,20 +397,20 @@ int32_t Player::getDefense() const
 float Player::getAttackFactor() const
 {
     switch (fightMode) {
-        case FIGHTMODE_ATTACK: return 1.0f;
-        case FIGHTMODE_BALANCED: return 1.2f;
-        case FIGHTMODE_DEFENSE: return 2.0f;
-        default: return 1.0f;
+        case FIGHTMODE_ATTACK: return 1.0F;
+        case FIGHTMODE_BALANCED: return 1.2F;
+        case FIGHTMODE_DEFENSE: return 2.0F;
+        default: return 1.0F;
     }
 }
 
 float Player::getDefenseFactor() const
 {
     switch (fightMode) {
-        case FIGHTMODE_ATTACK: return OTSYS_TIME() - lastAttack < getAttackSpeed() ? 0.5f : 1.0f;
-        case FIGHTMODE_BALANCED: return OTSYS_TIME() - lastAttack < getAttackSpeed() ? 0.75f : 1.0f;
-        case FIGHTMODE_DEFENSE: return 1.0f;
-        default: return 1.0f;
+        case FIGHTMODE_ATTACK: return OTSYS_TIME() - lastAttack < getAttackSpeed() ? 0.5F : 1.0F;
+        case FIGHTMODE_BALANCED: return OTSYS_TIME() - lastAttack < getAttackSpeed() ? 0.75F : 1.0F;
+        case FIGHTMODE_DEFENSE: return 1.0F;
+        default: return 1.0F;
     }
 }
 
@@ -1043,8 +1043,8 @@ void Player::sendAddContainerItem(const Container* container, const Item* item) 
         client->sendAddContainerItem(it.first, item);
 #endif
         return;
-        }
     }
+}
 
 #if GAME_FEATURE_CONTAINER_PAGINATION > 0
 void Player::sendUpdateContainerItem(const Container* container, uint16_t slot, const Item* newItem)
@@ -1754,7 +1754,7 @@ void Player::addManaSpent(uint64_t amount)
 #else
         addScheduledUpdates(PlayerUpdate_Stats);
 #endif
-}
+    }
 }
 
 void Player::addExperience(Creature* source, uint64_t exp, const bool sendText/* = false*/)
@@ -1954,7 +1954,7 @@ uint8_t Player::getPercentSkillLevel(uint64_t count, uint64_t nextLevelCount)
     }
     if (result > 10000) {
         return 0;
-}
+    }
 #else
     uint8_t result;
     if (nextLevelCount > 100000000000000000ULL) {
@@ -2571,7 +2571,8 @@ ReturnValue Player::queryAdd(int32_t index, const Thing& thing, const uint32_t c
                     }
                 } else if (inventory[CONST_SLOT_LEFT]) {
                     const Item* leftItem = inventory[CONST_SLOT_LEFT];
-                    const WeaponType_t type = item->getWeaponType(), leftType = leftItem->getWeaponType();
+                    const WeaponType_t type = item->getWeaponType();
+                    const WeaponType_t leftType = leftItem->getWeaponType();
 
                     if (leftItem->getSlotPosition() & SLOTP_TWO_HAND) {
                         ret = RETURNVALUE_DROPTWOHANDEDITEM;
@@ -2612,7 +2613,8 @@ ReturnValue Player::queryAdd(int32_t index, const Thing& thing, const uint32_t c
                     }
                 } else if (inventory[CONST_SLOT_RIGHT]) {
                     const Item* rightItem = inventory[CONST_SLOT_RIGHT];
-                    const WeaponType_t type = item->getWeaponType(), rightType = rightItem->getWeaponType();
+                    const WeaponType_t type = item->getWeaponType();
+                    const WeaponType_t rightType = rightItem->getWeaponType();
 
                     if (rightItem->getSlotPosition() & SLOTP_TWO_HAND) {
                         ret = RETURNVALUE_DROPTWOHANDEDITEM;
@@ -3378,7 +3380,7 @@ void Player::internalAddThing(uint32_t index, Thing* thing)
         inventory[index] = item;
         item->setParent(this);
     }
-}
+    }
 
 bool Player::setFollowCreature(Creature * creature)
 {
@@ -4353,7 +4355,7 @@ bool Player::isGuildMate(const Player * player) const
     return guild == player->guild;
 }
 
-void Player::sendPlayerPartyIcons(Player * player)
+void Player::sendPlayerPartyIcons(Player * player) const
 {
 #if GAME_FEATURE_PARTY_LIST > 0
     sendPartyCreatureShield(player);
@@ -4591,8 +4593,10 @@ bool Player::addOfflineTrainingTries(const skills_t skill, uint64_t tries)
     }
 
     bool sendUpdate = false;
-    uint32_t oldSkillValue, newSkillValue;
-    long double oldPercentToNextLevel, newPercentToNextLevel;
+    uint32_t oldSkillValue;
+    uint32_t newSkillValue;
+    long double oldPercentToNextLevel;
+    long double newPercentToNextLevel;
 
     if (skill == SKILL_MAGLEVEL) {
         uint64_t currReqMana = vocation->getReqMana(magLevel);

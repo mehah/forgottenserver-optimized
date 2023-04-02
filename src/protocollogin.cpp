@@ -31,7 +31,7 @@
 #include "game.h"
 
 extern ConfigManager g_config;
-extern Game g_game;
+
 
 void ProtocolLogin::disconnectClient(const std::string& message, const uint32_t version) const
 {

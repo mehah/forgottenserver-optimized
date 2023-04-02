@@ -27,7 +27,7 @@
 #include "tasks.h"
 
 extern ConfigManager g_config;
-extern Game g_game;
+
 
 std::map<uint32_t, int64_t> ProtocolStatus::ipConnectMap;
 const uint64_t ProtocolStatus::start = OTSYS_TIME();
@@ -145,7 +145,8 @@ void ProtocolStatus::sendStatusString()
     map.append_attribute("name") = g_config.getString(ConfigManager::MAP_NAME).c_str();
     map.append_attribute("author") = g_config.getString(ConfigManager::MAP_AUTHOR).c_str();
 
-    uint32_t mapWidth, mapHeight;
+    uint32_t mapWidth;
+    uint32_t mapHeight;
     g_game.getMapDimensions(mapWidth, mapHeight);
     map.append_attribute("width") = std::to_string(mapWidth).c_str();
     map.append_attribute("height") = std::to_string(mapHeight).c_str();
@@ -198,7 +199,8 @@ void ProtocolStatus::sendInfo(const uint16_t requestedInfo, const std::string& c
         output->addByte(0x30);
         output->addString(g_config.getString(ConfigManager::MAP_NAME));
         output->addString(g_config.getString(ConfigManager::MAP_AUTHOR));
-        uint32_t mapWidth, mapHeight;
+        uint32_t mapWidth;
+        uint32_t mapHeight;
         g_game.getMapDimensions(mapWidth, mapHeight);
         output->add<uint16_t>(mapWidth);
         output->add<uint16_t>(mapHeight);

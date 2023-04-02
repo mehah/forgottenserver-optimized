@@ -24,7 +24,6 @@
 #include "house.h"
 #include "game.h"
 
-extern Game g_game;
 
 HouseTile::HouseTile(const int32_t x, const int32_t y, const int32_t z, House* house) :
     DynamicTile(x, y, z), house(house) {}

@@ -24,7 +24,7 @@
 #include "game.h"
 #include "pugicast.h"
 
-extern Game g_game;
+
 extern LuaEnvironment g_luaEnvironment;
 
 uint32_t Npc::npcAutoID = 0x80000000;
@@ -55,7 +55,7 @@ Npc* Npc::createNpc(const std::string& name)
 }
 
 Npc::Npc(const std::string& name) :
-    Creature(),
+
     filename("data/npc/" + name + ".xml"),
     npcEventHandler(nullptr),
     masterRadius(-1),

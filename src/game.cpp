@@ -51,7 +51,7 @@ extern Actions* g_actions;
 extern Chat* g_chat;
 extern TalkActions* g_talkActions;
 extern Spells* g_spells;
-extern Vocations g_vocations;
+
 extern GlobalEvents* g_globalEvents;
 extern CreatureEvents* g_creatureEvents;
 extern Events* g_events;
@@ -3629,7 +3629,7 @@ std::string Game::getTradeErrorDescription(const ReturnValue ret, const Item* it
     return "Trade could not be completed.";
 }
 
-void Game::playerLookInTrade(Player* player, const bool lookAtCounterOffer, uint8_t index) const
+void Game::playerLookInTrade(Player* player, const bool lookAtCounterOffer, uint8_t index)
 {
     Player* tradePartner = player->tradePartner;
     if (!tradePartner) {
@@ -3734,7 +3734,8 @@ void Game::internalCloseTrade(Player* player)
 void Game::playerPurchaseItem(Player* player, const uint16_t spriteId, const uint8_t count, const uint8_t amount,
                               const bool ignoreCap/* = false*/, const bool inBackpacks/* = false*/)
 {
-    int32_t onBuy, onSell;
+    int32_t onBuy;
+    int32_t onSell;
 
     Npc* merchant = player->getShopOwner(onBuy, onSell);
     if (!merchant) {
@@ -3762,7 +3763,8 @@ void Game::playerPurchaseItem(Player* player, const uint16_t spriteId, const uin
 
 void Game::playerSellItem(Player* player, const uint16_t spriteId, const uint8_t count, const uint8_t amount, const bool ignoreEquipped)
 {
-    int32_t onBuy, onSell;
+    int32_t onBuy;
+    int32_t onSell;
 
     Npc* merchant = player->getShopOwner(onBuy, onSell);
     if (!merchant) {
@@ -3789,9 +3791,10 @@ void Game::playerCloseShop(Player* player)
     player->closeShopWindow();
 }
 
-void Game::playerLookInShop(Player* player, const uint16_t spriteId, const uint8_t count) const
+void Game::playerLookInShop(Player* player, const uint16_t spriteId, const uint8_t count)
 {
-    int32_t onBuy, onSell;
+    int32_t onBuy;
+    int32_t onSell;
 
     const Npc* merchant = player->getShopOwner(onBuy, onSell);
     if (!merchant) {
@@ -3818,7 +3821,8 @@ void Game::playerLookInShop(Player* player, const uint16_t spriteId, const uint8
         return;
     }
 
-    std::string str, description = Item::getDescription(it, 1, nullptr, subType);
+    std::string str;
+    std::string description = Item::getDescription(it, 1, nullptr, subType);
     str.reserve(description.length() + static_cast<size_t>(10));
     str.append("You see ").append(description);
 
@@ -4392,7 +4396,8 @@ void Game::checkCreatures(const size_t index)
     });
 
     auto& checkCreatureList = checkCreatureLists[index];
-    size_t it = 0, end = checkCreatureList.size();
+    size_t it = 0;
+    size_t end = checkCreatureList.size();
     while (it < end) {
         Creature* creature = checkCreatureList[it];
         if (creature->creatureCheck) {
@@ -4521,7 +4526,8 @@ bool Game::combatBlockHit(CombatDamage& damage, Creature* attacker, Creature* ta
         }
     };
 
-    BlockType_t primaryBlockType, secondaryBlockType;
+    BlockType_t primaryBlockType;
+    BlockType_t secondaryBlockType;
     if (damage.primary.type != COMBAT_NONE) {
         damage.primary.value = -damage.primary.value;
         primaryBlockType = target->blockHit(attacker, damage.primary.type, damage.primary.value, checkDefense, checkArmor, field);
@@ -5628,7 +5634,9 @@ bool Game::loadExperienceStages()
         if (strcasecmp(stageNode.name(), "config") == 0) {
             stagesEnabled = stageNode.attribute("enabled").as_bool();
         } else {
-            uint32_t minLevel, maxLevel, multiplier;
+            uint32_t minLevel;
+            uint32_t maxLevel;
+            uint32_t multiplier;
 
             pugi::xml_attribute minLevelAttribute = stageNode.attribute("minlevel");
             if (minLevelAttribute) {
@@ -6449,7 +6457,7 @@ void Game::playerAcceptMarketOffer(Player* player, const uint32_t timestamp, con
     player->sendMarketAcceptOffer(offer);
 }
 
-std::vector<Item*> Game::getMarketItemList(const uint16_t wareId, const uint16_t sufficientCount, DepotChest* depotChest, Inbox* inbox) const
+std::vector<Item*> Game::getMarketItemList(const uint16_t wareId, const uint16_t sufficientCount, DepotChest* depotChest, Inbox* inbox)
 {
     std::vector<Item*> itemList;
     itemList.reserve(std::max<size_t>(32, depotChest->size() + inbox->size()));

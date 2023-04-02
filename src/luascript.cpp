@@ -43,10 +43,10 @@
 #include "tasks.h"
 
 extern Chat* g_chat;
-extern Game g_game;
+
 extern Monsters g_monsters;
 extern ConfigManager g_config;
-extern Vocations g_vocations;
+
 extern Spells* g_spells;
 extern Actions* g_actions;
 extern TalkActions* g_talkActions;
@@ -9597,7 +9597,7 @@ int LuaScriptInterface::luaPlayerAddItem(lua_State* L)
         itemCount = std::max<int32_t>(1, count);
     } else if (it.hasSubType()) {
         if (it.stackable) {
-            itemCount = std::ceil(count / 100.f);
+            itemCount = std::ceil(count / 100.F);
         }
 
         subType = count;
@@ -10260,7 +10260,7 @@ int LuaScriptInterface::luaPlayerCanLearnSpell(lua_State* L)
     }
 
     const auto& vocMap = spell->getVocMap();
-    if (vocMap.count(player->getVocationId()) == 0) {
+    if (!vocMap.contains(player->getVocationId())) {
         pushBoolean(L, false);
     } else if (player->getLevel() < spell->getLevel()) {
         pushBoolean(L, false);
@@ -15132,7 +15132,7 @@ int LuaScriptInterface::luaSpellVocation(lua_State* L)
                 if (getString(L, 2 + i).find(';') != std::string::npos) {
                     std::vector<std::string> vocList = explodeString(getString(L, 2 + i), ";");
                     const int32_t vocationId = g_vocations.getVocationId(vocList[0]);
-                    if (vocList.size() > 0) {
+                    if (!vocList.empty()) {
                         if (!tfs_strcmp(vocList[1].c_str(), "true")) {
                             spell->addVocMap(vocationId, true);
                         } else {
@@ -15169,7 +15169,7 @@ int LuaScriptInterface::luaSpellWords(lua_State* L)
             pushString(L, std::string(1, spell->getSeparator()));
             return 2;
         }
-        std::string sep = "";
+        std::string sep;
         if (lua_gettop(L) == 3) {
             sep = getString(L, 3);
         }
@@ -16746,28 +16746,28 @@ int LuaScriptInterface::luaWeaponExtraElement(lua_State* L)
     if (weapon) {
         const uint16_t id = weapon->getID();
         const ItemType& it = Item::items.getItemType(id);
-        it.abilities.get()->elementDamage = getNumber<uint16_t>(L, 2);
+        it.abilities->elementDamage = getNumber<uint16_t>(L, 2);
 
         if (!getNumber<CombatType_t>(L, 3)) {
             const std::string element = getString(L, 3);
             const std::string tmpStrValue = asLowerCaseString(element);
             if (!tfs_strcmp(tmpStrValue.c_str(), "earth")) {
-                it.abilities.get()->elementType = COMBAT_EARTHDAMAGE;
+                it.abilities->elementType = COMBAT_EARTHDAMAGE;
             } else if (!tfs_strcmp(tmpStrValue.c_str(), "ice")) {
-                it.abilities.get()->elementType = COMBAT_ICEDAMAGE;
+                it.abilities->elementType = COMBAT_ICEDAMAGE;
             } else if (!tfs_strcmp(tmpStrValue.c_str(), "energy")) {
-                it.abilities.get()->elementType = COMBAT_ENERGYDAMAGE;
+                it.abilities->elementType = COMBAT_ENERGYDAMAGE;
             } else if (!tfs_strcmp(tmpStrValue.c_str(), "fire")) {
-                it.abilities.get()->elementType = COMBAT_FIREDAMAGE;
+                it.abilities->elementType = COMBAT_FIREDAMAGE;
             } else if (!tfs_strcmp(tmpStrValue.c_str(), "death")) {
-                it.abilities.get()->elementType = COMBAT_DEATHDAMAGE;
+                it.abilities->elementType = COMBAT_DEATHDAMAGE;
             } else if (!tfs_strcmp(tmpStrValue.c_str(), "holy")) {
-                it.abilities.get()->elementType = COMBAT_HOLYDAMAGE;
+                it.abilities->elementType = COMBAT_HOLYDAMAGE;
             } else {
                 std::cout << "[Warning - weapon:extraElement] Type \"" << element << "\" does not exist." << std::endl;
             }
         } else {
-            it.abilities.get()->elementType = getNumber<CombatType_t>(L, 3);
+            it.abilities->elementType = getNumber<CombatType_t>(L, 3);
         }
         pushBoolean(L, true);
     } else {

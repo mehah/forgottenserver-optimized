@@ -26,7 +26,7 @@
 #include "tasks.h"
 
 extern Chat* g_chat;
-extern Game g_game;
+
 
 bool PrivateChatChannel::isInvited(const uint32_t guid) const
 {
@@ -594,7 +594,8 @@ void Chat::openChannelsByServer(Player* player)
 
 ChannelList Chat::getChannelList(const Player& player)
 {
-    ChannelList list, privates;
+    ChannelList list;
+    ChannelList privates;
     privates.reserve(8);
 
     bool hasPrivate = false;

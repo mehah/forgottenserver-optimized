@@ -106,7 +106,8 @@ bool TalkActions::registerLuaEvent(TalkAction_ptr& event)
 
 TalkActionResult_t TalkActions::playerSaySpell(Player* player, const SpeakClasses type, const std::string& words) const
 {
-    std::string param, instantWords = words;
+    std::string param;
+    std::string instantWords = words;
     if (instantWords.size() >= 3 && instantWords.front() != ' ') {
         const size_t param_find = instantWords.find(' ');
         if (param_find != std::string::npos) {

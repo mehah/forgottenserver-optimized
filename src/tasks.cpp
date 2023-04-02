@@ -23,7 +23,6 @@
 #include "tasks.h"
 #include "game.h"
 
-extern Game g_game;
 
 void Dispatcher::threadMain()
 {

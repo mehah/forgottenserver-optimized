@@ -111,7 +111,7 @@ public:
         }
 
         ret.resize(strLen);
-        memcpy(&ret[0], p, strLen);
+        memcpy(ret.data(), p, strLen);
         p += strLen;
         return true;
     }
@@ -127,7 +127,7 @@ public:
         }
 
         ret.resize(strLen);
-        memcpy(&ret[0], p, strLen);
+        memcpy(ret.data(), p, strLen);
         p += strLen;
         return true;
     }

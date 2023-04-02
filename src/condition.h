@@ -345,10 +345,10 @@ private:
     int32_t speedDelta;
 
     //formula variables
-    float mina = 0.0f;
-    float minb = 0.0f;
-    float maxa = 0.0f;
-    float maxb = 0.0f;
+    float mina = 0.0F;
+    float minb = 0.0F;
+    float maxa = 0.0F;
+    float maxb = 0.0F;
 };
 
 class ConditionOutfit final : public Condition

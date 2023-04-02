@@ -996,7 +996,8 @@ public:
         }
         return items[id].name;
     }
-    const std::string getPluralName() const {
+
+    std::string getPluralName() const {
         if (hasAttribute(ITEM_ATTRIBUTE_PLURALNAME)) {
             return getStrAttr(ITEM_ATTRIBUTE_PLURALNAME);
         }

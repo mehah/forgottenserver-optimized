@@ -115,9 +115,9 @@ public:
     bool useItem(Player* player, const Position& pos, uint8_t index, Item* item, bool isHotkey);
     bool useItemEx(Player* player, const Position& fromPos, const Position& toPos, uint8_t toStackPos, Item* item, bool isHotkey, Creature* creature = nullptr);
 
-    ReturnValue canUse(const Player* player, const Position& pos) const;
+    static ReturnValue canUse(const Player* player, const Position& pos);
     ReturnValue canUse(const Player* player, const Position& pos, const Item* item);
-    ReturnValue canUseFar(const Creature* creature, const Position& toPos, bool checkLineOfSight, bool checkFloor) const;
+    static ReturnValue canUseFar(const Creature* creature, const Position& toPos, bool checkLineOfSight, bool checkFloor);
 
     bool registerLuaEvent(Action_ptr& event);
     void clear(bool fromLua);

@@ -31,7 +31,7 @@
 
 #include "pugicast.h"
 
-extern Game g_game;
+
 extern Spells* g_spells;
 extern Monsters g_monsters;
 extern ConfigManager g_config;
@@ -43,7 +43,7 @@ spellBlock_t::~spellBlock_t()
     }
 }
 
-void MonsterType::loadLoot(MonsterType* monsterType, LootBlock& lootBlock) const
+void MonsterType::loadLoot(MonsterType* monsterType, LootBlock& lootBlock)
 {
     if (!lootBlock.childLoot.empty()) {
         lootBlock.childLoot.shrink_to_fit();
@@ -112,7 +112,7 @@ bool Monsters::reload()
 }
 
 ConditionDamage* Monsters::getDamageCondition(const ConditionType_t conditionType,
-                                              const int32_t maxDamage, const int32_t minDamage, const int32_t startDamage, const uint32_t tickInterval) const
+                                              const int32_t maxDamage, const int32_t minDamage, const int32_t startDamage, const uint32_t tickInterval)
 {
     const auto condition = static_cast<ConditionDamage*>(Condition::createCondition(CONDITIONID_COMBAT, conditionType, 0, 0));
     condition->setParam(CONDITION_PARAM_TICKINTERVAL, tickInterval);
@@ -241,7 +241,8 @@ bool Monsters::deserializeSpell(const pugi::xml_node& node, spellBlock_t& sb, co
         if (!tfs_strcmp(tmpName.c_str(), "melee")) {
             sb.isMelee = true;
 
-            pugi::xml_attribute attackAttribute, skillAttribute;
+            pugi::xml_attribute attackAttribute;
+            pugi::xml_attribute skillAttribute;
             if ((attackAttribute = node.attribute("attack")) && (skillAttribute = node.attribute("skill"))) {
                 sb.minCombatValue = 0;
                 sb.maxCombatValue = -Weapons::getMaxMeleeDamage(pugi::cast<int32_t>(skillAttribute.value()), pugi::cast<int32_t>(attackAttribute.value()));

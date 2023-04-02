@@ -38,8 +38,6 @@
 #include "events.h"
 #include "databasetasks.h"
 
-extern DatabaseTasks g_databaseTasks;
-extern Dispatcher g_dispatcher;
 
 extern ConfigManager g_config;
 extern Actions* g_actions;
@@ -48,7 +46,7 @@ extern TalkActions* g_talkActions;
 extern MoveEvents* g_moveEvents;
 extern Spells* g_spells;
 extern Weapons* g_weapons;
-extern Game g_game;
+
 extern CreatureEvents* g_creatureEvents;
 extern GlobalEvents* g_globalEvents;
 extern Events* g_events;

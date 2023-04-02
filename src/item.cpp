@@ -34,7 +34,7 @@
 #include "actions.h"
 #include "spells.h"
 
-extern Game g_game;
+
 extern Spells* g_spells;
 extern Vocations g_vocations;
 
@@ -178,7 +178,7 @@ Item::Item(const uint16_t type, const uint16_t count /*= 0*/) :
 }
 
 Item::Item(const Item& i) :
-    Thing(), id(i.id), count(i.count), loadedFromMap(i.loadedFromMap)
+    id(i.id), count(i.count), loadedFromMap(i.loadedFromMap)
 {
     if (i.attributes) {
         attributes = std::make_unique<ItemAttributes>(*i.attributes);
@@ -869,7 +869,8 @@ std::vector<std::pair<std::string, std::string>> Item::getDescriptions(const Ite
             descriptions.emplace_back("HitChance", std::to_string(hitChance));
         }
 
-        int32_t defense = item->getDefense(), extraDefense = item->getExtraDefense();
+        int32_t defense = item->getDefense();
+        int32_t extraDefense = item->getExtraDefense();
         if (defense != 0 || extraDefense != 0) {
             if (extraDefense != 0) {
                 str.clear();
@@ -1110,7 +1111,8 @@ std::vector<std::pair<std::string, std::string>> Item::getDescriptions(const Ite
             descriptions.emplace_back("HitChance", std::to_string(hitChance));
         }
 
-        int32_t defense = it.defense, extraDefense = it.extraDefense;
+        int32_t defense = it.defense;
+        int32_t extraDefense = it.extraDefense;
         if (defense != 0 || extraDefense != 0) {
             if (extraDefense != 0) {
                 str.clear();
@@ -1312,7 +1314,8 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance,
                 }
 
                 if (!showVocMap.empty()) {
-                    auto vocIt = showVocMap.begin(), vocLast = showVocMap.end() - 1;
+                    auto vocIt = showVocMap.begin();
+                    auto vocLast = showVocMap.end() - 1;
                     while (vocIt != vocLast) {
                         sink << asLowerCaseString((*vocIt)->getVocName()) << 's';
                         if (++vocIt == vocLast) {
@@ -1366,7 +1369,9 @@ std::string Item::getDescription(const ItemType& it, int32_t lookDistance,
 
             begin = false;
         } else if (it.weaponType != WEAPON_AMMO) {
-            int32_t attack, defense, extraDefense;
+            int32_t attack;
+            int32_t defense;
+            int32_t extraDefense;
             if (item) {
                 attack = item->getAttack();
                 defense = item->getDefense();

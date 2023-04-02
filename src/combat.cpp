@@ -29,7 +29,7 @@
 #include "configmanager.h"
 #include "events.h"
 
-extern Game g_game;
+
 extern Weapons* g_weapons;
 extern ConfigManager g_config;
 extern Events* g_events;
@@ -42,7 +42,8 @@ CombatDamage Combat::getCombatDamage(Creature* creature, const Creature* target)
     if (formulaType == COMBAT_FORMULA_DAMAGE) {
         damage.primary.value = normal_random(mina, maxa);
     } else if (creature) {
-        int32_t min, max;
+        int32_t min;
+        int32_t max;
         if (creature->getCombatValues(min, max)) {
             damage.primary.value = normal_random(min, max);
         } else if (Player* player = creature->getPlayer()) {
@@ -981,7 +982,9 @@ void Combat::doAreaCombat(Creature* caster, const Position& position, const Area
         getCombatArea(position, position, area, tileList, params.directionalArea);
     }
 
-    uint16_t effectStatus = 0, lifeLeechChance = 0, manaLeechChance = 0;
+    uint16_t effectStatus = 0;
+    uint16_t lifeLeechChance = 0;
+    uint16_t manaLeechChance = 0;
     Player* casterPlayer = caster ? caster->getPlayer() : nullptr;
     if (casterPlayer && damage.origin != ORIGIN_CONDITION && (damage.primary.value < 0 || damage.secondary.value < 0)) {
         const uint16_t chance = casterPlayer->getSpecialSkill(SPECIALSKILL_CRITICALHITCHANCE);
@@ -1369,7 +1372,8 @@ void AreaCombat::getList(const Position& centerPos, const Position& targetPos, c
         return;
     }
 
-    uint32_t centerY, centerX;
+    uint32_t centerY;
+    uint32_t centerX;
     area->getCenter(centerY, centerX);
 
     const uint32_t rows = area->getRows();
@@ -1395,7 +1399,8 @@ void AreaCombat::getList(const Position& centerPos, const Position& targetPos, c
 
 void AreaCombat::copyArea(const MatrixArea* input, MatrixArea* output, const MatrixOperation_t op)
 {
-    uint32_t centerY, centerX;
+    uint32_t centerY;
+    uint32_t centerX;
     input->getCenter(centerY, centerX);
 
     switch (op) {

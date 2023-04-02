@@ -108,7 +108,7 @@ namespace OTB {
             lastEscaped = byte == static_cast<char>(Node::ESCAPE) && !lastEscaped;
             return !lastEscaped;
         });
-        props.init(&propBuffer[0], std::distance(propBuffer.begin(), escapedPropEnd));
+        props.init(propBuffer.data(), std::distance(propBuffer.begin(), escapedPropEnd));
         return true;
     }
 } //namespace OTB

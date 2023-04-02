@@ -23,7 +23,6 @@
 #include "teleport.h"
 #include "game.h"
 
-extern Game g_game;
 
 Attr_ReadValue Teleport::readAttr(const AttrTypes_t attr, PropStream& propStream)
 {

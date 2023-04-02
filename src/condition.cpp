@@ -23,7 +23,6 @@
 #include "condition.h"
 #include "game.h"
 
-extern Game g_game;
 
 bool Condition::setParam(const ConditionParam_t param, const int32_t value)
 {
@@ -427,15 +426,15 @@ void ConditionAttributes::updatePercentStats(const Player* player)
 
         switch (i) {
             case STAT_MAXHITPOINTS:
-                stats[i] = static_cast<int32_t>(player->getMaxHealth() * ((statsPercent[i] - 100) / 100.f));
+                stats[i] = static_cast<int32_t>(player->getMaxHealth() * ((statsPercent[i] - 100) / 100.F));
                 break;
 
             case STAT_MAXMANAPOINTS:
-                stats[i] = static_cast<int32_t>(player->getMaxMana() * ((statsPercent[i] - 100) / 100.f));
+                stats[i] = static_cast<int32_t>(player->getMaxMana() * ((statsPercent[i] - 100) / 100.F));
                 break;
 
             case STAT_MAGICPOINTS:
-                stats[i] = static_cast<int32_t>(player->getBaseMagicLevel() * ((statsPercent[i] - 100) / 100.f));
+                stats[i] = static_cast<int32_t>(player->getBaseMagicLevel() * ((statsPercent[i] - 100) / 100.F));
                 break;
         }
     }
@@ -470,7 +469,7 @@ void ConditionAttributes::updatePercentSkills(const Player* player)
         }
 
         const int32_t unmodifiedSkill = player->getBaseSkill(i);
-        skills[i] = static_cast<int32_t>(unmodifiedSkill * ((skillsPercent[i] - 100) / 100.f));
+        skills[i] = static_cast<int32_t>(unmodifiedSkill * ((skillsPercent[i] - 100) / 100.F));
     }
 }
 
@@ -1342,7 +1341,8 @@ void ConditionDamage::generateDamageList(int32_t amount, const int32_t start, st
 {
     amount = std::abs(amount);
     int32_t sum = 0;
-    double x1, x2;
+    double x1;
+    double x2;
 
     for (int32_t i = start; i > 0; --i) {
         const int32_t n = start + 1 - i;
@@ -1436,7 +1436,8 @@ bool ConditionSpeed::startCondition(Creature* creature)
     }
 
     if (speedDelta == 0) {
-        int32_t min, max;
+        int32_t min;
+        int32_t max;
         getFormulaValues(creature->getBaseSpeed(), min, max);
         speedDelta = uniform_random(min, max);
     }

@@ -30,7 +30,7 @@
 
 extern ConfigManager g_config;
 extern Monsters g_monsters;
-extern Game g_game;
+
 
 static constexpr int32_t MINSPAWN_INTERVAL = 1000; // 1 second
 static constexpr int32_t MAXSPAWN_INTERVAL = 86400000; // 1 day

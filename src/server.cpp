@@ -154,7 +154,7 @@ Protocol_ptr ServicePort::make_protocol(const bool checksummed, NetworkMessage& 
     return nullptr;
 }
 
-void ServicePort::onStopServer()
+void ServicePort::onStopServer() const
 {
     close();
 }

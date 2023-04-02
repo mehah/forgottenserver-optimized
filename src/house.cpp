@@ -31,7 +31,7 @@
 #include "bed.h"
 
 extern ConfigManager g_config;
-extern Game g_game;
+
 
 House::House(const uint32_t houseId) : id(houseId) {}
 

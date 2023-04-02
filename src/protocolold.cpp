@@ -25,7 +25,6 @@
 
 #include "game.h"
 
-extern Game g_game;
 
 void ProtocolOld::disconnectClient(const std::string& message, const uint16_t version) const
 {

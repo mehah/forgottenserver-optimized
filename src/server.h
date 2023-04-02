@@ -79,7 +79,7 @@ public:
     bool add_service(const Service_ptr& new_svc);
     Protocol_ptr make_protocol(bool checksummed, NetworkMessage& msg, const Connection_ptr& connection) const;
 
-    void onStopServer();
+    void onStopServer() const;
     void onAccept(const Connection_ptr& connection, const std::error_code& error);
 
 private:

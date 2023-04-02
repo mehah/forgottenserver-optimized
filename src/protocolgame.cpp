@@ -43,7 +43,7 @@
 extern ConfigManager g_config;
 extern Actions actions;
 extern CreatureEvents* g_creatureEvents;
-extern Vocations g_vocations;
+
 extern Chat* g_chat;
 extern Spells* g_spells;
 extern Monsters g_monsters;
@@ -747,7 +747,9 @@ void ProtocolGame::GetTileDescription(const Tile * tile)
 void ProtocolGame::GetMapDescription(const int32_t x, const int32_t y, const int32_t z, const int32_t width, const int32_t height)
 {
     int32_t skip = -1;
-    int32_t startz, endz, zstep;
+    int32_t startz;
+    int32_t endz;
+    int32_t zstep;
     if (z > 7) {
         startz = z - 2;
         endz = std::min<int32_t>(MAP_MAX_LAYERS - 1, z + 2);
@@ -5888,7 +5890,7 @@ void ProtocolGame::AddItem(const uint16_t id, const uint8_t count)
 #endif
 }
 
-void ProtocolGame::AddItem(const Item * item) const
+void ProtocolGame::AddItem(const Item * item)
 {
     const ItemType& it = Item::items[item->getID()];
 

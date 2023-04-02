@@ -345,7 +345,7 @@ public:
     PartyShields_t getPartyShield(const Player* player) const;
     bool isInviting(const Player* player) const;
     bool isPartner(const Player* player) const;
-    void sendPlayerPartyIcons(Player* player);
+    void sendPlayerPartyIcons(Player* player) const;
     bool addPartyInvitation(Party* party);
     void removePartyInvitation(const Party* party);
     void clearPartyInvitations();

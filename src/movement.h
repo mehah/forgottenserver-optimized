@@ -85,8 +85,8 @@ private:
     Event_ptr getEvent(const std::string& nodeName) override;
     bool registerEvent(Event_ptr event, const pugi::xml_node& node) override;
 
-    void addEvent(MoveEvent_ptr moveEvent, uint16_t id, MoveListMap& map) const;
-    void addEvent(MoveEvent_ptr moveEvent, const Position& pos, MovePosListMap& map) const;
+    static void addEvent(MoveEvent_ptr moveEvent, uint16_t id, MoveListMap& map);
+    static void addEvent(MoveEvent_ptr moveEvent, const Position& pos, MovePosListMap& map);
 
     MoveEvent* getEvent(const Tile* tile, MoveEvent_t eventType);
 
@@ -211,9 +211,7 @@ public:
     void setNeedPremium(const bool b) {
         premium = b;
     }
-    uint32_t getWieldInfo() {
-        return wieldInfo;
-    }
+
     void setWieldInfo(const WieldInfo_t info) {
         wieldInfo |= info;
     }

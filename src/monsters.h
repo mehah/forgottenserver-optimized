@@ -240,7 +240,7 @@ public:
 
     MonsterInfo info;
 
-    void loadLoot(MonsterType* monsterType, LootBlock& lootblock) const;
+    static void loadLoot(MonsterType* monsterType, LootBlock& lootblock);
 };
 
 class MonsterSpell
@@ -252,8 +252,8 @@ public:
     MonsterSpell(const MonsterSpell&) = delete;
     MonsterSpell& operator=(const MonsterSpell&) = delete;
 
-    std::string name = "";
-    std::string scriptName = "";
+    std::string name;
+    std::string scriptName;
 
     uint8_t chance = 100;
     uint8_t range = 0;
@@ -316,8 +316,8 @@ public:
     static bool loadCallback(LuaScriptInterface* scriptInterface, MonsterType* mType);
 
 private:
-    ConditionDamage* getDamageCondition(ConditionType_t conditionType,
-                                        int32_t maxDamage, int32_t minDamage, int32_t startDamage, uint32_t tickInterval) const;
+    static ConditionDamage* getDamageCondition(ConditionType_t conditionType,
+                                               int32_t maxDamage, int32_t minDamage, int32_t startDamage, uint32_t tickInterval);
     bool deserializeSpell(const pugi::xml_node& node, spellBlock_t& sb, const std::string& description = "") const;
 
     MonsterType* loadMonster(const std::string& file, const std::string& monsterName, bool reloading = false);

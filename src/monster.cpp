@@ -26,7 +26,7 @@
 #include "events.h"
 #include "tasks.h"
 
-extern Game g_game;
+
 extern Monsters g_monsters;
 extern Events* g_events;
 
@@ -45,7 +45,7 @@ Monster* Monster::createMonster(const std::string& name)
 }
 
 Monster::Monster(MonsterType* mType) :
-    Creature(),
+
     strDescription(mType->nameDescription),
     mType(mType)
 {
@@ -1949,9 +1949,9 @@ void Monster::dropLoot(Container* corpse, Creature*)
 #if GAME_FEATURE_ANALYTICS > 0
         if (Player* owner = g_game.getPlayerByID(corpse->getCorpseOwner())) {
             owner->sendKillTracking(mType->name, currentOutfit, corpse);
-    }
+        }
 #endif
-}
+    }
 }
 
 void Monster::setNormalCreatureLight()

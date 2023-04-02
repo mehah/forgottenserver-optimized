@@ -26,8 +26,6 @@
 
 #include "movement.h"
 
-extern Game g_game;
-extern Vocations g_vocations;
 
 MoveEvents::MoveEvents() :
     scriptInterface("MoveEvents Interface")
@@ -375,7 +373,7 @@ bool MoveEvents::registerLuaEvent(const MoveEvent_ptr& event)
     return result;
 }
 
-void MoveEvents::addEvent(MoveEvent_ptr moveEvent, const uint16_t id, MoveListMap& map) const
+void MoveEvents::addEvent(MoveEvent_ptr moveEvent, const uint16_t id, MoveListMap& map)
 {
     const auto it = map.find(id);
     if (it == map.end()) {
@@ -441,7 +439,7 @@ MoveEvent* MoveEvents::getEvent(const Item* item, const MoveEvent_t eventType)
     return nullptr;
 }
 
-void MoveEvents::addEvent(MoveEvent_ptr moveEvent, const Position& pos, MovePosListMap& map) const
+void MoveEvents::addEvent(MoveEvent_ptr moveEvent, const Position& pos, MovePosListMap& map)
 {
     const auto it = map.find(pos);
     if (it == map.end()) {
@@ -514,7 +512,8 @@ uint32_t MoveEvents::onPlayerDeEquip(Player* player, Item* item, const slots_t s
 
 uint32_t MoveEvents::onItemMove(Item* item, const Tile* tile, const bool isAdd)
 {
-    MoveEvent_t eventType1, eventType2;
+    MoveEvent_t eventType1;
+    MoveEvent_t eventType2;
     if (isAdd) {
         eventType1 = MOVE_EVENT_ADD_ITEM;
         eventType2 = MOVE_EVENT_ADD_ITEM_ITEMTILE;
@@ -835,7 +834,7 @@ uint32_t MoveEvent::EquipItem(MoveEvent* moveEvent, Player* player, Item* item, 
 
         if (it.abilities->statsPercent[s]) {
             needUpdateStats = true;
-            player->setVarStats(static_cast<stats_t>(s), static_cast<int32_t>(player->getDefaultStats(static_cast<stats_t>(s)) * ((it.abilities->statsPercent[s] - 100) / 100.f)));
+            player->setVarStats(static_cast<stats_t>(s), static_cast<int32_t>(player->getDefaultStats(static_cast<stats_t>(s)) * ((it.abilities->statsPercent[s] - 100) / 100.F)));
         }
     }
 
@@ -921,7 +920,7 @@ uint32_t MoveEvent::DeEquipItem(MoveEvent*, Player* player, Item* item, slots_t 
 
         if (it.abilities->statsPercent[s]) {
             needUpdateStats = true;
-            player->setVarStats(static_cast<stats_t>(s), -static_cast<int32_t>(player->getDefaultStats(static_cast<stats_t>(s)) * ((it.abilities->statsPercent[s] - 100) / 100.f)));
+            player->setVarStats(static_cast<stats_t>(s), -static_cast<int32_t>(player->getDefaultStats(static_cast<stats_t>(s)) * ((it.abilities->statsPercent[s] - 100) / 100.F)));
         }
     }
 

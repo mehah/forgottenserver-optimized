@@ -24,7 +24,6 @@
 #include "game.h"
 #include "bed.h"
 
-extern Game g_game;
 
 void IOMapSerialize::loadHouseItems(const Map* map)
 {
@@ -42,7 +41,8 @@ void IOMapSerialize::loadHouseItems(const Map* map)
         PropStream propStream;
         propStream.init(attr, attrSize);
 
-        uint16_t x, y;
+        uint16_t x;
+        uint16_t y;
         uint8_t z;
         if (!propStream.read<uint16_t>(x) || !propStream.read<uint16_t>(y) || !propStream.read<uint8_t>(z)) {
             continue;

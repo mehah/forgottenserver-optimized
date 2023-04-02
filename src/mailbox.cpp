@@ -24,7 +24,6 @@
 #include "game.h"
 #include "iologindata.h"
 
-extern Game g_game;
 
 ReturnValue Mailbox::queryAdd(int32_t, const Thing& thing, uint32_t, uint32_t, Creature*) const
 {
@@ -89,7 +88,7 @@ void Mailbox::postRemoveNotification(Thing* thing, const Cylinder* newParent, co
     getParent()->postRemoveNotification(thing, newParent, index, LINK_PARENT);
 }
 
-bool Mailbox::sendItem(Item* item) const
+bool Mailbox::sendItem(Item* item)
 {
     std::string receiver;
     uint32_t depotId = 0;

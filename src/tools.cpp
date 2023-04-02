@@ -262,7 +262,11 @@ static void processSHA1MessageBlock(const uint8_t* messageBlock, uint32_t* H)
         W[i] = circularShift(1, W[i - 3] ^ W[i - 8] ^ W[i - 14] ^ W[i - 16]);
     }
 
-    uint32_t A = H[0], B = H[1], C = H[2], D = H[3], E = H[4];
+    uint32_t A = H[0];
+    uint32_t B = H[1];
+    uint32_t C = H[2];
+    uint32_t D = H[3];
+    uint32_t E = H[4];
 
     for (int i = 0; i < 20; ++i) {
         const uint32_t tmp = circularShift(5, A) + (B & C | ~B & D) + E + W[i] + 0x5A827999;
@@ -368,7 +372,8 @@ std::string generateToken(const std::string& key, uint32_t ticks)
     }
 
     // hmac key pad generation
-    std::string iKeyPad(64, 0x36), oKeyPad(64, 0x5C);
+    std::string iKeyPad(64, 0x36);
+    std::string oKeyPad(64, 0x5C);
     for (uint8_t i = 0; i < key.length(); ++i) {
         iKeyPad[i] ^= key[i];
         oKeyPad[i] ^= key[i];
@@ -450,7 +455,7 @@ void toLowerCaseString(std::string& source)
     const __m128i ranges2 = _mm_set1_epi8(-128 + ('Z' - 'A'));
     const __m128i diff = _mm_set1_epi8(0x20);
 
-    __m128i* mem = reinterpret_cast<__m128i*>(&source[0]);
+    __m128i* mem = reinterpret_cast<__m128i*>(source.data());
     size_t len = source.length();
     for (; len >= 16; ++mem) {
         const __m128i chunk = _mm_loadu_si128(mem);
@@ -494,7 +499,7 @@ void toUpperCaseString(std::string& source)
     const __m128i ranges2 = _mm_set1_epi8(-128 + ('z' - 'a'));
     const __m128i diff = _mm_set1_epi8(0x20);
 
-    __m128i* mem = reinterpret_cast<__m128i*>(&source[0]);
+    __m128i* mem = reinterpret_cast<__m128i*>(source.data());
     size_t len = source.length();
     for (; len >= 16; ++mem) {
         const __m128i chunk = _mm_loadu_si128(mem);
@@ -529,7 +534,8 @@ std::string asUpperCaseString(std::string source)
 StringVector explodeString(const std::string& inString, const std::string& separator, int32_t limit/* = -1*/)
 {
     StringVector returnVector;
-    std::string::size_type start = 0, end = 0;
+    std::string::size_type start = 0;
+    std::string::size_type end = 0;
     while (--limit != -1 && (end = inString.find(separator, start)) != std::string::npos) {
         returnVector.emplace_back(std::move(inString.substr(start, end - start)));
         start = end + separator.size();
@@ -575,7 +581,7 @@ double uniform_random()
 
 int32_t normal_random(int32_t minNumber, int32_t maxNumber)
 {
-    static std::normal_distribution<float> normalRand(0.5f, 0.25f);
+    static std::normal_distribution<float> normalRand(0.5F, 0.25F);
     if (minNumber == maxNumber) {
         return minNumber;
     }
@@ -1367,7 +1373,8 @@ uint32_t adlerChecksum(const uint8_t* data, size_t length)
     const __m128i zeros = _mm_setzero_si128();
 #endif
 
-    uint32_t a = 1, b = 0;
+    uint32_t a = 1;
+    uint32_t b = 0;
 
     while (length > 0) {
         size_t tmp = length > 5552 ? 5552 : length;

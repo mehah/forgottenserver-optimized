@@ -27,7 +27,6 @@
 #include "monster.h"
 #include "game.h"
 
-extern Game g_game;
 
 bool Map::loadMap(const std::string& identifier, const bool loadHouses)
 {
@@ -611,8 +610,10 @@ bool Map::checkSightLine(Position start, Position destination) const
     } else {
         // Xiaolin Wu's line algorithm - https://en.wikipedia.org/wiki/Xiaolin_Wu%27s_line_algorithm
         // based on Michael Abrash's implementation - https://www.amazon.com/gp/product/1576101746/102-5103244-8168911
-        uint16_t eAdj, eAcc = 0;
-        uint16_t deltaX = 0x0001, deltaY = 0x0001;
+        uint16_t eAdj;
+        uint16_t eAcc = 0;
+        uint16_t deltaX = 0x0001;
+        uint16_t deltaY = 0x0001;
 
         if (distanceY > distanceX) {
             eAdj = (static_cast<uint32_t>(distanceX) << 16) / static_cast<uint32_t>(distanceY);
@@ -627,7 +628,8 @@ bool Map::checkSightLine(Position start, Position destination) const
             }
 
             while (--distanceY > 0) {
-                uint16_t xIncrease = 0, eAccTemp = eAcc;
+                uint16_t xIncrease = 0;
+                uint16_t eAccTemp = eAcc;
                 eAcc += eAdj;
                 if (eAcc <= eAccTemp) {
                     xIncrease = deltaX;
@@ -657,7 +659,8 @@ bool Map::checkSightLine(Position start, Position destination) const
             }
 
             while (--distanceX > 0) {
-                uint16_t yIncrease = 0, eAccTemp = eAcc;
+                uint16_t yIncrease = 0;
+                uint16_t eAccTemp = eAcc;
                 eAcc += eAdj;
                 if (eAcc <= eAccTemp) {
                     yIncrease = deltaY;

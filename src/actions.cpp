@@ -28,7 +28,7 @@
 #include "pugicast.h"
 #include "spells.h"
 
-extern Game g_game;
+
 extern Spells* g_spells;
 extern Actions* g_actions;
 extern ConfigManager g_config;
@@ -313,7 +313,7 @@ bool Actions::registerLuaEvent(Action_ptr& event)
     return result;
 }
 
-ReturnValue Actions::canUse(const Player* player, const Position& pos) const
+ReturnValue Actions::canUse(const Player* player, const Position& pos)
 {
     if (pos.x != 0xFFFF) {
         const Position& playerPos = player->getPosition();
@@ -338,7 +338,7 @@ ReturnValue Actions::canUse(const Player* player, const Position& pos, const Ite
 }
 
 ReturnValue Actions::canUseFar(const Creature* creature, const Position& toPos, const bool checkLineOfSight,
-                               const bool checkFloor) const
+                               const bool checkFloor)
 {
     if (toPos.x == 0xFFFF) {
         return RETURNVALUE_NOERROR;

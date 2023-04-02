@@ -342,7 +342,7 @@ public:
     void sendGuildMotd(uint32_t playerId);
     void kickPlayer(uint32_t playerId, bool displayEffect);
     static void playerReportBug(Player* player, const std::string& message, const Position& position, uint8_t category);
-    void playerDebugAssert(const Player* player, const std::string& assertLine, const std::string& date, const std::string& description, const std::string& comment);
+    static void playerDebugAssert(const Player* player, const std::string& assertLine, const std::string& date, const std::string& description, const std::string& comment);
     void playerAnswerModalWindow(Player* player, uint32_t modalWindowId, uint8_t button, uint8_t choice) const;
     static void playerReportRuleViolation(Player* player, const std::string& targetName, uint8_t reportType, uint8_t reportReason, const std::string& comment, const std::string& translation);
 
@@ -385,7 +385,7 @@ public:
     void playerChannelExclude(const Player* player, const std::string& name);
     static void playerRequestChannels(Player* player);
     static void playerOpenChannel(Player* player, uint16_t channelId);
-    void playerCloseChannel(const Player* player, uint16_t channelId);
+    static void playerCloseChannel(const Player* player, uint16_t channelId);
     static void playerOpenPrivateChannel(Player* player, std::string& receiver);
 #if GAME_FEATURE_RULEVIOLATION > 0
     void playerRuleViolation(Player* player, const std::string& target, const std::string& comment, uint8_t reason, uint8_t action, uint32_t statementId, bool ipBanishment);
@@ -409,7 +409,7 @@ public:
 #endif
     void playerCloseNpcChannel(Player* player);
     static void playerReceivePing(Player* player);
-    void playerReceivePingBack(const Player* player);
+    static void playerReceivePingBack(const Player* player);
     void playerAutoWalk(uint32_t playerId, const std::vector<Direction>& listDir);
     static void playerStopAutoWalk(Player* player);
     void playerUseItemEx(uint32_t playerId, const Position& fromPos, uint8_t fromStackPos,
@@ -442,13 +442,13 @@ public:
     void playerRequestTrade(uint32_t playerId, const Position& pos, uint8_t stackPos,
                             uint32_t tradePlayerId, uint16_t spriteId);
     void playerAcceptTrade(Player* player);
-    void playerLookInTrade(Player* player, bool lookAtCounterOffer, uint8_t index) const;
+    static void playerLookInTrade(Player* player, bool lookAtCounterOffer, uint8_t index);
     static void playerPurchaseItem(Player* player, uint16_t spriteId, uint8_t count, uint8_t amount,
                                    bool ignoreCap = false, bool inBackpacks = false);
     static void playerSellItem(Player* player, uint16_t spriteId, uint8_t count,
                                uint8_t amount, bool ignoreEquipped = false);
     static void playerCloseShop(Player* player);
-    void playerLookInShop(Player* player, uint16_t spriteId, uint8_t count) const;
+    static void playerLookInShop(Player* player, uint16_t spriteId, uint8_t count);
     void playerCloseTrade(Player* player);
     void playerSetAttackedCreature(uint32_t playerId, uint32_t creatureId);
     void playerFollowCreature(uint32_t playerId, uint32_t creatureId);
@@ -478,12 +478,12 @@ public:
 #if GAME_FEATURE_MARKET > 0
     static void playerLeaveMarket(Player* player);
     static void playerBrowseMarket(Player* player, uint16_t spriteId);
-    void playerBrowseMarketOwnOffers(const Player* player);
-    void playerBrowseMarketOwnHistory(const Player* player);
+    static void playerBrowseMarketOwnOffers(const Player* player);
+    static void playerBrowseMarketOwnHistory(const Player* player);
     void playerCreateMarketOffer(Player* player, uint8_t type, uint16_t spriteId, uint16_t amount, uint32_t price, bool anonymous);
     void playerCancelMarketOffer(Player* player, uint32_t timestamp, uint16_t counter);
     void playerAcceptMarketOffer(Player* player, uint32_t timestamp, uint16_t counter, uint16_t amount);
-    std::vector<Item*> getMarketItemList(uint16_t wareId, uint16_t sufficientCount, DepotChest* depotChest, Inbox* inbox) const;
+    static std::vector<Item*> getMarketItemList(uint16_t wareId, uint16_t sufficientCount, DepotChest* depotChest, Inbox* inbox);
 #endif
 
     static void playerExtendedOpcode(Player* player, uint8_t opcode, const std::string& buffer);

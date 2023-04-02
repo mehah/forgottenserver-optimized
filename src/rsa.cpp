@@ -38,7 +38,9 @@ RSA::~RSA()
 
 void RSA::setKey(const char* pString, const char* qString, const int base/* = 10*/)
 {
-    mpz_t p, q, e;
+    mpz_t p;
+    mpz_t q;
+    mpz_t e;
     mpz_init2(p, 1024);
     mpz_init2(q, 1024);
     mpz_init(e);
@@ -53,7 +55,9 @@ void RSA::setKey(const char* pString, const char* qString, const int base/* = 10
     mpz_mul(n, p, q);
 
     // d = e^-1 mod (p - 1)(q - 1)
-    mpz_t p_1, q_1, pq_1;
+    mpz_t p_1;
+    mpz_t q_1;
+    mpz_t pq_1;
     mpz_init2(p_1, 1024);
     mpz_init2(q_1, 1024);
     mpz_init2(pq_1, 1024);
@@ -78,7 +82,8 @@ void RSA::setKey(const char* pString, const char* qString, const int base/* = 10
 
 void RSA::decrypt(char* msg) const
 {
-    mpz_t c, m;
+    mpz_t c;
+    mpz_t m;
     mpz_init2(c, 1024);
     mpz_init2(m, 1024);
 
@@ -187,7 +192,9 @@ bool RSA::loadPEM(const std::string& filename)
 
     std::ifstream file{ filename };
     if (file.is_open()) {
-        std::string key, pString, qString;
+        std::string key;
+        std::string pString;
+        std::string qString;
         for (std::string line; std::getline(file, line); key.append(line));
 
         if (key.compare(0, header_old.size(), header_old) == 0) {
@@ -206,13 +213,13 @@ bool RSA::loadPEM(const std::string& filename)
             throw std::runtime_error("Missing RSA private key header.");
         }
 
-        char* pos = &key[0];
+        char* pos = key.data();
         if (static_cast<unsigned char>(*pos++) != CRYPT_RSA_ASN1_SEQUENCE) {
             throw std::runtime_error("Invalid unsupported RSA key.");
         }
 
         unsigned int length = DecodeLength(pos);
-        if (length != key.length() - std::distance(&key[0], pos)) {
+        if (length != key.length() - std::distance(key.data(), pos)) {
             throw std::runtime_error("Invalid unsupported RSA key.");
         }
 
@@ -234,7 +241,7 @@ bool RSA::loadPEM(const std::string& filename)
             }
 
             length = DecodeLength(pos);
-            if (length != key.length() - std::distance(&key[0], pos)) {
+            if (length != key.length() - std::distance(key.data(), pos)) {
                 throw std::runtime_error("Invalid unsupported RSA key.");
             }
 

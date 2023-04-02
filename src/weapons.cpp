@@ -26,8 +26,7 @@
 #include "pugicast.h"
 #include "weapons.h"
 
-extern Game g_game;
-extern Vocations g_vocations;
+
 extern ConfigManager g_config;
 extern Weapons* g_weapons;
 
@@ -685,19 +684,19 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
                     chance = std::min<uint32_t>(skill, 74) + 1;
                     break;
                 case 2:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 28) * 2.40f) + 8;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 28) * 2.40F) + 8;
                     break;
                 case 3:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 45) * 1.55f) + 6;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 45) * 1.55F) + 6;
                     break;
                 case 4:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 58) * 1.25f) + 3;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 58) * 1.25F) + 3;
                     break;
                 case 6:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 90) * 0.80f) + 3;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 90) * 0.80F) + 3;
                     break;
                 case 7:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 104) * 0.70f) + 2;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 104) * 0.70F) + 2;
                     break;
                 default:
                     chance = it.hitChance;
@@ -708,16 +707,16 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
             switch (distance) {
                 case 1:
                 case 5:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 74) * 1.20f) + 1;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 74) * 1.20F) + 1;
                     break;
                 case 2:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 28) * 3.20f);
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 28) * 3.20F);
                     break;
                 case 3:
                     chance = std::min<uint32_t>(skill, 45) * 2;
                     break;
                 case 4:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 58) * 1.55f);
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 58) * 1.55F);
                     break;
                 case 6:
                 case 7:
@@ -731,22 +730,22 @@ bool WeaponDistance::useWeapon(Player* player, Item* item, Creature* target) con
             switch (distance) {
                 case 1:
                 case 5:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 73) * 1.35f) + 1;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 73) * 1.35F) + 1;
                     break;
                 case 2:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 30) * 3.20f) + 4;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 30) * 3.20F) + 4;
                     break;
                 case 3:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 48) * 2.05f) + 2;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 48) * 2.05F) + 2;
                     break;
                 case 4:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 65) * 1.50f) + 2;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 65) * 1.50F) + 2;
                     break;
                 case 6:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 87) * 1.20f) - 4;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 87) * 1.20F) - 4;
                     break;
                 case 7:
-                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 90) * 1.10f) + 1;
+                    chance = static_cast<uint32_t>(std::min<uint32_t>(skill, 90) * 1.10F) + 1;
                     break;
                 default:
                     chance = it.hitChance;

@@ -27,7 +27,7 @@
 #include "pugicast.h"
 #include "spells.h"
 
-extern Game g_game;
+
 extern Spells* g_spells;
 extern Monsters g_monsters;
 extern Vocations g_vocations;
@@ -47,7 +47,8 @@ Spells::~Spells()
 
 TalkActionResult_t Spells::playerSaySpell(Player* player, std::string& words, const std::string& lowerWords)
 {
-    std::string param, instantWords = lowerWords;
+    std::string param;
+    std::string instantWords = lowerWords;
     if (instantWords.size() >= 4 && instantWords.front() != '"') {
         const size_t param_find = instantWords.find('"');
         if (param_find != std::string::npos && instantWords[param_find - 1] == ' ') {

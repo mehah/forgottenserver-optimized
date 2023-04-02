@@ -25,7 +25,6 @@
 #include "iologindata.h"
 #include "tasks.h"
 
-extern Game g_game;
 
 BedItem::BedItem(const uint16_t id) : Item(id)
 {

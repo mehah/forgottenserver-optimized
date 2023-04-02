@@ -256,13 +256,14 @@ public:
         return healthMax;
     }
 
-    const Outfit_t getCurrentOutfit() const {
+    Outfit_t getCurrentOutfit() const {
         return currentOutfit;
     }
     void setCurrentOutfit(const Outfit_t outfit) {
         currentOutfit = outfit;
     }
-    const Outfit_t getDefaultOutfit() const {
+
+    Outfit_t getDefaultOutfit() const {
         return defaultOutfit;
     }
     bool isInvisible() const;
@@ -329,10 +330,10 @@ public:
         return 0;
     }
     virtual float getAttackFactor() const {
-        return 1.0f;
+        return 1.0F;
     }
     virtual float getDefenseFactor() const {
-        return 1.0f;
+        return 1.0F;
     }
 
     virtual uint8_t getSpeechBubble() const {

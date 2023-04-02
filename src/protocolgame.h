@@ -135,7 +135,7 @@ private:
 
     void parseCyclopediaMonsters(NetworkMessage& msg) const;
     void parseCyclopediaRace(NetworkMessage& msg) const;
-    void parseCyclopediaHouseAction(const NetworkMessage& msg);
+    static void parseCyclopediaHouseAction(const NetworkMessage& msg);
 #if GAME_FEATURE_CYCLOPEDIA_CHARACTERINFO > 0
     void parseCyclopediaCharacterInfo(NetworkMessage& msg);
 #endif
@@ -473,7 +473,7 @@ private:
 
     //items
     static void AddItem(uint16_t id, uint8_t count);
-    void AddItem(const Item* item) const;
+    static void AddItem(const Item* item);
 
     //otclient
     void parseExtendedOpcode(NetworkMessage& msg) const;

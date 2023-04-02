@@ -225,7 +225,7 @@ private:
     bool enabled = true;
     bool premium = false;
     bool wieldUnproperly = false;
-    std::string vocationString = "";
+    std::string vocationString;
 
     std::string getScriptEventName() const final;
 

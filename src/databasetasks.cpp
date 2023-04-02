@@ -23,7 +23,6 @@
 #include "databasetasks.h"
 #include "tasks.h"
 
-extern Dispatcher g_dispatcher;
 
 void DatabaseTasks::threadMain()
 {

@@ -26,7 +26,7 @@
 #include "game.h"
 
 extern ConfigManager g_config;
-extern Game g_game;
+
 
 Account IOLoginData::loadAccount(const uint32_t accno)
 {
@@ -60,7 +60,8 @@ std::string decodeSecret(const std::string& secret)
     std::string key;
     key.reserve(10);
 
-    uint32_t buffer = 0, left = 0;
+    uint32_t buffer = 0;
+    uint32_t left = 0;
     for (const auto& ch : secret) {
         buffer <<= 5;
         if (ch >= 'A' && ch <= 'Z') {

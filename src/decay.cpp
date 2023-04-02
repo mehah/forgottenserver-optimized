@@ -23,7 +23,7 @@
 #include "game.h"
 #include "tasks.h"
 
-extern Game g_game;
+
 Decay g_decay;
 
 void Decay::startDecay(Item* item, const int32_t duration)
@@ -55,7 +55,8 @@ void Decay::stopDecay(Item* item, const int64_t timestamp)
     if (it != decayMap.end()) {
         std::vector<Item*>& decayItems = it->second;
 
-        size_t i = 0, end = decayItems.size();
+        size_t i = 0;
+        size_t end = decayItems.size();
         if (end == 1) {
             if (item == decayItems[i]) {
                 if (item->hasAttribute(ITEM_ATTRIBUTE_DURATION)) {
@@ -94,7 +95,8 @@ void Decay::checkDecay()
     std::vector<Item*> tempItems;
     tempItems.reserve(32);// Small preallocation
 
-    auto it = decayMap.begin(), end = decayMap.end();
+    auto it = decayMap.begin();
+    auto end = decayMap.end();
     while (it != end) {
         if (it->first > timestamp) {
             break;
