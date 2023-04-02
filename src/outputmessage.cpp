@@ -25,6 +25,7 @@
 #include "lockfree.h"
 #include "tasks.h"
 
+const uint16_t OUTPUTMESSAGE_FREE_LIST_CAPACITY = 2048;
 const std::chrono::milliseconds OUTPUTMESSAGE_AUTOSEND_DELAY{ 10 };
 
 void OutputMessagePool::scheduleSendAll()
@@ -68,5 +69,7 @@ void OutputMessagePool::removeProtocolFromAutosend(const Protocol_ptr& protocol)
 
 OutputMessage_ptr OutputMessagePool::getOutputMessage()
 {
-    return std::make_shared<OutputMessage>();
+    // LockfreePoolingAllocator<void,...> will leave (void* allocate) ill-formed because
+    // of sizeof(T), so this guaranatees that only one list will be initialized
+    return std::allocate_shared<OutputMessage>(LockfreePoolingAllocator<void, OUTPUTMESSAGE_FREE_LIST_CAPACITY>());
 }

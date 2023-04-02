@@ -63,7 +63,7 @@ public:
 class ServicePort : public std::enable_shared_from_this<ServicePort>
 {
 public:
-    explicit ServicePort(asio::io_service& io_service) : io_service(io_service) {}
+    explicit ServicePort(boost::asio::io_service& io_service) : io_service(io_service) {}
     ~ServicePort();
 
     // non-copyable
@@ -80,15 +80,15 @@ public:
     Protocol_ptr make_protocol(bool checksummed, NetworkMessage& msg, const Connection_ptr& connection) const;
 
     void onStopServer();
-    void onAccept(const Connection_ptr& connection, const std::error_code& error);
+    void onAccept(const Connection_ptr& connection, const boost::system::error_code& error);
 
 private:
     void accept();
 
-    asio::io_service& io_service;
-    std::unique_ptr<asio::ip::tcp::acceptor> acceptor;
+    boost::asio::io_service& io_service;
+    std::unique_ptr<boost::asio::ip::tcp::acceptor> acceptor;
     std::vector<Service_ptr> services;
-    asio::high_resolution_timer deadline_timer{ io_service };
+    boost::asio::deadline_timer deadline_timer{ io_service };
 
     uint16_t serverPort = 0;
     bool pendingStart = false;
@@ -119,9 +119,9 @@ private:
 
     std::unordered_map<uint16_t, ServicePort_ptr> acceptors;
 
-    asio::io_service io_service;
+    boost::asio::io_service io_service;
     Signals signals{ io_service };
-    asio::high_resolution_timer death_timer{ io_service };
+    boost::asio::deadline_timer death_timer{ io_service };
     bool running = false;
 };
 

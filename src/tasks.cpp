@@ -39,12 +39,13 @@ void Dispatcher::addTask(std::function<void(void)> functor)
     io_service.post(
 #endif
 #ifdef __cpp_generic_lambdas
-         [this, f = std::move(functor)] {
-        ++dispatcherCycle;
+         [this, f = std::move(functor)]
+         {
+             ++dispatcherCycle;
 
-        // execute it
-        (f)();
-    });
+             // execute it
+             (f)();
+         });
 #else
         [this, functor]() {
         ++dispatcherCycle;
@@ -64,16 +65,16 @@ uint64_t Dispatcher::addEvent(const uint32_t delay, std::function<void(void)> fu
     uint64_t eventId = ++lastEventId;
     const auto res = eventIds.emplace(std::piecewise_construct, std::forward_as_tuple(eventId), std::forward_as_tuple(io_service));
 
-    asio::high_resolution_timer& timer = res.first->second;
-    timer.expires_from_now(asio::chrono::milliseconds(delay));
+    boost::asio::deadline_timer& timer = res.first->second;
+    timer.expires_from_now(boost::posix_time::milliseconds(delay));
 #ifdef __cpp_generic_lambdas
-    timer.async_wait([this, eventId, f = std::move(functor)](const std::error_code& error) {
+    timer.async_wait([this, eventId, f = std::move(functor)](const boost::system::error_code& error) {
 #else
-    timer.async_wait([this, eventId, functor](const std::error_code& error) {
+    timer.async_wait([this, eventId, functor](const boost::system::error_code& error) {
 #endif
         eventIds.erase(eventId);
 
-        if (error == asio::error::operation_aborted || getState() == THREAD_STATE_TERMINATED) {
+        if (error == boost::asio::error::operation_aborted || getState() == THREAD_STATE_TERMINATED) {
             return;
         }
 
@@ -105,11 +106,12 @@ void Dispatcher::shutdown()
 #else
     io_service.post(
 #endif
-         [this] {
-        for (auto& it : eventIds) {
-            it.second.cancel();
-        }
+         [this]
+         {
+             for (auto& it : eventIds) {
+                 it.second.cancel();
+             }
 
-        work.reset();
-    });
+             work.reset();
+         });
 }

@@ -97,7 +97,7 @@ public:
     void clear() noexcept { specs.clear(); }
     void reserve(const size_t count) { specs.reserve(count); }
     void push_back(const CreatureVector::value_type element) { return specs.push_back(element); }
-    CreatureVector::value_type emplace_back(CreatureVector::value_type element) { return specs.emplace_back(element); }
+    void emplace_back(CreatureVector::value_type element) { return specs.emplace_back(element); }
     CreatureVector::reference operator[](const size_t index) { return specs.operator[](index); }
     CreatureVector::const_reference operator[](const size_t index) const { return specs.operator[](index); }
 
@@ -158,7 +158,7 @@ public:
     size_t size() const noexcept { return vec.size(); }
     void clear() noexcept { vec.clear(); }
     void push_back(const ItemVector::value_type element) { return vec.push_back(element); }
-    ItemVector::value_type emplace_back(ItemVector::value_type element) { return vec.emplace_back(element); }
+    void emplace_back(ItemVector::value_type element) { return vec.emplace_back(element); }
     ItemVector::iterator erase(const ItemVector::const_iterator it) { return vec.erase(it); }
     ItemVector::iterator erase(const ItemVector::const_iterator first, const ItemVector::const_iterator last) { return vec.erase(first, last); }
     ItemVector::reference operator[](const size_t index) { return vec.operator[](index); }

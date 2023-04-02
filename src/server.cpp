@@ -63,15 +63,15 @@ void ServiceManager::stop()
 #else
             io_service.post(std::bind(&ServicePort::onStopServer, servicePortIt.second));
 #endif
-        } catch (std::system_error& e) {
+        } catch (boost::system::system_error& e) {
             std::cout << "[ServiceManager::stop] Network Error: " << e.what() << std::endl;
         }
     }
 
     acceptors.clear();
 
-    death_timer.expires_from_now(asio::chrono::seconds(3));
-    death_timer.async_wait(std::bind(&ServiceManager::die, this));
+    death_timer.expires_from_now(boost::posix_time::seconds(3));
+    death_timer.async_wait([this] { die(); });
 }
 
 ServicePort::~ServicePort()
@@ -106,12 +106,13 @@ void ServicePort::accept()
     }
 
     auto connection = ConnectionManager::getInstance().createConnection(io_service, shared_from_this());
-    acceptor->async_accept(connection->getSocket(), [capture0 = shared_from_this(), connection](auto&& PH1) {
+    acceptor->async_accept(connection->getSocket(), [capture0 = shared_from_this(), connection](auto&& PH1)
+    {
         capture0->onAccept(connection, std::forward<decltype(PH1)>(PH1));
     });
 }
 
-void ServicePort::onAccept(const Connection_ptr& connection, const std::error_code& error)
+void ServicePort::onAccept(const Connection_ptr& connection, const boost::system::error_code& error)
 {
     if (!error) {
         if (services.empty()) {
@@ -131,12 +132,15 @@ void ServicePort::onAccept(const Connection_ptr& connection, const std::error_co
         }
 
         accept();
-    } else if (error != asio::error::operation_aborted) {
+    } else if (error != boost::asio::error::operation_aborted) {
         if (!pendingStart) {
             close();
             pendingStart = true;
-            deadline_timer.expires_from_now(asio::chrono::seconds(15));
-            deadline_timer.async_wait(std::bind(&ServicePort::openAcceptor, std::weak_ptr<ServicePort>(shared_from_this()), serverPort));
+            deadline_timer.expires_from_now(boost::posix_time::seconds(15));
+            deadline_timer.async_wait([capture0 = std::weak_ptr<ServicePort>(shared_from_this()), this]
+            {
+                return ServicePort::openAcceptor(capture0, serverPort);
+            });
         }
     }
 }
@@ -177,29 +181,32 @@ void ServicePort::open(uint16_t port)
 
     try {
         if (g_config.getBoolean(ConfigManager::BIND_ONLY_GLOBAL_ADDRESS)) {
-            acceptor = std::make_unique<asio::ip::tcp::acceptor>(io_service, asio::ip::tcp::endpoint(
-                asio::ip::address(asio::ip::address_v4::from_string(g_config.getString(ConfigManager::IP))), serverPort));
+            acceptor = std::make_unique<boost::asio::ip::tcp::acceptor>(io_service, boost::asio::ip::tcp::endpoint(
+                                                                            boost::asio::ip::address(boost::asio::ip::address_v4::from_string(g_config.getString(ConfigManager::IP))), serverPort));
         } else {
-            acceptor = std::make_unique<asio::ip::tcp::acceptor>(io_service, asio::ip::tcp::endpoint(
-                asio::ip::address(asio::ip::address_v4(INADDR_ANY)), serverPort));
+            acceptor = std::make_unique<boost::asio::ip::tcp::acceptor>(io_service, boost::asio::ip::tcp::endpoint(
+                                                                            boost::asio::ip::address(boost::asio::ip::address_v4(INADDR_ANY)), serverPort));
         }
 
-        acceptor->set_option(asio::ip::tcp::no_delay(true));
+        acceptor->set_option(boost::asio::ip::tcp::no_delay(true));
 
         accept();
-    } catch (std::system_error& e) {
+    } catch (boost::system::system_error& e) {
         std::cout << "[ServicePort::open] Error: " << e.what() << std::endl;
 
         pendingStart = true;
-        deadline_timer.expires_from_now(asio::chrono::seconds(15));
-        deadline_timer.async_wait(std::bind(&ServicePort::openAcceptor, std::weak_ptr<ServicePort>(shared_from_this()), port));
+        deadline_timer.expires_from_now(boost::posix_time::seconds(15));
+        deadline_timer.async_wait([capture0 = std::weak_ptr<ServicePort>(shared_from_this()), port]
+        {
+            return ServicePort::openAcceptor(capture0, port);
+        });
     }
 }
 
 void ServicePort::close() const
 {
     if (acceptor && acceptor->is_open()) {
-        std::error_code error;
+        boost::system::error_code error;
         acceptor->close(error);
     }
 }

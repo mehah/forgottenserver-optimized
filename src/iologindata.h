@@ -35,9 +35,9 @@ public:
 
     static bool loginserverAuthentication(const std::string& name, const std::string& password, Account& account);
 #if GAME_FEATURE_SESSIONKEY > 0
-    static uint32_t gameworldAuthentication(const std::string& accountName, const std::string& password, std::string& characterName, const std::string& token, uint32_t tokenTime);
+    static uint32_t gameworldAuthentication(const std::string& accountName, const std::string& password, const std::string& characterName, const std::string& token, uint32_t tokenTime);
 #else
-    static uint32_t gameworldAuthentication(const std::string& accountName, const std::string& password, std::string& characterName);
+    static uint32_t gameworldAuthentication(const std::string& accountName, const std::string& password, const std::string& characterName);
 #endif
 
     static AccountType_t getAccountType(uint32_t accountId);
