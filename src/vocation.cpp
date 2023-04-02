@@ -115,7 +115,7 @@ bool Vocations::loadFromXml()
             if (strcasecmp(childNode.name(), "skill") == 0) {
                 pugi::xml_attribute skillIdAttribute = childNode.attribute("id");
                 if (skillIdAttribute) {
-                    auto skill_id = pugi::cast<uint16_t>(skillIdAttribute.value());
+                    const auto skill_id = pugi::cast<uint16_t>(skillIdAttribute.value());
                     if (skill_id <= SKILL_LAST) {
                         voc.skillMultipliers[skill_id] = pugi::cast<double>(childNode.attribute("multiplier").value());
                     } else {

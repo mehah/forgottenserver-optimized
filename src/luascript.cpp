@@ -3588,7 +3588,7 @@ int LuaScriptInterface::luaFastRelocate(lua_State* L)
             }
 
             for (Creature* spectator : spectators) {
-                if (Player* tmpPlayer = spectator->getPlayer()) {
+                if (const Player* tmpPlayer = spectator->getPlayer()) {
                     tmpPlayer->sendUpdateTile(fromTile, fromPos);
                     tmpPlayer->sendUpdateTile(toTile, toPos);
                 }
@@ -3731,7 +3731,7 @@ bool LuaScriptInterface::getArea(lua_State* L, std::list<uint32_t>& list, uint32
 int LuaScriptInterface::luaCreateCombatArea(lua_State* L)
 {
     //createCombatArea( {area}, <optional> {extArea} )
-    ScriptEnvironment* env = getScriptEnv();
+    const ScriptEnvironment* env = getScriptEnv();
     if (env->getScriptId() != EVENT_ID_LOADING) {
         reportErrorFunc("This function can only be used while loading the script.");
         pushBoolean(L, false);
@@ -6187,7 +6187,7 @@ int LuaScriptInterface::luaNetworkMessageSendToPlayer(lua_State* L)
         return 1;
     }
 
-    Player* player = getPlayer(L, 2);
+    const Player* player = getPlayer(L, 2);
     if (player) {
         player->sendNetworkMessage(*message);
         pushBoolean(L, true);
@@ -6882,7 +6882,7 @@ int LuaScriptInterface::luaItemSetAttribute(lua_State* L)
 int LuaScriptInterface::luaItemRemoveAttribute(lua_State* L)
 {
     // item:removeAttribute(key)
-    Item* item = getUserdata<Item>(L, 1);
+    const Item* item = getUserdata<Item>(L, 1);
     if (!item) {
         lua_pushnil(L);
         return 1;
@@ -6980,7 +6980,7 @@ int LuaScriptInterface::luaItemSetCustomAttribute(lua_State* L) {
 
 int LuaScriptInterface::luaItemRemoveCustomAttribute(lua_State* L) {
     // item:removeCustomAttribute(key)
-    Item* item = getUserdata<Item>(L, 1);
+    const Item* item = getUserdata<Item>(L, 1);
     if (!item) {
         lua_pushnil(L);
         return 1;
@@ -7650,7 +7650,7 @@ int LuaScriptInterface::luaCreatureGetName(lua_State* L)
 int LuaScriptInterface::luaCreatureGetTarget(lua_State* L)
 {
     // creature:getTarget()
-    auto* creature = getUserdata<Creature>(L, 1);
+    const auto* creature = getUserdata<Creature>(L, 1);
     if (!creature) {
         lua_pushnil(L);
         return 1;
@@ -7769,7 +7769,7 @@ int LuaScriptInterface::luaCreatureSetMaster(lua_State* L)
     g_game.updateCreatureType(creature);
 #endif
     return 1;
-    }
+}
 
 int LuaScriptInterface::luaCreatureGetLight(lua_State* L)
 {
@@ -9868,7 +9868,7 @@ int LuaScriptInterface::luaPlayerSendTextMessage(lua_State* L)
 int LuaScriptInterface::luaPlayerSendChannelMessage(lua_State* L)
 {
     // player:sendChannelMessage(author, text, type, channelId)
-    auto* player = getUserdata<Player>(L, 1);
+    const auto* player = getUserdata<Player>(L, 1);
     if (!player) {
         lua_pushnil(L);
         return 1;
@@ -9886,7 +9886,7 @@ int LuaScriptInterface::luaPlayerSendChannelMessage(lua_State* L)
 int LuaScriptInterface::luaPlayerSendPrivateMessage(lua_State* L)
 {
     // player:sendPrivateMessage(speaker, text[, type])
-    auto* player = getUserdata<Player>(L, 1);
+    const auto* player = getUserdata<Player>(L, 1);
     if (!player) {
         lua_pushnil(L);
         return 1;
@@ -10049,7 +10049,7 @@ int LuaScriptInterface::luaPlayerHasOutfit(lua_State* L)
 int LuaScriptInterface::luaPlayerSendOutfitWindow(lua_State* L)
 {
     // player:sendOutfitWindow()
-    auto* player = getUserdata<Player>(L, 1);
+    const auto* player = getUserdata<Player>(L, 1);
     if (player) {
         player->sendOutfitWindow();
         pushBoolean(L, true);
@@ -10316,7 +10316,7 @@ int LuaScriptInterface::luaPlayerHasLearnedSpell(lua_State* L)
 int LuaScriptInterface::luaPlayerSendTutorial(lua_State* L)
 {
     // player:sendTutorial(tutorialId)
-    auto* player = getUserdata<Player>(L, 1);
+    const auto* player = getUserdata<Player>(L, 1);
     if (player) {
         const uint8_t tutorialId = getNumber<uint8_t>(L, 2);
         player->sendTutorial(tutorialId);
@@ -10330,7 +10330,7 @@ int LuaScriptInterface::luaPlayerSendTutorial(lua_State* L)
 int LuaScriptInterface::luaPlayerAddMapMark(lua_State* L)
 {
     // player:addMapMark(position, type, description)
-    auto* player = getUserdata<Player>(L, 1);
+    const auto* player = getUserdata<Player>(L, 1);
     if (player) {
         const Position& position = getPosition(L, 2);
         const uint8_t type = getNumber<uint8_t>(L, 3);
@@ -10359,7 +10359,7 @@ int LuaScriptInterface::luaPlayerSave(lua_State* L)
 int LuaScriptInterface::luaPlayerPopupFYI(lua_State* L)
 {
     // player:popupFYI(message)
-    auto* player = getUserdata<Player>(L, 1);
+    const auto* player = getUserdata<Player>(L, 1);
     if (player) {
         const std::string& message = getString(L, 2);
         player->sendFYIBox(message);
@@ -10425,7 +10425,7 @@ int LuaScriptInterface::luaPlayerSendHouseWindow(lua_State* L)
         return 1;
     }
 
-    auto* house = getUserdata<House>(L, 2);
+    const auto* house = getUserdata<House>(L, 2);
     if (!house) {
         lua_pushnil(L);
         return 1;
@@ -10483,7 +10483,7 @@ int LuaScriptInterface::luaPlayerSetGhostMode(lua_State* L)
     SpectatorVector spectators;
     g_game.map.getSpectators(spectators, position, true, true);
     for (Creature* spectator : spectators) {
-        Player* tmpPlayer = spectator->getPlayer();
+        const Player* tmpPlayer = spectator->getPlayer();
         if (tmpPlayer != player && !tmpPlayer->isAccessPlayer()) {
             if (enabled) {
                 tmpPlayer->sendRemoveTileThing(position, tile->getStackposOfCreature(tmpPlayer, player));
@@ -11798,7 +11798,7 @@ int LuaScriptInterface::luaHouseGetBeds(lua_State* L)
 int LuaScriptInterface::luaHouseGetBedCount(lua_State* L)
 {
     // house:getBedCount()
-    auto* house = getUserdata<House>(L, 1);
+    const auto* house = getUserdata<House>(L, 1);
     if (house) {
         lua_pushnumber(L, house->getBedCount());
     } else {
@@ -15781,7 +15781,7 @@ int LuaScriptInterface::luaMoveEventRegister(lua_State* L)
     // moveevent:register()
     MoveEvent** moveeventPtr = getRawUserdata<MoveEvent>(L, 1);
     if (moveeventPtr && *moveeventPtr) {
-        MoveEvent_ptr moveEvent{ *moveeventPtr };
+        const MoveEvent_ptr moveEvent{ *moveeventPtr };
         if (!moveEvent->isScripted()) {
             pushBoolean(L, g_moveEvents->registerLuaFunction(moveEvent));
         } else {

@@ -64,7 +64,7 @@ void Party::disband()
     }
 
     for (Player* member : memberList) {
-        for (Player* otherMember : memberList) {
+        for (const Player* otherMember : memberList) {
             otherMember->sendPlayerPartyIcons(member);
         }
 
@@ -179,7 +179,7 @@ bool Party::passPartyLeadership(Player* player)
 #endif
     }
 
-    for (Player* invitee : inviteList) {
+    for (const Player* invitee : inviteList) {
         invitee->sendCreatureShield(oldLeader);
         invitee->sendCreatureShield(leader);
     }

@@ -106,12 +106,12 @@ public:
 
     void mergeSpectators(const SpectatorVector& spectators) {
         size_t it = 0;
-        size_t end = spectators.size();
+        const size_t end = spectators.size();
         while (it < end) {
             Creature* spectator = spectators[it];
 
             size_t cit = 0;
-            size_t cend = size();
+            const size_t cend = size();
             while (cit < cend) {
                 if (specs[cit] == spectator) {
                     goto Skip_Duplicate;
@@ -127,7 +127,7 @@ public:
 
     void erase(const Creature* spectator) {
         size_t it = 0;
-        size_t end = size();
+        const size_t end = size();
         while (it < end) {
             if (specs[it] == spectator) {
                 specs[it] = specs.back();

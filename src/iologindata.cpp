@@ -158,7 +158,7 @@ uint32_t IOLoginData::gameworldAuthentication(const std::string& accountName, co
         return 0;
     }
 
-    auto accountId = result->getNumber<uint32_t>("id");
+    const auto accountId = result->getNumber<uint32_t>("id");
 
     query.clear();
     query << "SELECT `account_id`, `name`, `deletion` FROM `players` WHERE `name` = " << escapedCharacterName << " LIMIT 1";
@@ -244,8 +244,8 @@ bool IOLoginData::preloadPlayer(Player* player, const std::string& name)
     query.clear();
     query << "SELECT `guild_id`, `rank_id`, `nick` FROM `guild_membership` WHERE `player_id` = " << player->getGUID() << " LIMIT 1";
     if ((result = g_database.storeQuery(query))) {
-        auto guildId = result->getNumber<uint32_t>("guild_id");
-        auto playerRankId = result->getNumber<uint32_t>("rank_id");
+        const auto guildId = result->getNumber<uint32_t>("guild_id");
+        const auto playerRankId = result->getNumber<uint32_t>("rank_id");
         player->guildNick = std::move(result->getString("nick"));
 
         Guild* guild = g_game.getGuild(guildId);
@@ -571,8 +571,8 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
                 player->internalAddThing(pid, item);
                 item->startDecaying();
             }
+            }
         }
-    }
 
 #if GAME_FEATURE_STORE_INBOX > 0
     if (!player->inventory[CONST_SLOT_STORE_INBOX]) {
@@ -679,7 +679,7 @@ bool IOLoginData::loadPlayer(Player* player, DBResult_ptr result)
     player->updateInventoryWeight();
     player->updateItemsLight(true);
     return true;
-}
+    }
 
 void IOLoginData::saveItem(PropWriteStream & stream, const Item * item)
 {
@@ -952,8 +952,8 @@ bool IOLoginData::savePlayer(Player * player)
                     continue;
                 }
                 itemList.emplace_back(static_cast<int32_t>(it.first), *item);
-            }
-        }
+                }
+                }
 
         propWriteStream.clear();
         if (!saveItems(player, itemList, query, propWriteStream, "depotlockeritems")) {
@@ -974,7 +974,7 @@ bool IOLoginData::savePlayer(Player * player)
         if (!saveItems(player, itemList, query, propWriteStream, "depotitems")) {
             return false;
         }
-    }
+            }
 
 #if GAME_FEATURE_MARKET > 0
     //save inbox items
@@ -1014,7 +1014,7 @@ bool IOLoginData::savePlayer(Player * player)
 
     //End the transaction
     return transaction.commit();
-}
+        }
 
 std::string IOLoginData::getNameByGuid(const uint32_t guid)
 {

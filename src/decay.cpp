@@ -56,7 +56,7 @@ void Decay::stopDecay(Item* item, const int64_t timestamp)
         std::vector<Item*>& decayItems = it->second;
 
         size_t i = 0;
-        size_t end = decayItems.size();
+        const size_t end = decayItems.size();
         if (end == 1) {
             if (item == decayItems[i]) {
                 if (item->hasAttribute(ITEM_ATTRIBUTE_DURATION)) {
@@ -96,7 +96,7 @@ void Decay::checkDecay()
     tempItems.reserve(32);// Small preallocation
 
     auto it = decayMap.begin();
-    auto end = decayMap.end();
+    const auto end = decayMap.end();
     while (it != end) {
         if (it->first > timestamp) {
             break;

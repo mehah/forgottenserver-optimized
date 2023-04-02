@@ -108,8 +108,7 @@ bool Protocol::onRecvMessage(NetworkMessage& msg)
     using ProtocolWeak_ptr = std::weak_ptr<Protocol>;
     auto protocolWeak = std::weak_ptr<Protocol>(shared_from_this());
 
-    const std::function<void(void)> callback = [protocolWeak, &msg]
-    {
+    const std::function<void(void)> callback = [protocolWeak, &msg] {
         if (const auto protocol = protocolWeak.lock()) {
             if (const auto connection = protocol->getConnection()) {
                 protocol->parsePacket(msg);
@@ -138,7 +137,7 @@ void Protocol::XTEA_encrypt(OutputMessage& msg) const
     const uint32_t delta = 0x61C88647;
 
     // The message must be a multiple of 8
-    size_t paddingBytes = msg.getLength() & 7;
+    const size_t paddingBytes = msg.getLength() & 7;
     if (paddingBytes != 0) {
         msg.addPaddingBytes(8 - paddingBytes);
     }
@@ -157,8 +156,7 @@ void Protocol::XTEA_encrypt(OutputMessage& msg) const
     const uint32_t k[] = { key[0], key[1], key[2], key[3] };
     uint32_t precachedControlSum[32][2];
     uint32_t sum = 0;
-    for (auto& i : precachedControlSum)
-    {
+    for (auto& i : precachedControlSum) {
         i[0] = sum + k[sum & 3];
         sum -= delta;
         i[1] = sum + k[sum >> 11 & 3];
@@ -218,16 +216,15 @@ void Protocol::XTEA_encrypt(OutputMessage& msg) const
         __m256i vdata1 = _mm256_unpackhi_epi64(data0, data1);
         __m256i vdata2 = _mm256_unpacklo_epi64(data2, data3);
         __m256i vdata3 = _mm256_unpackhi_epi64(data2, data3);
-        for (auto& i : precachedControlSum)
-        {
+        for (auto& i : precachedControlSum) {
             vdata0 = _mm256_add_epi32(vdata0, _mm256_xor_si256(_mm256_add_epi32(_mm256_xor_si256(_mm256_slli_epi32(vdata1, 4), _mm256_srli_epi32(vdata1, 5)), vdata1), _mm256_set1_epi32(
-                                                                   i[0])));
+                i[0])));
             vdata1 = _mm256_add_epi32(vdata1, _mm256_xor_si256(_mm256_add_epi32(_mm256_xor_si256(_mm256_slli_epi32(vdata0, 4), _mm256_srli_epi32(vdata0, 5)), vdata0), _mm256_set1_epi32(
-                                                                   i[1])));
+                i[1])));
             vdata2 = _mm256_add_epi32(vdata2, _mm256_xor_si256(_mm256_add_epi32(_mm256_xor_si256(_mm256_slli_epi32(vdata3, 4), _mm256_srli_epi32(vdata3, 5)), vdata3), _mm256_set1_epi32(
-                                                                   i[0])));
+                i[0])));
             vdata3 = _mm256_add_epi32(vdata3, _mm256_xor_si256(_mm256_add_epi32(_mm256_xor_si256(_mm256_slli_epi32(vdata2, 4), _mm256_srli_epi32(vdata2, 5)), vdata2), _mm256_set1_epi32(
-                                                                   i[1])));
+                i[1])));
         }
         _mm256_storeu_si256(reinterpret_cast<__m256i*>(buffer + readPos), _mm256_unpacklo_epi32(vdata0, vdata1));
         readPos += 32;
@@ -246,12 +243,11 @@ void Protocol::XTEA_encrypt(OutputMessage& msg) const
         const __m256i data1 = _mm256_shuffle_epi32(_mm256_loadu_si256(reinterpret_cast<const __m256i*>(buffer + readPos + 32)), _MM_SHUFFLE(3, 1, 2, 0));
         __m256i vdata0 = _mm256_unpacklo_epi64(data0, data1);
         __m256i vdata1 = _mm256_unpackhi_epi64(data0, data1);
-        for (auto& i : precachedControlSum)
-        {
+        for (auto& i : precachedControlSum) {
             vdata0 = _mm256_add_epi32(vdata0, _mm256_xor_si256(_mm256_add_epi32(_mm256_xor_si256(_mm256_slli_epi32(vdata1, 4), _mm256_srli_epi32(vdata1, 5)), vdata1), _mm256_set1_epi32(
-                                                                   i[0])));
+                i[0])));
             vdata1 = _mm256_add_epi32(vdata1, _mm256_xor_si256(_mm256_add_epi32(_mm256_xor_si256(_mm256_slli_epi32(vdata0, 4), _mm256_srli_epi32(vdata0, 5)), vdata0), _mm256_set1_epi32(
-                                                                   i[1])));
+                i[1])));
         }
         _mm256_storeu_si256(reinterpret_cast<__m256i*>(buffer + readPos), _mm256_unpacklo_epi32(vdata0, vdata1));
         readPos += 32;
@@ -296,12 +292,11 @@ void Protocol::XTEA_encrypt(OutputMessage& msg) const
         const __m128i data1 = _mm_shuffle_epi32(_mm_loadu_si128(reinterpret_cast<const __m128i*>(buffer + readPos + 16)), _MM_SHUFFLE(3, 1, 2, 0));
         __m128i vdata0 = _mm_unpacklo_epi64(data0, data1);
         __m128i vdata1 = _mm_unpackhi_epi64(data0, data1);
-        for (auto& i : precachedControlSum)
-        {
+        for (auto& i : precachedControlSum) {
             vdata0 = _mm_add_epi32(vdata0, _mm_xor_si128(_mm_add_epi32(_mm_xor_si128(_mm_slli_epi32(vdata1, 4), _mm_srli_epi32(vdata1, 5)), vdata1), _mm_set1_epi32(
-                                                             i[0])));
+                i[0])));
             vdata1 = _mm_add_epi32(vdata1, _mm_xor_si128(_mm_add_epi32(_mm_xor_si128(_mm_slli_epi32(vdata0, 4), _mm_srli_epi32(vdata0, 5)), vdata0), _mm_set1_epi32(
-                                                             i[1])));
+                i[1])));
         }
         _mm_storeu_si128(reinterpret_cast<__m128i*>(buffer + readPos), _mm_unpacklo_epi32(vdata0, vdata1));
         readPos += 16;
@@ -313,8 +308,7 @@ void Protocol::XTEA_encrypt(OutputMessage& msg) const
     while (readPos < messageLength) {
         uint32_t vData[2];
         memcpy(vData, buffer + readPos, 8);
-        for (auto& i : precachedControlSum)
-        {
+        for (auto& i : precachedControlSum) {
             vData[0] += (vData[1] << 4 ^ vData[1] >> 5) + vData[1] ^ i[0];
             vData[1] += (vData[0] << 4 ^ vData[0] >> 5) + vData[0] ^ i[1];
         }
@@ -346,8 +340,7 @@ bool Protocol::XTEA_decrypt(NetworkMessage& msg) const
     const uint32_t k[] = { key[0], key[1], key[2], key[3] };
     uint32_t precachedControlSum[32][2];
     uint32_t sum = 0xC6EF3720;
-    for (auto& i : precachedControlSum)
-    {
+    for (auto& i : precachedControlSum) {
         i[0] = sum + k[sum >> 11 & 3];
         sum += delta;
         i[1] = sum + k[sum & 3];
@@ -407,16 +400,15 @@ bool Protocol::XTEA_decrypt(NetworkMessage& msg) const
         __m256i vdata1 = _mm256_unpackhi_epi64(data0, data1);
         __m256i vdata2 = _mm256_unpacklo_epi64(data2, data3);
         __m256i vdata3 = _mm256_unpackhi_epi64(data2, data3);
-        for (auto& i : precachedControlSum)
-        {
+        for (auto& i : precachedControlSum) {
             vdata1 = _mm256_sub_epi32(vdata1, _mm256_xor_si256(_mm256_add_epi32(_mm256_xor_si256(_mm256_slli_epi32(vdata0, 4), _mm256_srli_epi32(vdata0, 5)), vdata0), _mm256_set1_epi32(
-                                                                   i[0])));
+                i[0])));
             vdata0 = _mm256_sub_epi32(vdata0, _mm256_xor_si256(_mm256_add_epi32(_mm256_xor_si256(_mm256_slli_epi32(vdata1, 4), _mm256_srli_epi32(vdata1, 5)), vdata1), _mm256_set1_epi32(
-                                                                   i[1])));
+                i[1])));
             vdata3 = _mm256_sub_epi32(vdata3, _mm256_xor_si256(_mm256_add_epi32(_mm256_xor_si256(_mm256_slli_epi32(vdata2, 4), _mm256_srli_epi32(vdata2, 5)), vdata2), _mm256_set1_epi32(
-                                                                   i[0])));
+                i[0])));
             vdata2 = _mm256_sub_epi32(vdata2, _mm256_xor_si256(_mm256_add_epi32(_mm256_xor_si256(_mm256_slli_epi32(vdata3, 4), _mm256_srli_epi32(vdata3, 5)), vdata3), _mm256_set1_epi32(
-                                                                   i[1])));
+                i[1])));
         }
         _mm256_storeu_si256(reinterpret_cast<__m256i*>(buffer + readPos), _mm256_unpacklo_epi32(vdata0, vdata1));
         readPos += 32;
@@ -435,12 +427,11 @@ bool Protocol::XTEA_decrypt(NetworkMessage& msg) const
         const __m256i data1 = _mm256_shuffle_epi32(_mm256_loadu_si256(reinterpret_cast<const __m256i*>(buffer + readPos + 32)), _MM_SHUFFLE(3, 1, 2, 0));
         __m256i vdata0 = _mm256_unpacklo_epi64(data0, data1);
         __m256i vdata1 = _mm256_unpackhi_epi64(data0, data1);
-        for (auto& i : precachedControlSum)
-        {
+        for (auto& i : precachedControlSum) {
             vdata1 = _mm256_sub_epi32(vdata1, _mm256_xor_si256(_mm256_add_epi32(_mm256_xor_si256(_mm256_slli_epi32(vdata0, 4), _mm256_srli_epi32(vdata0, 5)), vdata0), _mm256_set1_epi32(
-                                                                   i[0])));
+                i[0])));
             vdata0 = _mm256_sub_epi32(vdata0, _mm256_xor_si256(_mm256_add_epi32(_mm256_xor_si256(_mm256_slli_epi32(vdata1, 4), _mm256_srli_epi32(vdata1, 5)), vdata1), _mm256_set1_epi32(
-                                                                   i[1])));
+                i[1])));
         }
         _mm256_storeu_si256(reinterpret_cast<__m256i*>(buffer + readPos), _mm256_unpacklo_epi32(vdata0, vdata1));
         readPos += 32;
@@ -485,12 +476,11 @@ bool Protocol::XTEA_decrypt(NetworkMessage& msg) const
         const __m128i data1 = _mm_shuffle_epi32(_mm_loadu_si128(reinterpret_cast<const __m128i*>(buffer + readPos + 16)), _MM_SHUFFLE(3, 1, 2, 0));
         __m128i vdata0 = _mm_unpacklo_epi64(data0, data1);
         __m128i vdata1 = _mm_unpackhi_epi64(data0, data1);
-        for (auto& i : precachedControlSum)
-        {
+        for (auto& i : precachedControlSum) {
             vdata1 = _mm_sub_epi32(vdata1, _mm_xor_si128(_mm_add_epi32(_mm_xor_si128(_mm_slli_epi32(vdata0, 4), _mm_srli_epi32(vdata0, 5)), vdata0), _mm_set1_epi32(
-                                                             i[0])));
+                i[0])));
             vdata0 = _mm_sub_epi32(vdata0, _mm_xor_si128(_mm_add_epi32(_mm_xor_si128(_mm_slli_epi32(vdata1, 4), _mm_srli_epi32(vdata1, 5)), vdata1), _mm_set1_epi32(
-                                                             i[1])));
+                i[1])));
         }
         _mm_storeu_si128(reinterpret_cast<__m128i*>(buffer + readPos), _mm_unpacklo_epi32(vdata0, vdata1));
         readPos += 16;
@@ -502,8 +492,7 @@ bool Protocol::XTEA_decrypt(NetworkMessage& msg) const
     while (readPos < messageLength) {
         uint32_t vData[2];
         memcpy(vData, buffer + readPos, 8);
-        for (auto& i : precachedControlSum)
-        {
+        for (auto& i : precachedControlSum) {
             vData[1] -= (vData[0] << 4 ^ vData[0] >> 5) + vData[0] ^ i[0];
             vData[0] -= (vData[1] << 4 ^ vData[1] >> 5) + vData[1] ^ i[1];
         }
@@ -511,7 +500,7 @@ bool Protocol::XTEA_decrypt(NetworkMessage& msg) const
         readPos += 8;
     }
 
-    auto innerLength = msg.get<uint16_t>();
+    const auto innerLength = msg.get<uint16_t>();
     if (innerLength > msgLength - 2) {
         return false;
     }

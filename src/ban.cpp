@@ -69,7 +69,7 @@ bool IOBan::isAccountBanned(const uint32_t accountId, BanInfo& banInfo)
         return false;
     }
 
-    auto expiresAt = result->getNumber<int64_t>("expires_at");
+    const auto expiresAt = result->getNumber<int64_t>("expires_at");
     if (expiresAt != 0 && time(nullptr) > expiresAt) {
         // Move the ban to history if it has expired
         query.clear();
@@ -102,7 +102,7 @@ bool IOBan::isIpBanned(const uint32_t clientIP, BanInfo& banInfo)
         return false;
     }
 
-    auto expiresAt = result->getNumber<int64_t>("expires_at");
+    const auto expiresAt = result->getNumber<int64_t>("expires_at");
     if (expiresAt != 0 && time(nullptr) > expiresAt) {
         query.clear();
         query << "DELETE FROM `ip_bans` WHERE `ip` = " << clientIP;

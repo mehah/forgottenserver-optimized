@@ -3555,7 +3555,7 @@ void Player::updateItemsLight(const bool internal /*=false*/)
     for (int32_t i = CONST_SLOT_FIRST; i <= CONST_SLOT_LAST; ++i) {
         const Item* item = inventory[i];
         if (item) {
-            LightInfo curLight = item->getLightInfo();
+            const LightInfo curLight = item->getLightInfo();
 
             if (curLight.level > maxLight.level) {
                 maxLight = curLight;

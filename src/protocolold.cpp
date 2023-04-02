@@ -44,7 +44,7 @@ void ProtocolOld::onRecvFirstMessage(NetworkMessage& msg)
     }
 
     /*uint16_t clientOS =*/ msg.get<uint16_t>();
-    auto version = msg.get<uint16_t>();
+    const auto version = msg.get<uint16_t>();
     if (version >= 971) {
         msg.skipBytes(17);
     } else {

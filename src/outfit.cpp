@@ -45,7 +45,7 @@ bool Outfits::loadFromXml()
             continue;
         }
 
-        auto type = pugi::cast<uint16_t>(attr.value());
+        const auto type = pugi::cast<uint16_t>(attr.value());
         if (type > PLAYERSEX_LAST) {
             std::cout << "[Warning - Outfits::loadFromXml] Invalid outfit type " << type << "." << std::endl;
             continue;

@@ -374,7 +374,7 @@ bool IOMapSerialize::saveHouseInfo()
 
     std::stringExtended query(1024);
     for (auto& it : g_game.map.houses.getHouses()) {
-        House* house = &it.second;
+        const House* house = &it.second;
 
         const std::string& escapedName = g_database.escapeString(house->getName());
         query.clear();

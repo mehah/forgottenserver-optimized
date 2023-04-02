@@ -46,7 +46,7 @@ namespace {
         const int64_t time = OTSYS_TIME();
 
         auto it = list.begin();
-        auto end = list.end();
+        const auto end = list.end();
         while (it != end) {
             if (it->timeout - time <= 0) {
                 it = list.erase(it);

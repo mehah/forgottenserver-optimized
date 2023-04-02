@@ -166,7 +166,7 @@ public:
 
     template <typename T>
     void write(T add) {
-        auto addr = reinterpret_cast<char*>(&add);
+        const auto addr = reinterpret_cast<char*>(&add);
         std::copy(addr, addr + sizeof(T), std::back_inserter(buffer));
     }
 

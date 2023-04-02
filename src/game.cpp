@@ -576,7 +576,7 @@ bool Game::placeCreature(Creature* creature, const Position& pos, const bool ext
     SpectatorVector spectators;
     map.getSpectators(spectators, creature->getPosition(), true);
     for (Creature* spectator : spectators) {
-        if (Player* tmpPlayer = spectator->getPlayer()) {
+        if (const Player* tmpPlayer = spectator->getPlayer()) {
             tmpPlayer->sendCreatureAppear(creature, creature->getPosition(), true);
         }
     }
@@ -619,7 +619,7 @@ bool Game::removeCreature(Creature* creature, const bool isLogout/* = true*/)
     //send to client + event method
     i = static_cast<size_t>(-1); //Start index at -1 to avoid copying it
     for (Creature* spectator : spectators) {
-        if (Player* player = spectator->getPlayer()) {
+        if (const Player* player = spectator->getPlayer()) {
             player->sendRemoveTileThing(tilePosition, oldStackPosVector[++i]);
         }
 
@@ -978,7 +978,7 @@ void Game::playerMoveItem(Player* player, const Position& fromPos,
                 return;
             }
         }
-}
+    }
 #endif
 
     if (!item->isPushable() || item->hasAttribute(ITEM_ATTRIBUTE_UNIQUEID)) {
@@ -2012,7 +2012,7 @@ void Game::playerOpenChannel(Player* player, const uint16_t channelId)
     if (channel->getId() == 3) {
         player->sendRuleViolationChannel(channel->getId());
         return;
-}
+    }
 #endif
     player->sendChannel(channel->getId(), channel->getName(), users, invitedUsers);
 }
@@ -2607,7 +2607,7 @@ void Game::playerCloseNpcChannel(Player* player)
     SpectatorVector spectators;
     map.getSpectators(spectators, player->getPosition());
     for (Creature* spectator : spectators) {
-        if (Npc* npc = spectator->getNpc()) {
+        if (const Npc* npc = spectator->getNpc()) {
             npc->onPlayerCloseChannel(player);
         }
     }
@@ -2918,7 +2918,7 @@ void Game::playerMoveUpContainer(Player* player, uint8_t cid)
 #else
         return;
 #endif
-        }
+    }
 
     const int8_t test_cid = player->getContainerID(parentContainer);
     if (test_cid != -1) {
@@ -2933,7 +2933,7 @@ void Game::playerMoveUpContainer(Player* player, uint8_t cid)
 #else
     player->sendContainer(cid, parentContainer, parentContainer->hasParent());
 #endif
-    }
+}
 
 void Game::playerUpdateContainer(Player* player, uint8_t cid)
 {
@@ -3737,7 +3737,7 @@ void Game::playerPurchaseItem(Player* player, const uint16_t spriteId, const uin
     int32_t onBuy;
     int32_t onSell;
 
-    Npc* merchant = player->getShopOwner(onBuy, onSell);
+    const Npc* merchant = player->getShopOwner(onBuy, onSell);
     if (!merchant) {
         return;
     }
@@ -3766,7 +3766,7 @@ void Game::playerSellItem(Player* player, const uint16_t spriteId, const uint8_t
     int32_t onBuy;
     int32_t onSell;
 
-    Npc* merchant = player->getShopOwner(onBuy, onSell);
+    const Npc* merchant = player->getShopOwner(onBuy, onSell);
     if (!merchant) {
         return;
     }
@@ -3822,7 +3822,7 @@ void Game::playerLookInShop(Player* player, const uint16_t spriteId, const uint8
     }
 
     std::string str;
-    std::string description = Item::getDescription(it, 1, nullptr, subType);
+    const std::string description = Item::getDescription(it, 1, nullptr, subType);
     str.reserve(description.length() + static_cast<size_t>(10));
     str.append("You see ").append(description);
 
@@ -4191,7 +4191,7 @@ void Game::playerWhisper(Player* player, const std::string& text) const
 
     //send to client + event method
     for (Creature* spectator : spectators) {
-        if (Player* spectatorPlayer = spectator->getPlayer()) {
+        if (const Player* spectatorPlayer = spectator->getPlayer()) {
             if (!Position::areInRange<1, 1>(player->getPosition(), spectatorPlayer->getPosition())) {
                 spectatorPlayer->sendCreatureSay(player, TALKTYPE_WHISPER, "pspsps");
             } else {
@@ -4239,11 +4239,11 @@ bool Game::playerSpeakTo(Player* player, SpeakClasses type, const std::string& r
 #if GAME_FEATURE_RULEVIOLATION > 0
         if (type != TALKTYPE_RVR_ANSWER) {
             type = TALKTYPE_PRIVATE_FROM;
-    }
+        }
 #else
         type = TALKTYPE_PRIVATE_FROM;
 #endif
-}
+    }
 
     toPlayer->sendPrivateMessage(player, type, text);
     toPlayer->onCreatureSay(player, type, text);
@@ -4333,7 +4333,7 @@ bool Game::internalCreatureSay(Creature* creature, const SpeakClasses type, cons
 
     //send to client + event method
     for (Creature* spectator : spectators) {
-        if (Player* tmpPlayer = spectator->getPlayer()) {
+        if (const Player* tmpPlayer = spectator->getPlayer()) {
             if (!ghostMode || tmpPlayer->canSeeCreature(creature)) {
                 tmpPlayer->sendCreatureSay(creature, type, text, pos);
             }
@@ -4686,7 +4686,7 @@ bool Game::combatChangeHealth(Creature* attacker, Creature* target, CombatDamage
 #if GAME_FEATURE_ANALYTICS > 0
             if (targetPlayer) {
                 targetPlayer->sendImpactTracking(true, realHealthChange);
-    }
+            }
 #endif
 
 #if GAME_FEATURE_SERVER_LOG_DETAILS > 0
@@ -4745,8 +4745,8 @@ bool Game::combatChangeHealth(Creature* attacker, Creature* target, CombatDamage
 #endif
                 tmpPlayer->sendTextMessage(message);
             }
-}
-} else {
+        }
+    } else {
         if (!target->isAttackable()) {
             if (!target->isInGhostMode()) {
                 addMagicEffect(targetPos, CONST_ME_POFF);
@@ -4919,7 +4919,7 @@ bool Game::combatChangeHealth(Creature* attacker, Creature* target, CombatDamage
 #else
                 attackerPlayer->sendImpactTracking(false, realDamage);
 #endif
-    }
+            }
 #endif
 #if GAME_FEATURE_ANALYTICS_IMPACT_TRACKING_EXTENDED > 0
             if (targetPlayer) {
@@ -5163,7 +5163,7 @@ void Game::addCreatureHealth(const SpectatorVector& spectators, const Creature* 
                 party->updatePlayerHealth(masterPlayer, target, healthPercent);
             }
         }
-}
+    }
 #endif
 
     for (Creature* spectator : spectators) {
@@ -5440,7 +5440,7 @@ void Game::updateCreatureWalkthrough(const Creature* creature)
     SpectatorVector spectators;
     map.getSpectators(spectators, creature->getPosition(), true, true);
     for (Creature* spectator : spectators) {
-        Player* tmpPlayer = spectator->getPlayer();
+        const Player* tmpPlayer = spectator->getPlayer();
         tmpPlayer->sendCreatureWalkthrough(creature, tmpPlayer->canWalkthroughEx(creature));
     }
 }
@@ -5497,7 +5497,7 @@ void Game::updateCreatureType(const Creature* creature)
     map.getSpectators(spectators, creature->getPosition(), true, true);
     if (creatureType == CREATURETYPE_SUMMON_OTHERS) {
         for (Creature* spectator : spectators) {
-            Player* player = spectator->getPlayer();
+            const Player* player = spectator->getPlayer();
             if (masterPlayer == player) {
                 player->sendCreatureType(creature, CREATURETYPE_SUMMON_OWN);
             } else {
@@ -5773,7 +5773,7 @@ void Game::playerEnableSharedPartyExperience(Player* player, const bool sharedEx
 
 void Game::sendGuildMotd(const uint32_t playerId)
 {
-    Player* player = getPlayerByID(playerId);
+    const Player* player = getPlayerByID(playerId);
     if (!player) {
         return;
     }
@@ -6187,59 +6187,59 @@ void Game::playerCreateMarketOffer(Player * player, uint8_t type, const uint16_t
         fee = 100000;
     }
 #else
-} else if (fee > 1000) {
-    fee = 1000;
-}
+    } else if (fee > 1000) {
+        fee = 1000;
+    }
 #endif
 
-if (type == MARKETACTION_SELL) {
-    if (fee > player->bankBalance) {
-        return;
-    }
+    if (type == MARKETACTION_SELL) {
+        if (fee > player->bankBalance) {
+            return;
+        }
 
-    DepotChest* depotChest = player->getDepotChest(player->getLastDepotId(), false);
-    if (!depotChest) {
-        return;
-    }
+        DepotChest* depotChest = player->getDepotChest(player->getLastDepotId(), false);
+        if (!depotChest) {
+            return;
+        }
 
-    const std::vector<Item*> itemList = getMarketItemList(it.wareId, amount, depotChest, player->getInbox());
-    if (itemList.empty()) {
-        return;
-    }
+        const std::vector<Item*> itemList = getMarketItemList(it.wareId, amount, depotChest, player->getInbox());
+        if (itemList.empty()) {
+            return;
+        }
 
-    if (it.stackable) {
-        uint16_t tmpAmount = amount;
-        for (Item* item : itemList) {
-            const uint16_t removeCount = std::min<uint16_t>(tmpAmount, item->getItemCount());
-            tmpAmount -= removeCount;
-            internalRemoveItem(item, removeCount);
-            if (tmpAmount == 0) {
-                break;
+        if (it.stackable) {
+            uint16_t tmpAmount = amount;
+            for (Item* item : itemList) {
+                const uint16_t removeCount = std::min<uint16_t>(tmpAmount, item->getItemCount());
+                tmpAmount -= removeCount;
+                internalRemoveItem(item, removeCount);
+                if (tmpAmount == 0) {
+                    break;
+                }
+            }
+        } else {
+            for (Item* item : itemList) {
+                internalRemoveItem(item);
             }
         }
+
+        player->bankBalance -= fee;
     } else {
-        for (Item* item : itemList) {
-            internalRemoveItem(item);
+        uint64_t totalPrice = static_cast<uint64_t>(price) * amount;
+        totalPrice += fee;
+        if (totalPrice > player->bankBalance) {
+            return;
         }
+
+        player->bankBalance -= totalPrice;
     }
 
-    player->bankBalance -= fee;
-} else {
-    uint64_t totalPrice = static_cast<uint64_t>(price) * amount;
-    totalPrice += fee;
-    if (totalPrice > player->bankBalance) {
-        return;
-    }
+    IOMarket::createOffer(player->getGUID(), static_cast<MarketAction_t>(type), it.id, amount, price, anonymous);
 
-    player->bankBalance -= totalPrice;
-}
-
-IOMarket::createOffer(player->getGUID(), static_cast<MarketAction_t>(type), it.id, amount, price, anonymous);
-
-player->sendMarketEnter(player->getLastDepotId());
-const MarketOfferList& buyOffers = IOMarket::getActiveOffers(MARKETACTION_BUY, it.id);
-const MarketOfferList& sellOffers = IOMarket::getActiveOffers(MARKETACTION_SELL, it.id);
-player->sendMarketBrowseItem(it.id, buyOffers, sellOffers);
+    player->sendMarketEnter(player->getLastDepotId());
+    const MarketOfferList& buyOffers = IOMarket::getActiveOffers(MARKETACTION_BUY, it.id);
+    const MarketOfferList& sellOffers = IOMarket::getActiveOffers(MARKETACTION_SELL, it.id);
+    player->sendMarketBrowseItem(it.id, buyOffers, sellOffers);
 }
 
 void Game::playerCancelMarketOffer(Player* player, const uint32_t timestamp, const uint16_t counter)

@@ -60,7 +60,7 @@ namespace OTB {
         parseStack.push_back(&root);
 
         for (const auto end = fileContents.end(); it != end; ++it) {
-            auto nodeType = static_cast<uint8_t>(*it);
+            const auto nodeType = static_cast<uint8_t>(*it);
             if (nodeType == Node::START) {
                 auto& currentNode = getCurrentNode(parseStack);
                 if (currentNode.children.empty()) {

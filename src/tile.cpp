@@ -390,7 +390,7 @@ void Tile::onAddTileItem(Item* item)
 
     //send to client
     for (Creature* spectator : spectators) {
-        if (Player* tmpPlayer = spectator->getPlayer()) {
+        if (const Player* tmpPlayer = spectator->getPlayer()) {
             tmpPlayer->sendAddTileItem(this, cylinderMapPos, item);
         }
     }
@@ -430,7 +430,7 @@ void Tile::onUpdateTileItem(Item* oldItem, const ItemType& oldType, Item* newIte
 
     //send to client
     for (Creature* spectator : spectators) {
-        if (Player* tmpPlayer = spectator->getPlayer()) {
+        if (const Player* tmpPlayer = spectator->getPlayer()) {
             tmpPlayer->sendUpdateTileItem(this, cylinderMapPos, newItem);
         }
     }
@@ -460,7 +460,7 @@ void Tile::onRemoveTileItem(const SpectatorVector& spectators, const std::vector
     //send to client + event method
     auto i = static_cast<size_t>(-1); //Start index at -1 to avoid copying it
     for (Creature* spectator : spectators) {
-        if (Player* tmpPlayer = spectator->getPlayer()) {
+        if (const Player* tmpPlayer = spectator->getPlayer()) {
             tmpPlayer->sendRemoveTileThing(cylinderMapPos, oldStackPosVector[++i]);
         }
 

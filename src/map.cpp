@@ -165,7 +165,7 @@ void Map::setTile(const uint16_t x, const uint16_t y, const uint8_t z, Tile* new
     if (tile) {
         TileItemVector* items = newTile->getItemList();
         if (items) {
-            for (auto& item : *items) {
+            for (const auto& item : *items) {
                 tile->addThing(item);
             }
             items->clear();
@@ -330,7 +330,7 @@ void Map::moveCreature(Creature& creature, Tile& newTile, const bool forceTelepo
     //send to client + event method
     i = static_cast<size_t>(-1); //Start index at -1 to avoid copying it
     for (Creature* spectator : spectators) {
-        if (Player* tmpPlayer = spectator->getPlayer()) {
+        if (const Player* tmpPlayer = spectator->getPlayer()) {
             //Use the correct stackpos
             const int32_t stackpos = oldStackPosVector[++i];
             if (stackpos != -1) {
@@ -429,7 +429,7 @@ void Map::getSpectatorsInternal(SpectatorVector& spectators, const Position& cen
         for (int32_t nx = startx1; nx <= endx2; nx += SECTOR_SIZE) {
             if (sectorE) {
                 const CreatureVector& node_list = onlyPlayers ? sectorE->player_list : sectorE->creature_list;
-                for (auto creature : node_list) {
+                for (const auto creature : node_list) {
                     const Position& cpos = creature->getPosition();
                     if (static_cast<uint32_t>(static_cast<int32_t>(cpos.z) - minRangeZ) <= depth) {
                         const int_fast16_t offsetZ = Position::getOffsetZ(centerPos, cpos);
@@ -629,7 +629,7 @@ bool Map::checkSightLine(Position start, Position destination) const
 
             while (--distanceY > 0) {
                 uint16_t xIncrease = 0;
-                uint16_t eAccTemp = eAcc;
+                const uint16_t eAccTemp = eAcc;
                 eAcc += eAdj;
                 if (eAcc <= eAccTemp) {
                     xIncrease = deltaX;
@@ -660,7 +660,7 @@ bool Map::checkSightLine(Position start, Position destination) const
 
             while (--distanceX > 0) {
                 uint16_t yIncrease = 0;
-                uint16_t eAccTemp = eAcc;
+                const uint16_t eAccTemp = eAcc;
                 eAcc += eAdj;
                 if (eAcc <= eAccTemp) {
                     yIncrease = deltaY;

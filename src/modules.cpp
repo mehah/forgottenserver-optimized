@@ -46,13 +46,13 @@ bool Modules::load()
     for (auto eventNode : doc.child("modules").children()) {
         pugi::xml_attribute attr;
         if ((attr = eventNode.attribute("versionmin"))) {
-            auto versionMin = pugi::cast<uint32_t>(attr.value());
-            auto versionMax = pugi::cast<uint32_t>(eventNode.attribute("versionmax").value());
+            const auto versionMin = pugi::cast<uint32_t>(attr.value());
+            const auto versionMax = pugi::cast<uint32_t>(eventNode.attribute("versionmax").value());
             if (CLIENT_VERSION < versionMin || CLIENT_VERSION > versionMax) {
                 continue;
             }
         } else if ((attr = eventNode.attribute("version"))) {
-            auto version = pugi::cast<uint32_t>(attr.value());
+            const auto version = pugi::cast<uint32_t>(attr.value());
             if (CLIENT_VERSION < version) {
                 continue;
             }

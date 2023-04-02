@@ -162,7 +162,7 @@ void Creature::onThink(const uint32_t interval)
 
     //scripting event - onThink
     const CreatureEventList& thinkEvents = getCreatureEvents(CREATURE_EVENT_THINK);
-    for (CreatureEvent* thinkEvent : thinkEvents) {
+    for (const CreatureEvent* thinkEvent : thinkEvents) {
         thinkEvent->executeOnThink(this, interval);
     }
 }
@@ -703,7 +703,7 @@ bool Creature::dropCorpse(Creature* lastHitCreature, Creature* mostDamageCreatur
         if (master) {
             //scripting event - onDeath
             const CreatureEventList& deathEvents = getCreatureEvents(CREATURE_EVENT_DEATH);
-            for (CreatureEvent* deathEvent : deathEvents) {
+            for (const CreatureEvent* deathEvent : deathEvents) {
                 deathEvent->executeOnDeath(this, nullptr, lastHitCreature, mostDamageCreature, lastHitUnjustified, mostDamageUnjustified);
             }
         }
@@ -737,7 +737,7 @@ bool Creature::dropCorpse(Creature* lastHitCreature, Creature* mostDamageCreatur
         }
 
         //scripting event - onDeath
-        for (CreatureEvent* deathEvent : getCreatureEvents(CREATURE_EVENT_DEATH)) {
+        for (const CreatureEvent* deathEvent : getCreatureEvents(CREATURE_EVENT_DEATH)) {
             deathEvent->executeOnDeath(this, corpse, lastHitCreature, mostDamageCreature, lastHitUnjustified, mostDamageUnjustified);
         }
 
@@ -1083,7 +1083,7 @@ bool Creature::onKilledCreature(Creature* target, bool)
 
     //scripting event - onKill
     const CreatureEventList& killEvents = getCreatureEvents(CREATURE_EVENT_KILL);
-    for (CreatureEvent* killEvent : killEvents) {
+    for (const CreatureEvent* killEvent : killEvents) {
         killEvent->executeOnKill(this, target);
     }
     return false;

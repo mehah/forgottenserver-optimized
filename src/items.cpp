@@ -969,7 +969,7 @@ bool Items::loadFromXml()
         }
 
         auto id = pugi::cast<uint16_t>(fromIdAttribute.value());
-        auto toId = pugi::cast<uint16_t>(toIdAttribute.value());
+        const auto toId = pugi::cast<uint16_t>(toIdAttribute.value());
         while (id <= toId) {
             parseItemNode(itemNode, id++);
         }

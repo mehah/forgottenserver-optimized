@@ -29,7 +29,7 @@ Guild* IOGuild::loadGuild(const uint32_t guildId)
     std::stringExtended query(128);
     query << "SELECT `name` FROM `guilds` WHERE `id` = " << guildId << " LIMIT 1";
     if (DBResult_ptr result = g_database.storeQuery(query)) {
-        auto guild = new Guild(guildId, std::move(result->getString("name")));
+        const auto guild = new Guild(guildId, std::move(result->getString("name")));
 
         query.clear();
         query << "SELECT `id`, `name`, `level` FROM `guild_ranks` WHERE `guild_id` = " << guildId;
