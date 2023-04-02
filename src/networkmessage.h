@@ -42,7 +42,7 @@ public:
     enum { CHECKSUM_LENGTH = 4 };
     enum { XTEA_MULTIPLE = 8 };
     enum { MAX_BODY_LENGTH = NETWORKMESSAGE_MAXSIZE - HEADER_LENGTH - CHECKSUM_LENGTH - XTEA_MULTIPLE };
-    enum { MAX_PROTOCOL_BODY_LENGTH = MAX_BODY_LENGTH - XTEA_MULTIPLE };
+    enum { MAX_PROTOCOL_BODY_LENGTH = MAX_BODY_LENGTH - static_cast<int32_t>(XTEA_MULTIPLE) };
 
     NetworkMessage() = default;
 

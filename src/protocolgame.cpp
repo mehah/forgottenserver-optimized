@@ -385,7 +385,7 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
         //TODO: check what new info for linux is send
         msg.getString();
         msg.getString();
-}
+    }
 #endif
 #else
 #if GAME_FEATURE_ACCOUNT_NAME > 0
@@ -826,7 +826,7 @@ void ProtocolGame::checkCreatureAsKnown(const uint32_t id, bool& known, uint32_t
                 knownCreatureSet.erase(it);
                 return;
             }
-    }
+        }
 #else
         for (auto it = knownCreatureSet.begin(), end = knownCreatureSet.end(); it != end; ++it) {
             Creature* creature = g_game.getCreatureByID(*it);
@@ -846,10 +846,10 @@ void ProtocolGame::checkCreatureAsKnown(const uint32_t id, bool& known, uint32_t
 
         removedKnown = *it;
         knownCreatureSet.erase(it);
-} else {
+    } else {
         removedKnown = 0;
     }
-    }
+}
 
 bool ProtocolGame::canSee(const Creature * c) const
 {
@@ -1552,7 +1552,7 @@ void ProtocolGame::parseBugReport(NetworkMessage & msg) const
 #endif
 
     g_game.playerReportBug(player, message, position, category);
-    }
+}
 
 #if GAME_FEATURE_RULEVIOLATION > 0
 void ProtocolGame::parseRuleViolation(NetworkMessage & msg)
@@ -1803,7 +1803,7 @@ void ProtocolGame::sendCreatureOutfit(const Creature * creature, const Outfit_t 
         playermsg.addByte(outfit.lookMountBody);
         playermsg.addByte(outfit.lookMountLegs);
         playermsg.addByte(outfit.lookMountFeet);
-}
+    }
 #endif
     writeToOutputBuffer(playermsg);
 }
@@ -1996,7 +1996,7 @@ void ProtocolGame::sendCreatureType(const Creature * creature, uint8_t creatureT
         } else {
             playermsg.add<uint32_t>(0);
         }
-}
+    }
 #else
     playermsg.addByte(creatureType);
 #endif
@@ -2911,7 +2911,7 @@ void ProtocolGame::sendBasicData()
     playermsg.addByte(0);
 #endif
     writeToOutputBuffer(playermsg);
-    }
+}
 #endif
 
 /*void ProtocolGame::sendBlessStatus()
@@ -2989,14 +2989,11 @@ void ProtocolGame::sendTextMessage(const TextMessage & message)
                 }
                 writeToOutputBuffer(playermsg);
                 break;
-    }
-#endif
-            default: {
-                break;
             }
-}
+#endif                    
+        }
         return;
-}
+    }
 
     playermsg.reset();
     playermsg.addByte(0xB4);
@@ -3101,7 +3098,7 @@ void ProtocolGame::sendChannel(const uint16_t channelId, const std::string & cha
     (void)invitedUsers;
 #endif
     writeToOutputBuffer(playermsg);
-    }
+}
 
 #if GAME_FEATURE_RULEVIOLATION > 0
 void ProtocolGame::sendRuleViolationChannel(uint16_t channelId)
@@ -3271,7 +3268,7 @@ void ProtocolGame::sendContainer(uint8_t cid, const Container * container, bool 
     }
 #endif
     writeToOutputBuffer(playermsg);
-    }
+}
 
 void ProtocolGame::sendShop(Npc * npc, const ShopInfoList & itemList)
 {
@@ -3918,8 +3915,8 @@ void ProtocolGame::sendQuestLine(const Quest * quest)
 #endif
             playermsg.addString(mission.getName(player));
             playermsg.addString(mission.getDescription(player));
+        }
     }
-}
     writeToOutputBuffer(playermsg);
 }
 
@@ -3958,7 +3955,7 @@ void ProtocolGame::sendUpdateTrackedQuest(const Mission * mission)
     playermsg.addString(mission->getName(player));
     playermsg.addString(mission->getDescription(player));
     writeToOutputBuffer(playermsg);
-    }
+}
 #endif
 
 void ProtocolGame::sendTradeItemRequest(const std::string & traderName, const Item * item, const bool ack)
@@ -4048,7 +4045,7 @@ void ProtocolGame::sendCreatureSay(const Creature * creature, const SpeakClasses
 #if CLIENT_VERSION >= 1250
     if (statementId != 0) {
         playermsg.addByte(0x00);//(Traded)
-}
+    }
 #endif
 
     //Add level only for players
@@ -4069,7 +4066,7 @@ void ProtocolGame::sendCreatureSay(const Creature * creature, const SpeakClasses
 
     playermsg.addString(text);
     writeToOutputBuffer(playermsg);
-}
+    }
 
 void ProtocolGame::sendToChannel(const Creature * creature, SpeakClasses type, const std::string & text, const uint16_t channelId)
 {
@@ -4089,45 +4086,45 @@ void ProtocolGame::sendToChannel(const Creature * creature, SpeakClasses type, c
 #if CLIENT_VERSION >= 1250
         if (statementId != 0) {
             playermsg.addByte(0x00);//(Traded)
-    }
+        }
 #endif
 #if GAME_FEATURE_MESSAGE_LEVEL > 0
         playermsg.add<uint16_t>(0x00);
 #endif
-} else if (type == TALKTYPE_CHANNEL_R2) {
-    playermsg.add<uint16_t>(0x00);
+        } else if (type == TALKTYPE_CHANNEL_R2) {
+            playermsg.add<uint16_t>(0x00);
 #if CLIENT_VERSION >= 1250
-    if (statementId != 0) {
-        playermsg.addByte(0x00);//(Traded)
-}
+            if (statementId != 0) {
+                playermsg.addByte(0x00);//(Traded)
+            }
 #endif
 #if GAME_FEATURE_MESSAGE_LEVEL > 0
-    playermsg.add<uint16_t>(0x00);
+            playermsg.add<uint16_t>(0x00);
 #endif
-    type = TALKTYPE_CHANNEL_R1;
-    } else {
-    playermsg.addString(creature->getName());
+            type = TALKTYPE_CHANNEL_R1;
+            } else {
+            playermsg.addString(creature->getName());
 #if CLIENT_VERSION >= 1250
-    if (statementId != 0) {
-        playermsg.addByte(0x00);//(Traded)
-}
+            if (statementId != 0) {
+                playermsg.addByte(0x00);//(Traded)
+            }
 #endif
 
-    //Add level only for players
+            //Add level only for players
 #if GAME_FEATURE_MESSAGE_LEVEL > 0
-    if (const Player* speaker = creature->getPlayer()) {
-        playermsg.add<uint16_t>(speaker->getLevel());
-    } else {
-        playermsg.add<uint16_t>(0x00);
-    }
+            if (const Player* speaker = creature->getPlayer()) {
+                playermsg.add<uint16_t>(speaker->getLevel());
+            } else {
+                playermsg.add<uint16_t>(0x00);
+            }
 #endif
-}
+            }
 
-playermsg.addByte(talkType);
-playermsg.add<uint16_t>(channelId);
-playermsg.addString(text);
-writeToOutputBuffer(playermsg);
-}
+        playermsg.addByte(talkType);
+        playermsg.add<uint16_t>(channelId);
+        playermsg.addString(text);
+        writeToOutputBuffer(playermsg);
+        }
 
 void ProtocolGame::sendPrivateMessage(const Player * speaker, SpeakClasses type, const std::string & text)
 {
@@ -4164,7 +4161,7 @@ void ProtocolGame::sendPrivateMessage(const Player * speaker, SpeakClasses type,
 #if GAME_FEATURE_MESSAGE_LEVEL > 0
             playermsg.add<uint16_t>(speaker->getLevel());
 #endif
-}
+        }
 #else
         playermsg.addString(speaker->getName());
 #if CLIENT_VERSION >= 1250
@@ -4181,16 +4178,16 @@ void ProtocolGame::sendPrivateMessage(const Player * speaker, SpeakClasses type,
 #if CLIENT_VERSION >= 1250
         if (statementId != 0) {
             playermsg.addByte(0x00);//(Traded)
-    }
+        }
 #endif
 #if GAME_FEATURE_MESSAGE_LEVEL > 0
         playermsg.add<uint16_t>(0x00);
 #endif
-}
+        }
     playermsg.addByte(talkType);
     playermsg.addString(text);
     writeToOutputBuffer(playermsg);
-}
+    }
 
 void ProtocolGame::sendCancelTarget()
 {
@@ -4310,7 +4307,7 @@ void ProtocolGame::sendCreatureHealth(const Creature * creature, uint8_t healthP
         playermsg.addByte(0x00);
     } else {
         playermsg.addByte(healthPercent);
-}
+    }
 #else
     if (creature->isHealthHidden()) {
         playermsg.addByte(0x00);
@@ -4473,7 +4470,7 @@ void ProtocolGame::sendAddTileItem(const Position & pos, const Item * item)
 {
     if (!canSee(pos)) {
         return;
-    }
+}
 
     playermsg.reset();
     playermsg.addByte(0x6A);
@@ -4637,7 +4634,7 @@ void ProtocolGame::sendAddCreature(const Creature * creature, const Position & p
             playermsg.addByte(0x44);
 #endif
         }
-}
+        }
 #endif
 
     //gameworld settings
@@ -4794,7 +4791,7 @@ void ProtocolGame::sendItems(const std::map<uint32_t, uint32_t>&inventoryMap)
     playermsg.setBufferPosition(msgPosition);
     playermsg.add<uint16_t>(itemsToSend);
     writeToOutputBuffer(playermsg);
-}
+        }
 #endif
 
 #if GAME_FEATURE_CONTAINER_PAGINATION > 0
@@ -4811,7 +4808,7 @@ void ProtocolGame::sendAddContainerItem(uint8_t cid, const Item * item)
 #endif
     AddItem(item);
     writeToOutputBuffer(playermsg);
-}
+    }
 
 #if GAME_FEATURE_CONTAINER_PAGINATION > 0
 void ProtocolGame::sendUpdateContainerItem(uint8_t cid, uint16_t slot, const Item * item)
@@ -4851,7 +4848,7 @@ void ProtocolGame::sendRemoveContainerItem(uint8_t cid, uint8_t slot)
     playermsg.addByte(slot);
 #endif
     writeToOutputBuffer(playermsg);
-    }
+}
 
 void ProtocolGame::sendTextWindow(const uint32_t windowTextId, const Item * item, const uint16_t maxlen, const bool canWrite)
 {
@@ -4927,7 +4924,7 @@ void ProtocolGame::sendOutfitWindow()
 #if GAME_FEATURE_MOUNTS > 0
     const Mount* currentMount = g_game.mounts.getMountByID(player->getCurrentMount());
     if (currentMount) {
-        bool mounted = currentOutfit.lookMount == currentMount->clientId;
+        // bool mounted = currentOutfit.lookMount == currentMount->clientId;
         currentOutfit.lookMount = currentMount->clientId;
     }
 #endif
@@ -5012,8 +5009,8 @@ void ProtocolGame::sendOutfitWindow()
 #endif
         if (++outfitSize == limitOutfits) {
             break;
-        }
     }
+}
 
     const auto endOutfits = playermsg.getBufferPosition();
     playermsg.setBufferPosition(startOutfits);
@@ -5050,9 +5047,9 @@ void ProtocolGame::sendOutfitWindow()
 #endif
             if (++mountSize == limitMounts) {
                 break;
-            }
         }
     }
+}
 
     const auto endMounts = playermsg.getBufferPosition();
     playermsg.setBufferPosition(startMounts);
@@ -5332,10 +5329,10 @@ void ProtocolGame::sendVIPEntries()
 #endif
                 } while (result->next());
             }
-        }
-    };
+                }
+            };
     g_databaseTasks.addTask(std::move(static_cast<std::string&>(query)), callback, true);
-}
+        }
 
 #if CLIENT_VERSION >= 870
 void ProtocolGame::sendSpellCooldown(uint8_t spellId, const uint32_t time)
@@ -5345,12 +5342,12 @@ void ProtocolGame::sendSpellCooldown(uint8_t spellId, const uint32_t time)
 #if CLIENT_VERSION >= 1121
     if (spellId >= 170) {
         spellId = 150;
-}
+    }
 #endif
     playermsg.addByte(spellId);
     playermsg.add<uint32_t>(time);
     writeToOutputBuffer(playermsg);
-}
+    }
 
 void ProtocolGame::sendSpellGroupCooldown(const SpellGroup_t groupId, const uint32_t time)
 {
@@ -5433,7 +5430,7 @@ void ProtocolGame::AddCreature(const Creature * creature, const bool known, cons
         playermsg.addByte(0x00);
     } else {
         playermsg.addByte(std::ceil((static_cast<double>(creature->getHealth()) / std::max<int32_t>(creature->getMaxHealth(), 1)) * 100));
-}
+    }
 #else
     if (creatureType == CREATURETYPE_HIDDEN) {
         playermsg.addByte(0x00);
@@ -5455,7 +5452,7 @@ void ProtocolGame::AddCreature(const Creature * creature, const bool known, cons
             playermsg.addByte(outfit.lookMountBody);
             playermsg.addByte(outfit.lookMountLegs);
             playermsg.addByte(outfit.lookMountFeet);
-    }
+        }
 #endif
     } else {
         static Outfit_t outfit;
@@ -5463,7 +5460,7 @@ void ProtocolGame::AddCreature(const Creature * creature, const bool known, cons
 #if GAME_FEATURE_MOUNTS > 0
         playermsg.add<uint16_t>(0);
 #endif
-    }
+        }
 
     const LightInfo lightInfo = creature->getCreatureLight();
     playermsg.addByte(player->isAccessPlayer() ? 0xFF : lightInfo.level);
@@ -5546,7 +5543,7 @@ void ProtocolGame::AddCreature(const Creature * creature, const bool known, cons
 #if CLIENT_VERSION >= 854
     playermsg.addByte(player->canWalkthroughEx(creature) ? 0x00 : 0x01);
 #endif
-        }
+    }
 
 void ProtocolGame::AddPlayerStats() const
 {
@@ -5670,7 +5667,7 @@ void ProtocolGame::AddPlayerSkills() const
 #else
         playermsg.addByte(player->getSkillPercent(i));
 #endif
-    }
+}
 
 #if GAME_FEATURE_ADDITIONAL_SKILLS > 0
     for (uint8_t i = SPECIALSKILL_FIRST; i <= SPECIALSKILL_LAST; ++i) {
@@ -5711,10 +5708,10 @@ void ProtocolGame::AddOutfit(const Outfit_t & outfit)
 #if GAME_FEATURE_ADDONS > 0
         playermsg.addByte(outfit.lookAddons);
 #endif
-    } else {
+} else {
         playermsg.addItemId(outfit.lookTypeEx);
     }
-}
+    }
 
 void ProtocolGame::AddWorldLight(const LightInfo lightInfo) const
 {
@@ -5868,7 +5865,7 @@ void ProtocolGame::AddItem(const uint16_t id, const uint8_t count)
 #if GAME_FEATURE_QUIVER > 0
         playermsg.addByte(0);
 #endif
-}
+    }
 #endif
 
 #if GAME_FEATURE_ITEM_ANIMATION_PHASES > 0
@@ -5913,7 +5910,7 @@ void ProtocolGame::AddItem(const Item * item)
 #if GAME_FEATURE_QUIVER > 0
         playermsg.addByte(0);
 #endif
-}
+    }
 #endif
 
 #if GAME_FEATURE_ITEM_ANIMATION_PHASES > 0
@@ -6158,7 +6155,7 @@ uint8_t ProtocolGame::translateSpeakClassToClient(SpeakClasses talkType)
 #if CLIENT_VERSION >= 1200
     if (talkType == TALKTYPE_BOOSTED_CREATURE) {
         return 0x31;
-}
+    }
 #endif
     switch (talkType) {
         case TALKTYPE_SAY: return 0x01;
