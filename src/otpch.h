@@ -41,7 +41,7 @@
 #include <vector>
 #include <array>
 
-#include <boost/asio.hpp>
+#include <asio.hpp>
 
 #include <pugixml.hpp>
 #include "simd.h"

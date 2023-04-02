@@ -81,9 +81,9 @@ public:
     explicit ProtocolGame(const Connection_ptr& connection) : Protocol(connection) {}
 
 #if GAME_FEATURE_SESSIONKEY > 0
-    void login(const std::string& accountName, const std::string& password, const std::string& characterName, const std::string& token, uint32_t tokenTime, OperatingSystem_t operatingSystem, OperatingSystem_t tfcOperatingSystem);
+    void login(const std::string& accountName, const std::string& password, std::string& characterName, const std::string& token, uint32_t tokenTime, OperatingSystem_t operatingSystem, OperatingSystem_t tfcOperatingSystem);
 #else
-    void login(const std::string& accountName, const std::string& password, const std::string& characterName, OperatingSystem_t operatingSystem, OperatingSystem_t tfcOperatingSystem);
+    void login(const std::string& accountName, const std::string& password, std::string& characterName, OperatingSystem_t operatingSystem, OperatingSystem_t tfcOperatingSystem);
 #endif
     void logout(bool displayEffect, bool forced) const;
 
