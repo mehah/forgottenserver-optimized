@@ -23,6 +23,7 @@
 #include "bed.h"
 #include "game.h"
 #include "iologindata.h"
+#include "tasks.h"
 
 extern Game g_game;
 

@@ -24,6 +24,7 @@
 #include "configmanager.h"
 #include "game.h"
 #include "outputmessage.h"
+#include "tasks.h"
 
 extern ConfigManager g_config;
 extern Game g_game;
@@ -63,8 +64,7 @@ void ProtocolStatus::onRecvFirstMessage(NetworkMessage& msg)
         //XML info protocol
         case 0xFF: {
             if (!tfs_strcmp(msg.getString(4).c_str(), "info")) {
-                g_dispatcher.addTask([capture0 = std::static_pointer_cast<ProtocolStatus>(shared_from_this())]
-                {
+                g_dispatcher.addTask([capture0 = std::static_pointer_cast<ProtocolStatus>(shared_from_this())] {
                     capture0->sendStatusString();
                 });
                 return;
@@ -81,10 +81,9 @@ void ProtocolStatus::onRecvFirstMessage(NetworkMessage& msg)
             }
             g_dispatcher.addTask(
                 [capture0 = std::static_pointer_cast<ProtocolStatus>(shared_from_this()), requestedInfo, capture1 =
-                    std::move(characterName)]
-                {
-                    capture0->sendInfo(requestedInfo, capture1);
-                });
+                    std::move(characterName)] {
+                capture0->sendInfo(requestedInfo, capture1);
+            });
             return;
         }
 

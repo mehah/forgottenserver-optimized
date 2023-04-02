@@ -32,6 +32,7 @@
 #include "iologindata.h"
 #include "monster.h"
 #include "movement.h"
+#include "tasks.h"
 #include "weapons.h"
 
 extern ConfigManager g_config;
@@ -1042,8 +1043,8 @@ void Player::sendAddContainerItem(const Container* container, const Item* item) 
         client->sendAddContainerItem(it.first, item);
 #endif
         return;
+        }
     }
-}
 
 #if GAME_FEATURE_CONTAINER_PAGINATION > 0
 void Player::sendUpdateContainerItem(const Container* container, uint16_t slot, const Item* newItem)
@@ -1753,7 +1754,7 @@ void Player::addManaSpent(uint64_t amount)
 #else
         addScheduledUpdates(PlayerUpdate_Stats);
 #endif
-    }
+}
 }
 
 void Player::addExperience(Creature* source, uint64_t exp, const bool sendText/* = false*/)
@@ -1953,7 +1954,7 @@ uint8_t Player::getPercentSkillLevel(uint64_t count, uint64_t nextLevelCount)
     }
     if (result > 10000) {
         return 0;
-    }
+}
 #else
     uint8_t result;
     if (nextLevelCount > 100000000000000000ULL) {

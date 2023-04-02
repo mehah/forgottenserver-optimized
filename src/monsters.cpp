@@ -23,7 +23,6 @@
 #include "monsters.h"
 
 #include <memory>
-#include "monster.h"
 #include "spells.h"
 #include "combat.h"
 #include "weapons.h"

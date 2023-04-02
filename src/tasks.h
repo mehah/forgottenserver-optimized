@@ -22,7 +22,6 @@
 #define FS_TASKS_H_A66AC384766041E59DCA059DAB6E1976
 
 #include "thread_holder_base.h"
-#include "enums.h"
 
 class Dispatcher : public ThreadHolder<Dispatcher>
 {

@@ -26,6 +26,7 @@
 #include "databasetasks.h"
 #include "iologindata.h"
 #include "game.h"
+#include "tasks.h"
 
 extern ConfigManager g_config;
 extern Game g_game;

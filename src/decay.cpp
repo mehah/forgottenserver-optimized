@@ -21,6 +21,7 @@
 
 #include "decay.h"
 #include "game.h"
+#include "tasks.h"
 
 extern Game g_game;
 Decay g_decay;

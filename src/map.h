@@ -23,9 +23,7 @@
 
 #include "position.h"
 #include "item.h"
-#include "fileloader.h"
 
-#include "tools.h"
 #include "tile.h"
 #include "town.h"
 #include "house.h"

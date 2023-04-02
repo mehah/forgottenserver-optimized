@@ -248,8 +248,8 @@ static void processSHA1MessageBlock(const uint8_t* messageBlock, uint32_t* H)
     _mm_storeu_si128(reinterpret_cast<__m128i*>(H), ABCD);
     H[4] = _mm_extract_epi32(E0, 3);
 #else
-    auto circularShift = [](const int32_t bits, const uint32_t value) {
-        return value << bits | value >> 32 - bits;
+    auto circularShift = [](int32_t bits, uint32_t value) {
+        return (value << bits) | (value >> (32 - bits));
     };
 
     uint32_t W[80];

@@ -24,7 +24,6 @@
 #include <condition_variable>
 #include "thread_holder_base.h"
 #include "database.h"
-#include "enums.h"
 
 struct DatabaseTask
 {

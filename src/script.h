@@ -22,7 +22,6 @@
 #define FS_SCRIPTS_H
 
 #include "luascript.h"
-#include "enums.h"
 
 class Scripts
 {

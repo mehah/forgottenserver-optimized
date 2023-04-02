@@ -40,6 +40,7 @@
 #include "globalevent.h"
 #include "script.h"
 #include "weapons.h"
+#include "tasks.h"
 
 extern Chat* g_chat;
 extern Game g_game;
@@ -7768,7 +7769,7 @@ int LuaScriptInterface::luaCreatureSetMaster(lua_State* L)
     g_game.updateCreatureType(creature);
 #endif
     return 1;
-}
+    }
 
 int LuaScriptInterface::luaCreatureGetLight(lua_State* L)
 {

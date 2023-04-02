@@ -38,6 +38,8 @@
 #include "script.h"
 #include <fstream>
 
+#include "tasks.h"
+
 Database g_database;
 DatabaseTasks g_databaseTasks;
 Dispatcher g_dispatcher;
@@ -360,7 +362,7 @@ void mainLoader(int, char* [], ServiceManager* services)
 #ifndef _WIN32
     if (getuid() == 0 || geteuid() == 0) {
         std::cout << "> Warning: " << STATUS_SERVER_NAME << " has been executed as root user, please consider running it as a normal user." << std::endl;
-    }
+}
 #endif
 
     g_game.start(services);

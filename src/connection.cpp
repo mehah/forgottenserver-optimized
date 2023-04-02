@@ -20,8 +20,6 @@
 
 #include "otpch.h"
 
-#include <thread>
-
 #include "configmanager.h"
 #include "connection.h"
 #include "outputmessage.h"

@@ -26,6 +26,7 @@
 #include "configmanager.h"
 
 #include "pugicast.h"
+#include "tasks.h"
 
 extern ConfigManager g_config;
 extern Monsters g_monsters;

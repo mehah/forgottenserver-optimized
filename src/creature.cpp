@@ -24,6 +24,7 @@
 #include "game.h"
 #include "monster.h"
 #include "configmanager.h"
+#include "tasks.h"
 
 double Creature::speedA = 857.36;
 double Creature::speedB = 261.29;

@@ -27,6 +27,7 @@
 #include "game.h"
 #include "configmanager.h"
 #include "monster.h"
+#include "tasks.h"
 
 extern Game g_game;
 extern ConfigManager g_config;

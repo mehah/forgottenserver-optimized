@@ -864,7 +864,7 @@ bool Map::getPathMatching(const Creature& creature, const Position& targetPos, s
                 //Does not exist in the open/closed list, create a new node
                 const int_fast32_t dX = std::abs(targetPos.getX() - pos.getX());
                 const int_fast32_t dY = std::abs(targetPos.getY() - pos.getY());
-                if (!nodes.createOpenNode(n, pos.x, pos.y, newf, (dX - sX << 3) + (dY - sY << 3) + (std::max(dX, dY) << 3), extraCost)) {
+                if (!nodes.createOpenNode(n, pos.x, pos.y, newf, ((dX - sX) << 3) + ((dY - sY) << 3) + (std::max(dX, dY) << 3), extraCost)) {
                     if (found) {
                         break;
                     }
@@ -1040,7 +1040,7 @@ bool Map::getPathMatchingCond(const Creature& creature, const Position& targetPo
                 //Does not exist in the open/closed list, create a new node
                 const int_fast32_t dX = std::abs(targetPos.getX() - pos.getX());
                 const int_fast32_t dY = std::abs(targetPos.getY() - pos.getY());
-                if (!nodes.createOpenNode(n, pos.x, pos.y, newf, (dX - sX << 3) + (dY - sY << 3) + (std::max(dX, dY) << 3), extraCost)) {
+                if (!nodes.createOpenNode(n, pos.x, pos.y, newf, ((dX - sX) << 3) + ((dY - sY) << 3) + (std::max(dX, dY) << 3), extraCost)) {
                     if (found) {
                         break;
                     }

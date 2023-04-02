@@ -23,7 +23,6 @@
 
 #include "item.h"
 #include "cylinder.h"
-#include "const.h"
 
 class Mailbox final : public Item, public Cylinder
 {
