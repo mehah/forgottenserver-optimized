@@ -107,7 +107,7 @@ Connection::~Connection()
     closeSocket();
 }
 
-void Connection::accept(Protocol_ptr protocol)
+void Connection::accept(const Protocol_ptr& protocol)
 {
     this->connectionState = CONNECTION_STATE_IDENTIFYING;
     this->protocol = protocol;
