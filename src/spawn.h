@@ -56,7 +56,7 @@ struct spawnBlock_t
 class Spawn
 {
 public:
-    Spawn(Position pos) : centerPos(pos) {}
+    explicit Spawn(Position pos) : centerPos(pos) {}
     ~Spawn();
 
     // non-copyable

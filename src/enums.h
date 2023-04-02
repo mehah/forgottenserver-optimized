@@ -794,7 +794,8 @@ struct LightInfo
 struct ShopInfo
 {
     ShopInfo() = default;
-    ShopInfo(const uint16_t itemId, const int32_t subType = 0, const uint32_t buyPrice = 0, const uint32_t sellPrice = 0, std::string realName = "") :
+
+    explicit ShopInfo(const uint16_t itemId, const int32_t subType = 0, const uint32_t buyPrice = 0, const uint32_t sellPrice = 0, std::string realName = "") :
         itemId(itemId), subType(subType), buyPrice(buyPrice), sellPrice(sellPrice), realName(std::move(realName)) {}
 
     // copyable

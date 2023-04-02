@@ -79,7 +79,7 @@ bool Scripts::loadScripts(const std::string& folderName, const bool isLib, const
         const std::string scriptFile = it.string();
         if (!isLib) {
             if (redir.empty() || redir != it.parent_path().string()) {
-                auto p = fs::path(it.relative_path());
+                auto p = static_cast<fs::path>(it.relative_path());
                 if (g_config.getBoolean(ConfigManager::SCRIPTS_CONSOLE_LOGS)) {
                     std::cout << ">> [" << p.parent_path().filename() << "]" << std::endl;
                 }

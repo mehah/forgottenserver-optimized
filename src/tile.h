@@ -139,7 +139,7 @@ public:
     }
 
     //Allow implicit conversion to CreatureVector&
-    operator CreatureVector& () { return specs; }
+    explicit operator CreatureVector& () { return specs; }
 
 private:
     CreatureVector specs;
@@ -200,7 +200,7 @@ public:
     }
 
     //Allow implicit conversion to ItemVector&
-    operator ItemVector& () { return vec; }
+    explicit operator ItemVector& () { return vec; }
 
 private:
     ItemVector vec;

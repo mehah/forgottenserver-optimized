@@ -407,7 +407,7 @@ private:
         //non-copyable
         Attribute& operator=(const Attribute& other) = delete;
 
-        Attribute(const itemAttrTypes type) : type(type) {
+        explicit Attribute(const itemAttrTypes type) : type(type) {
             memset(&value, 0, sizeof value);
         }
         Attribute(const Attribute& i) {
@@ -591,7 +591,7 @@ public:
     static Items items;
 
     // Constructor for items
-    Item(uint16_t type, uint16_t count = 0);
+    explicit Item(uint16_t type, uint16_t count = 0);
     Item(const Item& i);
     virtual Item* clone() const;
 

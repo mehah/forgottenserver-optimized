@@ -1210,7 +1210,7 @@ namespace robin_hood {
                 template <bool OtherIsConst,
                     typename = std::enable_if_t<IsConst && !OtherIsConst>>
                 // NOLINTNEXTLINE(hicpp-explicit-conversions)
-                Iter(const Iter<OtherIsConst>& other) noexcept
+                explicit Iter(const Iter<OtherIsConst>& other) noexcept
                     : mKeyVals(other.mKeyVals)
                     , mInfo(other.mInfo) {}
 
