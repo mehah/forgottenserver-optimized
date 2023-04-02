@@ -120,9 +120,9 @@ bool IOLoginData::loginserverAuthentication(const std::string& name, const std::
 }
 
 #if GAME_FEATURE_SESSIONKEY > 0
-uint32_t IOLoginData::gameworldAuthentication(const std::string& accountName, const std::string& password, const std::string& characterName, const std::string& token, const uint32_t tokenTime)
+uint32_t IOLoginData::gameworldAuthentication(const std::string& accountName, const std::string& password, std::string& characterName, const std::string& token, const uint32_t tokenTime)
 #else
-uint32_t IOLoginData::gameworldAuthentication(const std::string& accountName, const std::string& password, const std::string& characterName)
+uint32_t IOLoginData::gameworldAuthentication(const std::string& accountName, const std::string& password, std::string& characterName)
 #endif
 {
     const std::string& escapedAccountName = g_database.escapeString(accountName);

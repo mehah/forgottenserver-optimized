@@ -30,7 +30,7 @@ public:
 #if BOOST_VERSION >= 106600
     Dispatcher() : work(make_work_guard(io_service)) {}
 #else
-    Dispatcher() : work(std::make_shared<boost::asio::io_service::work>(io_service)) {}
+    Dispatcher() : work(std::make_shared<asio::io_service::work>(io_service)) {}
 #endif
 
     void addTask(std::function<void(void)> functor);
@@ -48,12 +48,12 @@ public:
 private:
     uint64_t lastEventId = 0;
     uint64_t dispatcherCycle = 0;
-    std::map<uint64_t, boost::asio::deadline_timer> eventIds;
-    boost::asio::io_service io_service;
+    std::map<uint64_t, asio::high_resolution_timer> eventIds;
+    asio::io_service io_service;
 #if BOOST_VERSION >= 106600
-    boost::asio::executor_work_guard<boost::asio::io_context::executor_type> work;
+    asio::executor_work_guard<asio::io_context::executor_type> work;
 #else
-    std::shared_ptr<boost::asio::io_service::work> work;
+    std::shared_ptr<asio::io_service::work> work;
 #endif
 };
 
