@@ -5981,6 +5981,9 @@ void ProtocolGame::AddItem(const Item * item)
         playermsg.addByte(podiumVisible ? static_cast<uint8_t>(podiumVisible->getInt()) : 0x01);
     }
 #endif
+
+    auto shader = item->getCustomAttribute("shader");
+    playermsg.addString(shader ? shader->getString() : "");
 }
 
 void ProtocolGame::parseExtendedOpcode(NetworkMessage & msg) const
