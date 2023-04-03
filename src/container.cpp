@@ -24,12 +24,10 @@
 #include "iomap.h"
 #include "game.h"
 
-extern Game g_game;
-
-Container::Container(uint16_t type) :
+Container::Container(const uint16_t type) :
     Container(type, items[type].maxItems) {}
 
-Container::Container(uint16_t type, uint16_t size, bool unlocked /*= true*/, bool pagination /*= false*/) :
+Container::Container(const uint16_t type, const uint16_t size, const bool unlocked /*= true*/, const bool pagination /*= false*/) :
     Item(type),
     maxSize(size),
     unlocked(unlocked),
@@ -77,15 +75,15 @@ Container::~Container()
 
 Item* Container::clone() const
 {
-    Container* clone = static_cast<Container*>(Item::clone());
-    for (Item* item : itemlist) {
+    const auto clone = static_cast<Container*>(Item::clone());
+    for (const Item* item : itemlist) {
         clone->addItem(item->clone());
     }
     clone->totalWeight = totalWeight;
     return clone;
 }
 
-Container* Container::getParentContainer()
+Container* Container::getParentContainer() const
 {
     Thing* thing = getParent();
     if (!thing) {
@@ -109,7 +107,7 @@ void Container::addItem(Item* item)
     item->setParent(this);
 }
 
-Attr_ReadValue Container::readAttr(AttrTypes_t attr, PropStream& propStream)
+Attr_ReadValue Container::readAttr(const AttrTypes_t attr, PropStream& propStream)
 {
     if (attr == ATTR_CONTAINER_ITEMS) {
         if (!propStream.read<uint32_t>(serializationCount)) {
@@ -120,9 +118,9 @@ Attr_ReadValue Container::readAttr(AttrTypes_t attr, PropStream& propStream)
     return Item::readAttr(attr, propStream);
 }
 
-bool Container::unserializeItemNode(OTB::Loader& loader, const OTB::Node& node, PropStream& propStream, bool _legacy)
+bool Container::unserializeItemNode(OTB::Loader& loader, const OTB::Node& node, PropStream& propStream, const bool _legacy)
 {
-    bool ret = Item::unserializeItemNode(loader, node, propStream, _legacy);
+    const bool ret = Item::unserializeItemNode(loader, node, propStream, _legacy);
     if (!ret) {
         return false;
     }
@@ -139,7 +137,7 @@ bool Container::unserializeItemNode(OTB::Loader& loader, const OTB::Node& node, 
             return false;
         }
 
-        Item* item = (_legacy ? Item::CreateItem_legacy(itemPropStream) : Item::CreateItem(itemPropStream));
+        Item* item = _legacy ? CreateItem_legacy(itemPropStream) : CreateItem(itemPropStream);
         if (!item) {
             return false;
         }
@@ -154,10 +152,10 @@ bool Container::unserializeItemNode(OTB::Loader& loader, const OTB::Node& node, 
     return true;
 }
 
-void Container::updateItemWeight(int32_t diff)
+void Container::updateItemWeight(const int32_t diff)
 {
     totalWeight += diff;
-    Container* parentContainer = this;
+    auto parentContainer = this;
     while ((parentContainer = parentContainer->getParentContainer()) != nullptr) {
         parentContainer->totalWeight += diff;
     }
@@ -180,7 +178,7 @@ std::string& Container::getContentDescription(std::stringExtended& sink) const
     for (ContainerIterator it = iterator(); it.hasNext(); it.advance()) {
         Item* item = *it;
 
-        Container* container = item->getContainer();
+        const Container* container = item->getContainer();
         if (container && !container->empty()) {
             continue;
         }
@@ -204,7 +202,7 @@ std::string& Container::getContentDescription(std::stringExtended& sink) const
     return sink;
 }
 
-Item* Container::getItemByIndex(size_t index) const
+Item* Container::getItemByIndex(const size_t index) const
 {
     if (index >= size()) {
         return nullptr;
@@ -231,7 +229,7 @@ bool Container::isHoldingItem(const Item* item) const
     return false;
 }
 
-void Container::onAddContainerItem(Item* item)
+void Container::onAddContainerItem(const Item* item) const
 {
     SpectatorVector spectators;
     g_game.map.getSpectators(spectators, getPosition(), false, true, 2, 2, 2, 2);
@@ -247,7 +245,7 @@ void Container::onAddContainerItem(Item* item)
     }
 }
 
-void Container::onUpdateContainerItem(uint32_t index, Item* oldItem, Item* newItem)
+void Container::onUpdateContainerItem(const uint32_t index, const Item* oldItem, const Item* newItem) const
 {
     SpectatorVector spectators;
     g_game.map.getSpectators(spectators, getPosition(), false, true, 2, 2, 2, 2);
@@ -263,7 +261,7 @@ void Container::onUpdateContainerItem(uint32_t index, Item* oldItem, Item* newIt
     }
 }
 
-void Container::onRemoveContainerItem(uint32_t index, Item* item)
+void Container::onRemoveContainerItem(const uint32_t index, const Item* item) const
 {
     SpectatorVector spectators;
     g_game.map.getSpectators(spectators, getPosition(), false, true, 2, 2, 2, 2);
@@ -279,10 +277,10 @@ void Container::onRemoveContainerItem(uint32_t index, Item* item)
     }
 }
 
-ReturnValue Container::queryAdd(int32_t index, const Thing& thing, uint32_t count,
-        uint32_t flags, Creature* actor/* = nullptr*/) const
+ReturnValue Container::queryAdd(const int32_t index, const Thing& thing, const uint32_t count,
+                                const uint32_t flags, Creature* actor/* = nullptr*/) const
 {
-    bool childIsOwner = hasBitSet(FLAG_CHILDISOWNER, flags);
+    const bool childIsOwner = hasBitSet(FLAG_CHILDISOWNER, flags);
     if (childIsOwner) {
         //a child container is querying, since we are the top container (not carried by a player)
         //just return with no error.
@@ -346,13 +344,12 @@ ReturnValue Container::queryAdd(int32_t index, const Thing& thing, uint32_t coun
     const Cylinder* topParent = getTopParent();
     if (topParent != this) {
         return topParent->queryAdd(INDEX_WHEREEVER, *item, count, flags | FLAG_CHILDISOWNER, actor);
-    } else {
-        return RETURNVALUE_NOERROR;
     }
+    return RETURNVALUE_NOERROR;
 }
 
-ReturnValue Container::queryMaxCount(int32_t index, const Thing& thing, uint32_t count,
-        uint32_t& maxQueryCount, uint32_t flags) const
+ReturnValue Container::queryMaxCount(const int32_t index, const Thing& thing, const uint32_t count,
+                                     uint32_t& maxQueryCount, const uint32_t flags) const
 {
     const Item* item = thing.getItem();
     if (item == nullptr) {
@@ -365,15 +362,15 @@ ReturnValue Container::queryMaxCount(int32_t index, const Thing& thing, uint32_t
         return RETURNVALUE_NOERROR;
     }
 
-    int32_t freeSlots = std::max<int32_t>(capacity() - size(), 0);
+    const int32_t freeSlots = std::max<int32_t>(capacity() - size(), 0);
     if (item->isStackable()) {
         uint32_t n = 0;
         if (index == INDEX_WHEREEVER) {
             //Iterate through every item and check how much free stackable slots there is.
             uint32_t slotIndex = 0;
-            for (Item* containerItem : itemlist) {
+            for (const Item* containerItem : itemlist) {
                 if (containerItem != item && containerItem->equals(item) && containerItem->getItemCount() < 100) {
-                    uint32_t remainder = (100 - containerItem->getItemCount());
+                    const uint32_t remainder = 100 - containerItem->getItemCount();
                     if (queryAdd(slotIndex++, *item, remainder, flags) == RETURNVALUE_NOERROR) {
                         n += remainder;
                     }
@@ -382,7 +379,7 @@ ReturnValue Container::queryMaxCount(int32_t index, const Thing& thing, uint32_t
         } else {
             const Item* destItem = getItemByIndex(index);
             if (item->equals(destItem) && destItem->getItemCount() < 100) {
-                uint32_t remainder = 100 - destItem->getItemCount();
+                const uint32_t remainder = 100 - destItem->getItemCount();
                 if (queryAdd(index, *item, remainder, flags) == RETURNVALUE_NOERROR) {
                     n = remainder;
                 }
@@ -402,9 +399,9 @@ ReturnValue Container::queryMaxCount(int32_t index, const Thing& thing, uint32_t
     return RETURNVALUE_NOERROR;
 }
 
-ReturnValue Container::queryRemove(const Thing& thing, uint32_t count, uint32_t flags) const
+ReturnValue Container::queryRemove(const Thing& thing, const uint32_t count, const uint32_t flags) const
 {
-    int32_t index = getThingIndex(&thing);
+    const int32_t index = getThingIndex(&thing);
     if (index == -1) {
         return RETURNVALUE_NOTPOSSIBLE;
     }
@@ -436,7 +433,7 @@ Cylinder* Container::queryDestination(int32_t& index, const Thing& thing, Item**
         index = INDEX_WHEREEVER;
         *destItem = nullptr;
 
-        Container* parentContainer = dynamic_cast<Container*>(getParent());
+        const auto parentContainer = dynamic_cast<Container*>(getParent());
         if (parentContainer) {
             return parentContainer;
         }
@@ -469,7 +466,7 @@ Cylinder* Container::queryDestination(int32_t& index, const Thing& thing, Item**
             *destItem = itemFromIndex;
         }
 
-        Cylinder* subCylinder = dynamic_cast<Cylinder*>(*destItem);
+        const auto subCylinder = dynamic_cast<Cylinder*>(*destItem);
         if (subCylinder) {
             index = INDEX_WHEREEVER;
             *destItem = nullptr;
@@ -477,7 +474,7 @@ Cylinder* Container::queryDestination(int32_t& index, const Thing& thing, Item**
         }
     }
 
-    bool autoStack = !hasBitSet(FLAG_IGNOREAUTOSTACK, flags);
+    const bool autoStack = !hasBitSet(FLAG_IGNOREAUTOSTACK, flags);
     if (autoStack && item->isStackable() && item->getParent() != this) {
         //try find a suitable item to stack with
         uint32_t n = 0;
@@ -498,7 +495,7 @@ void Container::addThing(Thing* thing)
     return addThing(0, thing);
 }
 
-void Container::addThing(int32_t index, Thing* thing)
+void Container::addThing(const int32_t index, Thing* thing)
 {
     if (index >= static_cast<int32_t>(capacity())) {
         return /*RETURNVALUE_NOTPOSSIBLE*/;
@@ -514,7 +511,7 @@ void Container::addThing(int32_t index, Thing* thing)
     updateItemWeight(item->getWeight());
 
     //send change to client
-    if (getParent() && (getParent() != VirtualCylinder::virtualCylinder)) {
+    if (getParent() && getParent() != VirtualCylinder::virtualCylinder) {
         onAddContainerItem(item);
     }
 }
@@ -525,14 +522,14 @@ void Container::addItemBack(Item* item)
     updateItemWeight(item->getWeight());
 
     //send change to client
-    if (getParent() && (getParent() != VirtualCylinder::virtualCylinder)) {
+    if (getParent() && getParent() != VirtualCylinder::virtualCylinder) {
         onAddContainerItem(item);
     }
 }
 
-void Container::updateThing(Thing* thing, uint16_t itemId, uint32_t count)
+void Container::updateThing(Thing* thing, const uint16_t itemId, const uint32_t count)
 {
-    int32_t index = getThingIndex(thing);
+    const int32_t index = getThingIndex(thing);
     if (index == -1) {
         return /*RETURNVALUE_NOTPOSSIBLE*/;
     }
@@ -553,7 +550,7 @@ void Container::updateThing(Thing* thing, uint16_t itemId, uint32_t count)
     }
 }
 
-void Container::replaceThing(uint32_t index, Thing* thing)
+void Container::replaceThing(const uint32_t index, Thing* thing)
 {
     Item* item = thing->getItem();
     if (!item) {
@@ -577,20 +574,20 @@ void Container::replaceThing(uint32_t index, Thing* thing)
     replacedItem->setParent(nullptr);
 }
 
-void Container::removeThing(Thing* thing, uint32_t count)
+void Container::removeThing(Thing* thing, const uint32_t count)
 {
     Item* item = thing->getItem();
     if (item == nullptr) {
         return /*RETURNVALUE_NOTPOSSIBLE*/;
     }
 
-    int32_t index = getThingIndex(thing);
+    const int32_t index = getThingIndex(thing);
     if (index == -1) {
         return /*RETURNVALUE_NOTPOSSIBLE*/;
     }
 
     if (item->isStackable() && count != item->getItemCount()) {
-        uint8_t newCount = static_cast<uint8_t>(std::max<int32_t>(0, item->getItemCount() - count));
+        const uint8_t newCount = static_cast<uint8_t>(std::max<int32_t>(0, item->getItemCount() - count));
         const int32_t oldWeight = item->getWeight();
         item->setItemCount(newCount);
         updateItemWeight(-oldWeight + item->getWeight());
@@ -615,7 +612,7 @@ void Container::removeThing(Thing* thing, uint32_t count)
 int32_t Container::getThingIndex(const Thing* thing) const
 {
     int32_t index = 0;
-    for (Item* item : itemlist) {
+    for (const Item* item : itemlist) {
         if (item == thing) {
             return index;
         }
@@ -634,10 +631,10 @@ size_t Container::getLastIndex() const
     return size();
 }
 
-uint32_t Container::getItemTypeCount(uint16_t itemId, int32_t subType/* = -1*/) const
+uint32_t Container::getItemTypeCount(const uint16_t itemId, const int32_t subType/* = -1*/) const
 {
     uint32_t count = 0;
-    for (Item* item : itemlist) {
+    for (const Item* item : itemlist) {
         if (item->getID() == itemId) {
             count += countByType(item, subType);
         }
@@ -647,18 +644,18 @@ uint32_t Container::getItemTypeCount(uint16_t itemId, int32_t subType/* = -1*/) 
 
 std::map<uint32_t, uint32_t>& Container::getAllItemTypeCount(std::map<uint32_t, uint32_t>& countMap) const
 {
-    for (Item* item : itemlist) {
+    for (const Item* item : itemlist) {
         countMap[item->getID()] += item->getItemCount();
     }
     return countMap;
 }
 
-Thing* Container::getThing(size_t index) const
+Thing* Container::getThing(const size_t index) const
 {
     return getItemByIndex(index);
 }
 
-void Container::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t index, cylinderlink_t)
+void Container::postAddNotification(Thing* thing, const Cylinder* oldParent, const int32_t index, cylinderlink_t)
 {
     Cylinder* topParent = getTopParent();
     if (topParent->getCreature()) {
@@ -673,7 +670,7 @@ void Container::postAddNotification(Thing* thing, const Cylinder* oldParent, int
     }
 }
 
-void Container::postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t)
+void Container::postRemoveNotification(Thing* thing, const Cylinder* newParent, const int32_t index, cylinderlink_t)
 {
     Cylinder* topParent = getTopParent();
     if (topParent->getCreature()) {
@@ -731,7 +728,7 @@ ContainerIterator Container::iterator() const
     return cit;
 }
 
-Item* ContainerIterator::operator*()
+Item* ContainerIterator::operator*() const
 {
     return *cur;
 }
@@ -739,7 +736,7 @@ Item* ContainerIterator::operator*()
 void ContainerIterator::advance()
 {
     if (Item* i = *cur) {
-        if (Container* c = i->getContainer()) {
+        if (const Container* c = i->getContainer()) {
             if (!c->empty()) {
                 over.push_back(c);
             }

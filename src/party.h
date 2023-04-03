@@ -60,15 +60,15 @@ public:
     bool removeInvite(Player& player, bool removeFromPlayer = true);
 
     bool isPlayerInvited(const Player* player) const;
-    void updateAllPartyIcons();
-    void broadcastPartyMessage(MessageClasses msgClass, const std::string& msg, bool sendToInvitations = false);
+    void updateAllPartyIcons() const;
+    void broadcastPartyMessage(MessageClasses msgClass, const std::string& msg, bool sendToInvitations = false) const;
     bool empty() const {
         return memberList.empty() && inviteList.empty();
     }
     bool canOpenCorpse(uint32_t ownerId) const;
 
     void shareExperience(uint64_t experience, Creature* source = nullptr);
-    bool setSharedExperience(Player* player, bool sharedExpActive);
+    bool setSharedExperience(const Player* player, bool sharedExpActive);
     bool isSharedExperienceActive() const {
         return sharedExpActive;
     }
@@ -78,7 +78,7 @@ public:
     bool canUseSharedExperience(const Player* player) const;
     void updateSharedExperience();
 
-    void updatePlayerTicks(Player* player, uint32_t points);
+    void updatePlayerTicks(const Player* player, uint32_t points);
     void clearPlayerPoints(Player* player);
 
 #if GAME_FEATURE_PARTY_LIST > 0
@@ -93,7 +93,7 @@ public:
 #endif
 
 private:
-    bool canEnableSharedExperience();
+    bool canEnableSharedExperience() const;
 
     std::map<uint32_t, int64_t> ticksMap;
 

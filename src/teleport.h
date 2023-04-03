@@ -26,7 +26,7 @@
 class Teleport final : public Item, public Cylinder
 {
 public:
-    explicit Teleport(uint16_t type) : Item(type) {};
+    explicit Teleport(const uint16_t type) : Item(type) {};
 
     Teleport* getTeleport() override {
         return this;
@@ -43,7 +43,7 @@ public:
         return destPos;
     }
     void setDestPos(Position pos) {
-        destPos = std::move(pos);
+        destPos = pos;
     }
 
     //cylinder implementations

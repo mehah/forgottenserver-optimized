@@ -21,6 +21,8 @@
 #ifndef FS_TILE_H_96C7EE7CF8CD48E59D5D554A181F0C56
 #define FS_TILE_H_96C7EE7CF8CD48E59D5D554A181F0C56
 
+#include <memory>
+
 #include "cylinder.h"
 #include "item.h"
 #include "tools.h"
@@ -85,35 +87,36 @@ public:
         specs.reserve(32);
     }
 
-    inline CreatureVector::iterator begin() noexcept { return specs.begin(); }
-    inline CreatureVector::iterator end() noexcept { return specs.end(); }
-    inline CreatureVector::const_iterator begin() const noexcept { return specs.begin(); }
-    inline CreatureVector::const_iterator end() const noexcept { return specs.end(); }
-    inline bool empty() const noexcept { return specs.empty(); }
-    inline size_t size() const noexcept { return specs.size(); }
-    inline size_t capacity() const noexcept { return specs.capacity(); }
-    inline void clear() noexcept { specs.clear(); }
-    inline void reserve(size_t count) { specs.reserve(count); }
-    inline void push_back(CreatureVector::value_type element) { return specs.push_back(element); }
-    inline void emplace_back(CreatureVector::value_type element) { return specs.emplace_back(element); }
-    inline CreatureVector::reference operator[](size_t index) { return specs.operator[](index); }
-    inline CreatureVector::const_reference operator[](size_t index) const { return specs.operator[](index); }
+    CreatureVector::iterator begin() noexcept { return specs.begin(); }
+    CreatureVector::iterator end() noexcept { return specs.end(); }
+    CreatureVector::const_iterator begin() const noexcept { return specs.begin(); }
+    CreatureVector::const_iterator end() const noexcept { return specs.end(); }
+    bool empty() const noexcept { return specs.empty(); }
+    size_t size() const noexcept { return specs.size(); }
+    size_t capacity() const noexcept { return specs.capacity(); }
+    void clear() noexcept { specs.clear(); }
+    void reserve(const size_t count) { specs.reserve(count); }
+    void push_back(const CreatureVector::value_type element) { return specs.push_back(element); }
+    CreatureVector::value_type emplace_back(CreatureVector::value_type element) { return specs.emplace_back(element); }
+    CreatureVector::reference operator[](const size_t index) { return specs.operator[](index); }
+    CreatureVector::const_reference operator[](const size_t index) const { return specs.operator[](index); }
 
     template<class inputIterator>
-    inline void insert(CreatureVector::const_iterator it, inputIterator first, inputIterator last) { specs.insert(it, first, last); }
+    void insert(CreatureVector::const_iterator it, inputIterator first, inputIterator last) { specs.insert(it, first, last); }
 
     void mergeSpectators(const SpectatorVector& spectators) {
-        size_t it = 0, end = spectators.size();
+        size_t it = 0;
+        const size_t end = spectators.size();
         while (it < end) {
             Creature* spectator = spectators[it];
 
-            size_t cit = 0, cend = size();
+            size_t cit = 0;
+            const size_t cend = size();
             while (cit < cend) {
                 if (specs[cit] == spectator) {
                     goto Skip_Duplicate;
-                } else {
-                    ++cit;
                 }
+                ++cit;
             }
 
             specs.emplace_back(spectator);
@@ -122,21 +125,21 @@ public:
         }
     }
 
-    void erase(Creature* spectator) {
-        size_t it = 0, end = size();
+    void erase(const Creature* spectator) {
+        size_t it = 0;
+        const size_t end = size();
         while (it < end) {
             if (specs[it] == spectator) {
                 specs[it] = specs.back();
                 specs.pop_back();
                 return;
-            } else {
-                ++it;
             }
+            ++it;
         }
     }
 
     //Allow implicit conversion to CreatureVector&
-    operator CreatureVector& () { return specs; }
+    explicit operator CreatureVector& () { return specs; }
 
 private:
     CreatureVector specs;
@@ -147,46 +150,49 @@ class TileItemVector
 public:
     TileItemVector() = default;
 
-    inline ItemVector::iterator begin() noexcept { return vec.begin(); }
-    inline ItemVector::iterator end() noexcept { return vec.end(); }
-    inline ItemVector::const_iterator begin() const noexcept { return vec.begin(); }
-    inline ItemVector::const_iterator end() const noexcept { return vec.end(); }
-    inline ItemVector::reverse_iterator rbegin() noexcept { return vec.rbegin(); }
-    inline ItemVector::reverse_iterator rend() noexcept { return vec.rend(); }
-    inline ItemVector::const_reverse_iterator rbegin() const noexcept { return vec.rbegin(); }
-    inline ItemVector::const_reverse_iterator rend() const noexcept { return vec.rend(); }
-    inline size_t size() const noexcept { return vec.size(); }
-    inline void clear() noexcept { vec.clear(); }
-    inline void push_back(ItemVector::value_type element) { return vec.push_back(element); }
-    inline void emplace_back(ItemVector::value_type element) { return vec.emplace_back(element); }
-    inline ItemVector::iterator erase(ItemVector::const_iterator it) { return vec.erase(it); }
-    inline ItemVector::iterator erase(ItemVector::const_iterator first, ItemVector::const_iterator last) { return vec.erase(first, last); }
-    inline ItemVector::reference operator[](size_t index) { return vec.operator[](index); }
-    inline ItemVector::const_reference operator[](size_t index) const { return vec.operator[](index); }
+    ItemVector::iterator begin() noexcept { return vec.begin(); }
+    ItemVector::iterator end() noexcept { return vec.end(); }
+    ItemVector::const_iterator begin() const noexcept { return vec.begin(); }
+    ItemVector::const_iterator end() const noexcept { return vec.end(); }
+    ItemVector::reverse_iterator rbegin() noexcept { return vec.rbegin(); }
+    ItemVector::reverse_iterator rend() noexcept { return vec.rend(); }
+    ItemVector::const_reverse_iterator rbegin() const noexcept { return vec.rbegin(); }
+    ItemVector::const_reverse_iterator rend() const noexcept { return vec.rend(); }
+    size_t size() const noexcept { return vec.size(); }
+    void clear() noexcept { vec.clear(); }
+    void push_back(const ItemVector::value_type element) { return vec.push_back(element); }
+    ItemVector::value_type emplace_back(ItemVector::value_type element) { return vec.emplace_back(element); }
+    ItemVector::iterator erase(const ItemVector::const_iterator it) { return vec.erase(it); }
+    ItemVector::iterator erase(const ItemVector::const_iterator first, const ItemVector::const_iterator last) { return vec.erase(first, last); }
+    ItemVector::reference operator[](const size_t index) { return vec.operator[](index); }
+    ItemVector::const_reference operator[](const size_t index) const { return vec.operator[](index); }
 
     template<class inputIterator>
-    inline void insert(ItemVector::const_iterator it, inputIterator first, inputIterator last) { vec.insert(it, first, last); }
-    inline void insert(ItemVector::const_iterator it, ItemVector::value_type element) { vec.insert(it, element); }
+    void insert(ItemVector::const_iterator it, inputIterator first, inputIterator last) { vec.insert(it, first, last); }
 
-    inline ItemVector::iterator getBeginDownItem() { return begin() + topItemCount; }
-    inline ItemVector::const_iterator getBeginDownItem() const { return begin() + topItemCount; }
-    inline ItemVector::iterator getEndDownItem() noexcept { return end(); }
-    inline ItemVector::const_iterator getEndDownItem() const noexcept { return end(); }
-    inline ItemVector::iterator getBeginTopItem() noexcept { return begin(); }
-    inline ItemVector::const_iterator getBeginTopItem() const noexcept { return begin(); }
-    inline ItemVector::iterator getEndTopItem() { return getBeginDownItem(); }
-    inline ItemVector::const_iterator getEndTopItem() const { return getBeginDownItem(); }
+    void insert(const ItemVector::const_iterator it, const ItemVector::value_type element) { vec.insert(it, element); }
 
-    inline uint32_t getTopItemCount() const noexcept { return topItemCount; }
-    inline uint32_t getDownItemCount() const noexcept { return size() - topItemCount; }
-    inline void addTopItemCount(int32_t increment) noexcept { topItemCount += increment; }
-    inline Item* getTopTopItem() const noexcept {
+    ItemVector::iterator getBeginDownItem() { return begin() + topItemCount; }
+    ItemVector::const_iterator getBeginDownItem() const { return begin() + topItemCount; }
+    ItemVector::iterator getEndDownItem() noexcept { return end(); }
+    ItemVector::const_iterator getEndDownItem() const noexcept { return end(); }
+    ItemVector::iterator getBeginTopItem() noexcept { return begin(); }
+    ItemVector::const_iterator getBeginTopItem() const noexcept { return begin(); }
+    ItemVector::iterator getEndTopItem() { return getBeginDownItem(); }
+    ItemVector::const_iterator getEndTopItem() const { return getBeginDownItem(); }
+
+    uint32_t getTopItemCount() const noexcept { return topItemCount; }
+    uint32_t getDownItemCount() const noexcept { return size() - topItemCount; }
+    void addTopItemCount(const int32_t increment) noexcept { topItemCount += increment; }
+
+    Item* getTopTopItem() const noexcept {
         if (topItemCount == 0) {
             return nullptr;
         }
         return *(getEndTopItem() - 1);
     }
-    inline Item* getTopDownItem() const noexcept {
+
+    Item* getTopDownItem() const noexcept {
         if (getDownItemCount() == 0) {
             return nullptr;
         }
@@ -194,7 +200,7 @@ public:
     }
 
     //Allow implicit conversion to ItemVector&
-    operator ItemVector& () { return vec; }
+    explicit operator ItemVector& () { return vec; }
 
 private:
     ItemVector vec;
@@ -205,8 +211,10 @@ class Tile : public Cylinder
 {
 public:
     static Tile& nullptr_tile;
-    Tile(uint16_t x, uint16_t y, uint8_t z) : tilePos(x, y, z) {}
-    virtual ~Tile() {
+    Tile(const uint16_t x, const uint16_t y, const uint8_t z) : tilePos(x, y, z) {}
+
+    ~Tile() override
+    {
         delete ground;
     };
 
@@ -222,10 +230,10 @@ public:
     virtual const CreatureVector* getCreatures() const = 0;
     virtual CreatureVector* makeCreatures() = 0;
 
-    int32_t getThrowRange() const override final {
+    int32_t getThrowRange() const final {
         return 0;
     }
-    bool isPushable() const override final {
+    bool isPushable() const final {
         return false;
     }
 
@@ -261,31 +269,32 @@ public:
     bool hasProperty(ITEMPROPERTY prop) const;
     bool hasProperty(const Item* exclude, ITEMPROPERTY prop) const;
 
-    bool hasFlag(uint32_t flag) const {
+    bool hasFlag(const uint32_t flag) const {
         return hasBitSet(flag, this->flags);
     }
-    void setFlag(uint32_t flag) {
+    void setFlag(const uint32_t flag) {
         this->flags |= flag;
     }
-    void resetFlag(uint32_t flag) {
+    void resetFlag(const uint32_t flag) {
         this->flags &= ~flag;
     }
 
     ZoneType_t getZone() const {
         if (hasFlag(TILESTATE_PROTECTIONZONE)) {
             return ZONE_PROTECTION;
-        } else if (hasFlag(TILESTATE_NOPVPZONE)) {
-            return ZONE_NOPVP;
-        } else if (hasFlag(TILESTATE_PVPZONE)) {
-            return ZONE_PVP;
-        } else {
-            return ZONE_NORMAL;
         }
+        if (hasFlag(TILESTATE_NOPVPZONE)) {
+            return ZONE_NOPVP;
+        }
+        if (hasFlag(TILESTATE_PVPZONE)) {
+            return ZONE_PVP;
+        }
+        return ZONE_NORMAL;
     }
 
     bool hasHeight(uint32_t n) const;
 
-    std::string getDescription(int32_t lookDistance) const override final;
+    std::string getDescription(int32_t lookDistance) const final;
 
     int32_t getClientIndexOfCreature(const Player* player, const Creature* creature) const;
     int32_t getStackposOfCreature(const Player* player, const Creature* creature) const;
@@ -295,40 +304,40 @@ public:
     ReturnValue queryAdd(int32_t index, const Thing& thing, uint32_t count,
             uint32_t flags, Creature* actor = nullptr) const override;
     ReturnValue queryMaxCount(int32_t index, const Thing& thing, uint32_t count,
-            uint32_t& maxQueryCount, uint32_t flags) const override final;
-    ReturnValue queryRemove(const Thing& thing, uint32_t count, uint32_t flags) const override final;
+            uint32_t& maxQueryCount, uint32_t flags) const final;
+    ReturnValue queryRemove(const Thing& thing, uint32_t count, uint32_t flags) const final;
     Tile* queryDestination(int32_t& index, const Thing& thing, Item** destItem, uint32_t& flags) override;
 
-    void addThing(Thing* thing) override final;
+    void addThing(Thing* thing) final;
     void addThing(int32_t index, Thing* thing) override;
 
-    void updateThing(Thing* thing, uint16_t itemId, uint32_t count) override final;
-    void replaceThing(uint32_t index, Thing* thing) override final;
+    void updateThing(Thing* thing, uint16_t itemId, uint32_t count) final;
+    void replaceThing(uint32_t index, Thing* thing) final;
 
-    void removeThing(Thing* thing, uint32_t count) override final;
+    void removeThing(Thing* thing, uint32_t count) final;
 #if GAME_FEATURE_FASTER_CLEAN > 0
     void cleanItem(Item* item, int32_t index, uint32_t count);
 #endif
 
     void removeCreature(Creature* creature);
 
-    int32_t getThingIndex(const Thing* thing) const override final;
-    size_t getFirstIndex() const override final;
-    size_t getLastIndex() const override final;
-    uint32_t getItemTypeCount(uint16_t itemId, int32_t subType = -1) const override final;
-    Thing* getThing(size_t index) const override final;
+    int32_t getThingIndex(const Thing* thing) const final;
+    size_t getFirstIndex() const final;
+    size_t getLastIndex() const final;
+    uint32_t getItemTypeCount(uint16_t itemId, int32_t subType = -1) const final;
+    Thing* getThing(size_t index) const final;
 
-    void postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t index, cylinderlink_t link = LINK_OWNER) override final;
-    void postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t link = LINK_OWNER) override final;
+    void postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t index, cylinderlink_t link = LINK_OWNER) final;
+    void postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t link = LINK_OWNER) final;
 
-    void internalAddThing(Thing* thing) override final;
+    void internalAddThing(Thing* thing) final;
     void internalAddThing(uint32_t index, Thing* thing) override;
 
-    const Position& getPosition() const override final {
+    const Position& getPosition() const final {
         return tilePos;
     }
 
-    bool isRemoved() const override final {
+    bool isRemoved() const final {
         return false;
     }
 
@@ -345,7 +354,7 @@ private:
     void onAddTileItem(Item* item);
     void onUpdateTileItem(Item* oldItem, const ItemType& oldType, Item* newItem, const ItemType& newType);
     void onRemoveTileItem(const SpectatorVector& spectators, const std::vector<int32_t>& oldStackPosVector, Item* item);
-    void onUpdateTile(const SpectatorVector& spectators);
+    void onUpdateTile(const SpectatorVector& spectators) const;
 
     void setTileFlags(const Item* item);
     void resetTileFlags(const Item* item);
@@ -364,8 +373,9 @@ class DynamicTile : public Tile
     CreatureVector creatures;
 
 public:
-    DynamicTile(uint16_t x, uint16_t y, uint8_t z) : Tile(x, y, z) {}
-    ~DynamicTile() {
+    DynamicTile(const uint16_t x, const uint16_t y, const uint8_t z) : Tile(x, y, z) {}
+    ~DynamicTile() override
+    {
         for (Item* item : items) {
             item->decrementReferenceCounter();
         }
@@ -404,8 +414,9 @@ class StaticTile final : public Tile
     std::unique_ptr<CreatureVector> creatures;
 
 public:
-    StaticTile(uint16_t x, uint16_t y, uint8_t z) : Tile(x, y, z) {}
-    ~StaticTile() {
+    StaticTile(const uint16_t x, const uint16_t y, const uint8_t z) : Tile(x, y, z) {}
+    ~StaticTile() override
+    {
         if (items) {
             for (Item* item : *items) {
                 item->decrementReferenceCounter();
@@ -425,7 +436,7 @@ public:
     }
     TileItemVector* makeItemList() override {
         if (!items) {
-            items.reset(new TileItemVector);
+            items = std::make_unique<TileItemVector>();
         }
         return items.get();
     }
@@ -438,7 +449,7 @@ public:
     }
     CreatureVector* makeCreatures() override {
         if (!creatures) {
-            creatures.reset(new CreatureVector);
+            creatures = std::make_unique<CreatureVector>();
         }
         return creatures.get();
     }

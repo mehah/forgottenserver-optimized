@@ -43,7 +43,7 @@ public:
     bool loadNpcLib(const std::string& file);
 
 private:
-    void registerFunctions();
+    void registerFunctions() const;
 
     static int luaActionSay(lua_State* L);
     static int luaActionMove(lua_State* L);
@@ -77,14 +77,14 @@ class NpcEventsHandler
 public:
     NpcEventsHandler(const std::string& file, Npc* npc);
 
-    void onCreatureAppear(Creature* creature);
-    void onCreatureDisappear(Creature* creature);
-    void onCreatureMove(Creature* creature, const Position& oldPos, const Position& newPos);
-    void onCreatureSay(Creature* creature, SpeakClasses, const std::string& text);
-    void onPlayerTrade(Player* player, int32_t callback, uint16_t itemId, uint8_t count, uint8_t amount, bool ignore = false, bool inBackpacks = false);
-    void onPlayerCloseChannel(Player* player);
-    void onPlayerEndTrade(Player* player);
-    void onThink();
+    void onCreatureAppear(Creature* creature) const;
+    void onCreatureDisappear(Creature* creature) const;
+    void onCreatureMove(Creature* creature, const Position& oldPos, const Position& newPos) const;
+    void onCreatureSay(Creature* creature, SpeakClasses, const std::string& text) const;
+    void onPlayerTrade(Player* player, int32_t callback, uint16_t itemId, uint8_t count, uint8_t amount, bool ignore = false, bool inBackpacks = false) const;
+    void onPlayerCloseChannel(Player* player) const;
+    void onPlayerEndTrade(Player* player) const;
+    void onThink() const;
 
     bool isLoaded() const;
 
@@ -105,7 +105,7 @@ private:
 class Npc final : public Creature
 {
 public:
-    ~Npc();
+    ~Npc() override;
 
     // non-copyable
     Npc(const Npc&) = delete;
@@ -167,22 +167,22 @@ public:
     const Position& getMasterPos() const {
         return masterPos;
     }
-    void setMasterPos(Position pos, int32_t radius = 1) {
+    void setMasterPos(const Position pos, const int32_t radius = 1) {
         masterPos = pos;
         if (masterRadius == -1) {
             masterRadius = radius;
         }
     }
 
-    void onPlayerCloseChannel(Player* player);
+    void onPlayerCloseChannel(Player* player) const;
     void onPlayerTrade(Player* player, int32_t callback, uint16_t itemId, uint8_t count,
-                       uint8_t amount, bool ignore = false, bool inBackpacks = false);
+                       uint8_t amount, bool ignore = false, bool inBackpacks = false) const;
     void onPlayerEndTrade(Player* player, int32_t buyCallback, int32_t sellCallback);
 
-    void turnToCreature(Creature* creature);
+    void turnToCreature(const Creature* creature);
     void setCreatureFocus(Creature* creature);
 
-    NpcScriptInterface* getScriptInterface();
+    static NpcScriptInterface* getScriptInterface();
 
     static uint32_t npcAutoID;
 

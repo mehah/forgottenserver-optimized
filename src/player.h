@@ -81,7 +81,7 @@ enum tradestate_t : uint8_t
 #if GAME_FEATURE_ADDITIONAL_VIPINFO > 0
 struct VIPEntry
 {
-    VIPEntry(uint32_t guid, std::string name, std::string description, uint32_t icon, bool notify) :
+    VIPEntry(const uint32_t guid, std::string name, std::string description, const uint32_t icon, const bool notify) :
         guid(guid), name(std::move(name)), description(std::move(description)), icon(icon), notify(notify) {}
 
     uint32_t guid;
@@ -111,7 +111,7 @@ struct OpenContainer
 
 struct OutfitEntry
 {
-    constexpr OutfitEntry(uint16_t lookType, uint8_t addons) : lookType(lookType), addons(addons) {}
+    constexpr OutfitEntry(const uint16_t lookType, const uint8_t addons) : lookType(lookType), addons(addons) {}
 
     uint16_t lookType;
     uint8_t addons;
@@ -158,7 +158,7 @@ class Player final : public Creature, public Cylinder
 {
 public:
     explicit Player(ProtocolGame_ptr p);
-    ~Player();
+    ~Player() override;
 
     // non-copyable
     Player(const Player&) = delete;
@@ -209,13 +209,14 @@ public:
     void dismount();
 #endif
 
-    void sendFYIBox(const std::string& message) {
+    void sendFYIBox(const std::string& message) const
+    {
         if (client) {
             client->sendFYIBox(message);
         }
     }
 
-    void setGUID(uint32_t guid) {
+    void setGUID(const uint32_t guid) {
         this->guid = guid;
     }
     uint32_t getGUID() const {
@@ -229,7 +230,7 @@ public:
     void addList() override;
     void kickPlayer(bool displayEffect);
 
-    static uint64_t getExpForLevel(uint64_t lv) {
+    static uint64_t getExpForLevel(const uint64_t lv) {
         return (((lv - 6ULL) * lv + 17ULL) * lv - 12ULL) / 6ULL * 100ULL;
     }
 
@@ -239,10 +240,10 @@ public:
 
     bool addOfflineTrainingTries(skills_t skill, uint64_t tries);
 
-    void addOfflineTrainingTime(int32_t addTime) {
+    void addOfflineTrainingTime(const int32_t addTime) {
         offlineTrainingTime = std::min<int32_t>(12 * 3600 * 1000, offlineTrainingTime + addTime);
     }
-    void removeOfflineTrainingTime(int32_t removeTime) {
+    void removeOfflineTrainingTime(const int32_t removeTime) {
         offlineTrainingTime = std::max<int32_t>(0, offlineTrainingTime - removeTime);
     }
     int32_t getOfflineTrainingTime() const {
@@ -252,14 +253,14 @@ public:
     int32_t getOfflineTrainingSkill() const {
         return offlineTrainingSkill;
     }
-    void setOfflineTrainingSkill(int32_t skill) {
+    void setOfflineTrainingSkill(const int32_t skill) {
         offlineTrainingSkill = skill;
     }
 
     uint64_t getBankBalance() const {
         return bankBalance;
     }
-    void setBankBalance(uint64_t balance) {
+    void setBankBalance(const uint64_t balance) {
         bankBalance = balance;
     }
 
@@ -287,10 +288,10 @@ public:
     bool isInWar(const Player* player) const;
     bool isInWarList(uint32_t guildId) const;
 
-    void setLastWalkthroughAttempt(int64_t walkthroughAttempt) {
+    void setLastWalkthroughAttempt(const int64_t walkthroughAttempt) {
         lastWalkthroughAttempt = walkthroughAttempt;
     }
-    void setLastWalkthroughPosition(Position walkthroughPosition) {
+    void setLastWalkthroughPosition(const Position walkthroughPosition) {
         lastWalkthroughPosition = walkthroughPosition;
     }
 
@@ -313,13 +314,13 @@ public:
     OperatingSystem_t getOperatingSystem() const {
         return operatingSystem;
     }
-    void setOperatingSystem(OperatingSystem_t clientos) {
+    void setOperatingSystem(const OperatingSystem_t clientos) {
         operatingSystem = clientos;
     }
     OperatingSystem_t getTfcOperatingSystem() const {
         return tfcOperatingSystem;
     }
-    void setTfcOperatingSystem(OperatingSystem_t clientos) {
+    void setTfcOperatingSystem(const OperatingSystem_t clientos) {
         tfcOperatingSystem = clientos;
     }
 
@@ -344,9 +345,9 @@ public:
     PartyShields_t getPartyShield(const Player* player) const;
     bool isInviting(const Player* player) const;
     bool isPartner(const Player* player) const;
-    void sendPlayerPartyIcons(Player* player);
+    void sendPlayerPartyIcons(Player* player) const;
     bool addPartyInvitation(Party* party);
-    void removePartyInvitation(Party* party);
+    void removePartyInvitation(const Party* party);
     void clearPartyInvitations();
 
     GuildEmblems_t getGuildEmblem(const Player* player) const;
@@ -355,31 +356,33 @@ public:
         return manaSpent;
     }
 
-    bool hasFlag(PlayerFlags value) const {
+    bool hasFlag(const PlayerFlags value) const {
         return (group->flags & value) != 0;
     }
 
-    BedItem* getBedItem() {
+    BedItem* getBedItem() const
+    {
         return bedItem;
     }
     void setBedItem(BedItem* b) {
         bedItem = b;
     }
 
-    void addBlessing(uint8_t blessing) {
+    void addBlessing(const uint8_t blessing) {
         blessings |= blessing;
     }
-    void removeBlessing(uint8_t blessing) {
+    void removeBlessing(const uint8_t blessing) {
         blessings &= ~blessing;
     }
-    bool hasBlessing(uint8_t value) const {
-        return (blessings & (static_cast<uint8_t>(1) << value)) != 0;
+    bool hasBlessing(const uint8_t value) const {
+        return (blessings & static_cast<uint8_t>(1) << value) != 0;
     }
 
     bool isOffline() const {
-        return (getID() == 0);
+        return getID() == 0;
     }
-    void disconnect() {
+    void disconnect() const
+    {
         if (client) {
             client->disconnect();
         }
@@ -400,8 +403,8 @@ public:
 
     bool canOpenCorpse(uint32_t ownerId) const;
 
-    void addStorageValue(const uint32_t key, const int32_t value, const bool isLogin = false);
-    bool getStorageValue(const uint32_t key, int32_t& value) const;
+    void addStorageValue(uint32_t key, int32_t value, bool isLogin = false);
+    bool getStorageValue(uint32_t key, int32_t& value) const;
     void genReservedStorageRange();
 
 #if GAME_FEATURE_QUEST_TRACKER > 0
@@ -418,7 +421,7 @@ public:
     }
 
 #if GAME_FEATURE_MARKET > 0
-    void setInMarket(bool value) {
+    void setInMarket(const bool value) {
         inMarket = value;
     }
     bool isInMarket() const {
@@ -445,7 +448,7 @@ public:
     bool removeStashItem(uint16_t itemId, uint32_t itemCount);
 #endif
 
-    void setLastDepotId(int16_t newId) {
+    void setLastDepotId(const int16_t newId) {
         lastDepotId = newId;
     }
     int16_t getLastDepotId() const {
@@ -547,7 +550,8 @@ public:
     uint32_t getCapacity() const {
         if (hasFlag(PlayerFlag_CannotPickupItem)) {
             return 0;
-        } else if (hasFlag(PlayerFlag_HasInfiniteCapacity)) {
+        }
+        if (hasFlag(PlayerFlag_HasInfiniteCapacity)) {
             return std::numeric_limits<uint32_t>::max();
         }
         return capacity;
@@ -556,11 +560,11 @@ public:
     uint32_t getFreeCapacity() const {
         if (hasFlag(PlayerFlag_CannotPickupItem)) {
             return 0;
-        } else if (hasFlag(PlayerFlag_HasInfiniteCapacity)) {
-            return std::numeric_limits<uint32_t>::max();
-        } else {
-            return std::max<int32_t>(0, capacity - inventoryWeight);
         }
+        if (hasFlag(PlayerFlag_HasInfiniteCapacity)) {
+            return std::numeric_limits<uint32_t>::max();
+        }
+        return std::max<int32_t>(0, capacity - inventoryWeight);
     }
 
     int32_t getMaxHealth() const override {
@@ -575,18 +579,18 @@ public:
 
     Item* getInventoryItem(slots_t slot) const;
 
-    bool isItemAbilityEnabled(slots_t slot) const {
+    bool isItemAbilityEnabled(const slots_t slot) const {
         return inventoryAbilities[slot];
     }
-    void setItemAbility(slots_t slot, bool enabled) {
+    void setItemAbility(const slots_t slot, const bool enabled) {
         inventoryAbilities[slot] = enabled;
     }
 
-    void setVarSkill(skills_t skill, int32_t modifier) {
+    void setVarSkill(const skills_t skill, const int32_t modifier) {
         varSkills[skill] += modifier;
     }
 
-    void setVarSpecialSkill(SpecialSkills_t skill, int32_t modifier) {
+    void setVarSpecialSkill(const SpecialSkills_t skill, const int32_t modifier) {
         varSpecialSkills[skill] += modifier;
     }
 
@@ -614,18 +618,19 @@ public:
     uint64_t getMoney() const;
 
     //safe-trade functions
-    void setTradeState(tradestate_t state) {
+    void setTradeState(const tradestate_t state) {
         tradeState = state;
     }
     tradestate_t getTradeState() const {
         return tradeState;
     }
-    Item* getTradeItem() {
+    Item* getTradeItem() const
+    {
         return tradeItem;
     }
 
     //shop functions
-    void setShopOwner(Npc * owner, int32_t onBuy, int32_t onSell) {
+    void setShopOwner(Npc * owner, const int32_t onBuy, const int32_t onSell) {
         shopOwner = owner;
         purchaseCallback = onBuy;
         saleCallback = onSell;
@@ -644,7 +649,7 @@ public:
     }
 
     //V.I.P. functions
-    void notifyStatusChange(Player * loginPlayer, VipStatus_t status);
+    void notifyStatusChange(const Player * loginPlayer, VipStatus_t status);
     bool removeVIP(uint32_t vipGuid);
     bool addVIP(uint32_t vipGuid, const std::string & vipName, VipStatus_t status);
     bool addVIPInternal(uint32_t vipGuid);
@@ -669,10 +674,10 @@ public:
     bool hasShopItemForSale(uint32_t itemId, uint8_t subType) const;
 
     void setChaseMode(bool mode);
-    void setFightMode(fightMode_t mode) {
+    void setFightMode(const fightMode_t mode) {
         fightMode = mode;
     }
-    void setSecureMode(bool mode) {
+    void setSecureMode(const bool mode) {
         secureMode = mode;
     }
 
@@ -695,22 +700,22 @@ public:
                                  bool checkDefense = false, bool checkArmor = false, bool field = false) override;
     void doAttacking(uint32_t interval) override;
     bool hasExtraSwing() override {
-        return lastAttack > 0 && ((OTSYS_TIME() - lastAttack) >= getAttackSpeed());
+        return lastAttack > 0 && OTSYS_TIME() - lastAttack >= getAttackSpeed();
     }
 
-    uint16_t getSpecialSkill(uint8_t skill) const {
+    uint16_t getSpecialSkill(const uint8_t skill) const {
         return std::max<int32_t>(0, varSpecialSkills[skill]);
     }
-    uint16_t getSkillLevel(uint8_t skill) const {
+    uint16_t getSkillLevel(const uint8_t skill) const {
         return std::max<int32_t>(0, skills[skill].level + varSkills[skill]);
     }
-    uint16_t getBaseSkill(uint8_t skill) const {
+    uint16_t getBaseSkill(const uint8_t skill) const {
         return skills[skill].level;
     }
 #if GAME_FEATURE_DOUBLE_PERCENT_SKILLS > 0
     uint16_t getSkillPercent(uint8_t skill) const {
 #else
-    uint8_t getSkillPercent(uint8_t skill) const {
+    uint8_t getSkillPercent(const uint8_t skill) const {
 #endif
         return skills[skill].percent;
     }
@@ -729,7 +734,7 @@ public:
     void getShieldAndWeapon(const Item * &shield, const Item * &weapon) const;
 
     void drainHealth(Creature * attacker, int32_t damage) override;
-    void drainMana(Creature * attacker, int32_t manaLoss);
+    void drainMana(const Creature * attacker, int32_t manaLoss);
     void addManaSpent(uint64_t amount);
     void addSkillAdvance(skills_t skill, uint64_t count);
 
@@ -766,7 +771,7 @@ public:
     Skulls_t getSkull() const override;
     Skulls_t getSkullClient(const Creature * creature) const override;
     int64_t getSkullTicks() const { return skullTicks; }
-    void setSkullTicks(int64_t ticks) { skullTicks = ticks; }
+    void setSkullTicks(const int64_t ticks) { skullTicks = ticks; }
 
     bool hasAttacked(const Player * attacked) const;
     void addAttacked(const Player * attacked);
@@ -793,9 +798,10 @@ public:
 
     //tile
     //send methods
-    void sendAddTileItem(const Tile * tile, const Position & pos, const Item * item) {
+    void sendAddTileItem(const Tile * tile, const Position & pos, const Item * item) const
+    {
         if (client) {
-            int32_t stackpos = tile->getStackposOfItem(this, item);
+            const int32_t stackpos = tile->getStackposOfItem(this, item);
             if (stackpos != -1) {
 #if GAME_FEATURE_TILE_ADDTHING_STACKPOS > 0
                 client->sendAddTileItem(pos, stackpos, item);
@@ -805,81 +811,95 @@ public:
             }
         }
     }
-    void sendUpdateTileItem(const Tile * tile, const Position & pos, const Item * item) {
+    void sendUpdateTileItem(const Tile * tile, const Position & pos, const Item * item) const
+    {
         if (client) {
-            int32_t stackpos = tile->getStackposOfItem(this, item);
+            const int32_t stackpos = tile->getStackposOfItem(this, item);
             if (stackpos != -1) {
                 client->sendUpdateTileItem(pos, stackpos, item);
             }
         }
     }
-    void sendRemoveTileThing(const Position & pos, int32_t stackpos) {
+    void sendRemoveTileThing(const Position & pos, const int32_t stackpos) const
+    {
         if (stackpos != -1 && client) {
             client->sendRemoveTileThing(pos, stackpos);
         }
     }
-    void sendUpdateTile(const Tile * tile, const Position & pos) {
+    void sendUpdateTile(const Tile * tile, const Position & pos) const
+    {
         if (client) {
             client->sendUpdateTile(tile, pos);
         }
     }
-    void sendMapDescription() {
+    void sendMapDescription() const
+    {
         if (client) {
             client->sendMapDescription(getPosition());
         }
     }
 
-    void sendChannelMessage(const std::string & author, const std::string & text, SpeakClasses type, uint16_t channel) {
+    void sendChannelMessage(const std::string & author, const std::string & text, const SpeakClasses type, const uint16_t channel) const
+    {
         if (client) {
             client->sendChannelMessage(author, text, type, channel);
         }
     }
 #if GAME_FEATURE_CHAT_PLAYERLIST > 0
-    void sendChannelEvent(uint16_t channelId, const std::string & playerName, ChannelEvent_t channelEvent) {
+    void sendChannelEvent(const uint16_t channelId, const std::string & playerName, const ChannelEvent_t channelEvent) const
+    {
         if (client) {
             client->sendChannelEvent(channelId, playerName, channelEvent);
         }
     }
 #endif
-    void sendCreatureAppear(const Creature * creature, const Position & pos, bool isLogin) {
+    void sendCreatureAppear(const Creature * creature, const Position & pos, const bool isLogin) const
+    {
         if (client) {
             client->sendAddCreature(creature, pos, creature->getTile()->getStackposOfCreature(this, creature), isLogin);
         }
     }
-    void sendCreatureMove(const Creature * creature, const Position & newPos, int32_t newStackPos, const Position & oldPos, int32_t oldStackPos, bool teleport) {
+    void sendCreatureMove(const Creature * creature, const Position & newPos, const int32_t newStackPos, const Position & oldPos, const int32_t oldStackPos, const bool teleport) const
+    {
         if (client) {
             client->sendMoveCreature(creature, newPos, newStackPos, oldPos, oldStackPos, teleport);
         }
     }
-    void sendCreatureTurn(const Creature * creature) {
+    void sendCreatureTurn(const Creature * creature) const
+    {
         if (client && canSeeCreature(creature)) {
-            int32_t stackpos = creature->getTile()->getStackposOfCreature(this, creature);
+            const int32_t stackpos = creature->getTile()->getStackposOfCreature(this, creature);
             if (stackpos != -1) {
                 client->sendCreatureTurn(creature, stackpos);
             }
         }
     }
-    void sendCreatureSay(const Creature * creature, SpeakClasses type, const std::string & text, const Position * pos = nullptr) {
+    void sendCreatureSay(const Creature * creature, const SpeakClasses type, const std::string & text, const Position * pos = nullptr) const
+    {
         if (client) {
             client->sendCreatureSay(creature, type, text, pos);
         }
     }
-    void sendPrivateMessage(const Player * speaker, SpeakClasses type, const std::string & text) {
+    void sendPrivateMessage(const Player * speaker, const SpeakClasses type, const std::string & text) const
+    {
         if (client) {
             client->sendPrivateMessage(speaker, type, text);
         }
     }
-    void sendCreatureSquare(const Creature * creature, SquareColor_t color) {
+    void sendCreatureSquare(const Creature * creature, const SquareColor_t color) const
+    {
         if (client) {
             client->sendCreatureSquare(creature, color);
         }
     }
-    void sendCreatureChangeOutfit(const Creature * creature, const Outfit_t & outfit) {
+    void sendCreatureChangeOutfit(const Creature * creature, const Outfit_t & outfit) const
+    {
         if (client) {
             client->sendCreatureOutfit(creature, outfit);
         }
     }
-    void sendCreatureChangeVisible(const Creature * creature, bool visible) {
+    void sendCreatureChangeVisible(const Creature * creature, const bool visible) const
+    {
         if (!client) {
             return;
         }
@@ -894,7 +914,7 @@ public:
         } else if (canSeeInvisibility()) {
             client->sendCreatureOutfit(creature, creature->getCurrentOutfit());
         } else {
-            int32_t stackpos = creature->getTile()->getStackposOfCreature(this, creature);
+            const int32_t stackpos = creature->getTile()->getStackposOfCreature(this, creature);
             if (stackpos == -1) {
                 return;
             }
@@ -906,44 +926,51 @@ public:
             }
         }
     }
-    void sendCreatureLight(const Creature * creature) {
+    void sendCreatureLight(const Creature * creature) const
+    {
         if (client) {
             client->sendCreatureLight(creature);
         }
     }
 #if CLIENT_VERSION >= 854
-    void sendCreatureWalkthrough(const Creature * creature, bool walkthrough) {
+    void sendCreatureWalkthrough(const Creature * creature, const bool walkthrough) const
+    {
         if (client) {
             client->sendCreatureWalkthrough(creature, walkthrough);
         }
     }
 #endif
-    void sendCreatureShield(const Creature * creature) {
+    void sendCreatureShield(const Creature * creature) const
+    {
         if (client) {
             client->sendCreatureShield(creature);
         }
     }
 #if CLIENT_VERSION >= 910
-    void sendCreatureType(const Creature * creature, uint8_t creatureType) {
+    void sendCreatureType(const Creature * creature, const uint8_t creatureType) const
+    {
         if (client) {
             client->sendCreatureType(creature, creatureType);
         }
     }
 #endif
 #if CLIENT_VERSION >= 1000 && CLIENT_VERSION < 1185
-    void sendCreatureHelpers(uint32_t creatureId, uint16_t helpers) {
+    void sendCreatureHelpers(const uint32_t creatureId, const uint16_t helpers) const
+    {
         if (client) {
             client->sendCreatureHelpers(creatureId, helpers);
         }
     }
 #endif
 #if CLIENT_VERSION >= 870
-    void sendSpellCooldown(uint8_t spellId, uint32_t time) {
+    void sendSpellCooldown(const uint8_t spellId, const uint32_t time) const
+    {
         if (client) {
             client->sendSpellCooldown(spellId, time);
         }
     }
-    void sendSpellGroupCooldown(SpellGroup_t groupId, uint32_t time) {
+    void sendSpellGroupCooldown(const SpellGroup_t groupId, const uint32_t time) const
+    {
         if (client) {
             client->sendSpellGroupCooldown(groupId, time);
         }
@@ -952,11 +979,12 @@ public:
     void sendModalWindow(const ModalWindow & modalWindow);
 
     //container
-    void sendAddContainerItem(const Container * container, const Item * item);
+    void sendAddContainerItem(const Container * container, const Item * item) const;
 #if GAME_FEATURE_CONTAINER_PAGINATION > 0
     void sendUpdateContainerItem(const Container * container, uint16_t slot, const Item * newItem);
     void sendRemoveContainerItem(const Container * container, uint16_t slot);
-    void sendContainer(uint8_t cid, const Container * container, bool hasParent, uint16_t firstIndex) {
+    void sendContainer(const uint8_t cid, const Container * container, const bool hasParent, const uint16_t firstIndex) const
+    {
         if (client) {
             client->sendContainer(cid, container, hasParent, firstIndex);
         }
@@ -972,13 +1000,15 @@ public:
 #endif
 
     //inventory
-    void sendInventoryItem(slots_t slot, const Item * item) {
+    void sendInventoryItem(const slots_t slot, const Item * item) const
+    {
         if (client) {
             client->sendInventoryItem(slot, item);
         }
     }
 #if GAME_FEATURE_INVENTORY_LIST > 0
-    void sendItems(const std::map<uint32_t, uint32_t>&inventoryMap) {
+    void sendItems(const std::map<uint32_t, uint32_t>&inventoryMap) const
+    {
         if (client) {
             client->sendItems(inventoryMap);
         }
@@ -1016,12 +1046,12 @@ public:
     void onUpdateContainerItem(const Container * container, const Item * oldItem, const Item * newItem);
     void onRemoveContainerItem(const Container * container, const Item * item);
 
-    void onCloseContainer(const Container * container);
-    void onSendContainer(const Container * container);
+    void onCloseContainer(const Container * container) const;
+    void onSendContainer(const Container * container) const;
     void autoCloseContainers(const Container * container);
 
     //inventory
-    void onUpdateInventoryItem(Item * oldItem, Item * newItem);
+    void onUpdateInventoryItem(Item * oldItem, const Item * newItem);
     void onRemoveInventoryItem(Item * item);
 
     void updateCreatureData(const Creature * creature) const {
@@ -1045,12 +1075,12 @@ public:
             client->sendCancelWalk();
         }
     }
-    void sendChangeSpeed(const Creature * creature, uint32_t newSpeed) const {
+    void sendChangeSpeed(const Creature * creature, const uint32_t newSpeed) const {
         if (client) {
             client->sendChangeSpeed(creature, newSpeed);
         }
     }
-    void sendCreatureHealth(const Creature * creature, uint8_t healthPercent) const {
+    void sendCreatureHealth(const Creature * creature, const uint8_t healthPercent) const {
         if (client) {
             client->sendCreatureHealth(creature, healthPercent);
         }
@@ -1101,24 +1131,25 @@ public:
         }
     }
 #endif
-    void sendDistanceShoot(const Position & from, const Position & to, unsigned char type) const {
+    void sendDistanceShoot(const Position & from, const Position & to, const unsigned char type) const {
         if (client) {
             client->sendDistanceShoot(from, to, type);
         }
     }
-    void sendHouseWindow(House * house, uint32_t listId) const;
-    void sendCreatePrivateChannel(uint16_t channelId, const std::string & channelName) {
+    void sendHouseWindow(const House * house, uint32_t listId) const;
+    void sendCreatePrivateChannel(const uint16_t channelId, const std::string & channelName) const
+    {
         if (client) {
             client->sendCreatePrivateChannel(channelId, channelName);
         }
     }
-    void sendClosePrivate(uint16_t channelId);
+    void sendClosePrivate(uint16_t channelId) const;
     void sendIcons() const {
         if (client) {
             client->sendIcons(getClientIcons());
         }
     }
-    void sendMagicEffect(const Position & pos, uint8_t type) const {
+    void sendMagicEffect(const Position & pos, const uint8_t type) const {
         if (client) {
             client->sendMagicEffect(pos, type);
         }
@@ -1142,7 +1173,7 @@ public:
             client->sendSkills();
         }
     }
-    void sendTextMessage(MessageClasses mclass, const std::string & message) const {
+    void sendTextMessage(const MessageClasses mclass, const std::string & message) const {
         if (client) {
             client->sendTextMessage(TextMessage(mclass, message));
         }
@@ -1152,22 +1183,22 @@ public:
             client->sendTextMessage(message);
         }
     }
-    void sendReLoginWindow(uint8_t unfairFightReduction) const {
+    void sendReLoginWindow(const uint8_t unfairFightReduction) const {
         if (client) {
             client->sendReLoginWindow(unfairFightReduction);
         }
     }
-    void sendTextWindow(Item * item, uint16_t maxlen, bool canWrite) const {
+    void sendTextWindow(const Item * item, const uint16_t maxlen, const bool canWrite) const {
         if (client) {
             client->sendTextWindow(windowTextId, item, maxlen, canWrite);
         }
     }
-    void sendTextWindow(uint32_t itemId, const std::string & text) const {
+    void sendTextWindow(const uint32_t itemId, const std::string & text) const {
         if (client) {
             client->sendTextWindow(windowTextId, itemId, text);
         }
     }
-    void sendToChannel(const Creature * creature, SpeakClasses type, const std::string & text, uint16_t channelId) const {
+    void sendToChannel(const Creature * creature, const SpeakClasses type, const std::string & text, const uint16_t channelId) const {
         if (client) {
             client->sendToChannel(creature, type, text, channelId);
         }
@@ -1188,7 +1219,7 @@ public:
         }
     }
 #if GAME_FEATURE_MARKET > 0
-    void sendMarketEnter(uint32_t depotId) const {
+    void sendMarketEnter(const uint32_t depotId) const {
         if (client) {
             client->sendMarketEnter(depotId);
         }
@@ -1199,7 +1230,7 @@ public:
             client->sendMarketLeave();
         }
     }
-    void sendMarketBrowseItem(uint16_t itemId, const MarketOfferList & buyOffers, const MarketOfferList & sellOffers) const {
+    void sendMarketBrowseItem(const uint16_t itemId, const MarketOfferList & buyOffers, const MarketOfferList & sellOffers) const {
         if (client) {
             client->sendMarketBrowseItem(itemId, buyOffers, sellOffers);
         }
@@ -1214,7 +1245,7 @@ public:
             client->sendMarketBrowseOwnHistory(buyOffers, sellOffers);
         }
     }
-    void sendMarketDetail(uint16_t itemId) const {
+    void sendMarketDetail(const uint16_t itemId) const {
         if (client) {
             client->sendMarketDetail(itemId);
         }
@@ -1230,7 +1261,7 @@ public:
         }
     }
 #endif
-    void sendTradeItemRequest(const std::string & traderName, const Item * item, bool ack) const {
+    void sendTradeItemRequest(const std::string & traderName, const Item * item, const bool ack) const {
         if (client) {
             client->sendTradeItemRequest(traderName, item, ack);
         }
@@ -1240,7 +1271,8 @@ public:
             client->sendCloseTrade();
         }
     }
-    void sendWorldLight(LightInfo lightInfo) {
+    void sendWorldLight(const LightInfo lightInfo) const
+    {
         if (client) {
             client->sendWorldLight(lightInfo);
         }
@@ -1271,17 +1303,20 @@ public:
         }
     }
 #endif
-    void sendChannelsDialog() {
+    void sendChannelsDialog() const
+    {
         if (client) {
             client->sendChannelsDialog();
         }
     }
-    void sendOpenPrivateChannel(const std::string & receiver) {
+    void sendOpenPrivateChannel(const std::string & receiver) const
+    {
         if (client) {
             client->sendOpenPrivateChannel(receiver);
         }
     }
-    void sendOutfitWindow() {
+    void sendOutfitWindow() const
+    {
         if (client) {
             client->sendOutfitWindow();
         }
@@ -1293,13 +1328,15 @@ public:
         }
     }
 #endif
-    void sendCloseContainer(uint8_t cid) {
+    void sendCloseContainer(const uint8_t cid) const
+    {
         if (client) {
             client->sendCloseContainer(cid);
         }
     }
 
-    void sendChannel(uint16_t channelId, const std::string & channelName, const UsersMap * channelUsers, const InvitedMap * invitedUsers) {
+    void sendChannel(const uint16_t channelId, const std::string & channelName, const UsersMap * channelUsers, const InvitedMap * invitedUsers) const
+    {
         if (client) {
             client->sendChannel(channelId, channelName, channelUsers, invitedUsers);
         }
@@ -1331,32 +1368,38 @@ public:
         }
     }
 #endif
-    void sendTutorial(uint8_t tutorialId) {
+    void sendTutorial(const uint8_t tutorialId) const
+    {
         if (client) {
             client->sendTutorial(tutorialId);
         }
     }
-    void sendAddMarker(const Position & pos, uint8_t markType, const std::string & desc) {
+    void sendAddMarker(const Position & pos, const uint8_t markType, const std::string & desc) const
+    {
         if (client) {
             client->sendAddMarker(pos, markType, desc);
         }
     }
-    void sendMonsterCyclopedia() {
+    void sendMonsterCyclopedia() const
+    {
         if (client) {
             client->sendMonsterCyclopedia();
         }
     }
-    void sendCyclopediaMonsters(const std::string & race) {
+    void sendCyclopediaMonsters(const std::string & race) const
+    {
         if (client) {
             client->sendCyclopediaMonsters(race);
         }
     }
-    void sendCyclopediaRace(uint16_t monsterId) {
+    void sendCyclopediaRace(const uint16_t monsterId) const
+    {
         if (client) {
             client->sendCyclopediaRace(monsterId);
         }
     }
-    void sendCyclopediaBonusEffects() {
+    void sendCyclopediaBonusEffects() const
+    {
         if (client) {
             client->sendCyclopediaBonusEffects();
         }
@@ -1440,7 +1483,8 @@ public:
         }
     }
 #endif
-    void sendTournamentLeaderboard() {
+    void sendTournamentLeaderboard() const
+    {
         if (client) {
             client->sendTournamentLeaderboard();
         }
@@ -1464,12 +1508,14 @@ public:
         }
     }
 #endif
-    void sendQuestLog() {
+    void sendQuestLog() const
+    {
         if (client) {
             client->sendQuestLog();
         }
     }
-    void sendQuestLine(const Quest * quest) {
+    void sendQuestLine(const Quest * quest) const
+    {
         if (client) {
             client->sendQuestLine(quest);
         }
@@ -1487,13 +1533,15 @@ public:
     }
 #endif
 #if CLIENT_VERSION >= 1000
-    void sendFightModes() {
+    void sendFightModes() const
+    {
         if (client) {
             client->sendFightModes();
         }
     }
 #endif
-    void sendNetworkMessage(const NetworkMessage & message) {
+    void sendNetworkMessage(const NetworkMessage & message) const
+    {
         if (client) {
             client->writeToOutputBuffer(message);
         }
@@ -1508,7 +1556,7 @@ public:
     void postAddNotification(Thing * thing, const Cylinder * oldParent, int32_t index, cylinderlink_t link = LINK_OWNER) override;
     void postRemoveNotification(Thing * thing, const Cylinder * newParent, int32_t index, cylinderlink_t link = LINK_OWNER) override;
 
-    void setNextAction(int64_t time) {
+    void setNextAction(const int64_t time) {
         if (time > nextAction) {
             nextAction = time;
         }
@@ -1518,10 +1566,10 @@ public:
     }
     uint32_t getNextActionTime() const;
 
-    Item* getWriteItem(uint32_t & windowTextId, uint16_t & maxWriteLen);
+    Item* getWriteItem(uint32_t & windowTextId, uint16_t & maxWriteLen) const;
     void setWriteItem(Item * item, uint16_t maxWriteLen = 0);
 
-    House* getEditHouse(uint32_t & windowTextId, uint32_t & listId);
+    House* getEditHouse(uint32_t & windowTextId, uint32_t & listId) const;
     void setEditHouse(House * house, uint32_t listId = 0);
 
     void learnInstantSpell(const std::string & spellName);
@@ -1529,22 +1577,22 @@ public:
     bool hasLearnedInstantSpell(const std::string & spellName) const;
 
     void addScheduledUpdates(uint32_t flags);
-    bool hasScheduledUpdates(uint32_t flags) const {
-        return (scheduledUpdates & flags);
+    bool hasScheduledUpdates(const uint32_t flags) const {
+        return scheduledUpdates & flags;
     }
     void resetScheduledUpdates() {
         scheduledUpdates = 0;
         scheduledUpdate = false;
     }
 
-    void addAsyncOngoingTask(uint64_t flags) {
+    void addAsyncOngoingTask(const uint64_t flags) {
         asyncOngoingTasks |= flags;
     }
-    bool hasAsyncOngoingTask(uint64_t flags) const {
-        return (asyncOngoingTasks & flags);
+    bool hasAsyncOngoingTask(const uint64_t flags) const {
+        return asyncOngoingTasks & flags;
     }
-    void resetAsyncOngoingTask(uint64_t flags) {
-        asyncOngoingTasks &= ~(flags);
+    void resetAsyncOngoingTask(const uint64_t flags) {
+        asyncOngoingTasks &= ~flags;
     }
 
 private:
@@ -1750,7 +1798,7 @@ private:
     }
     void updateBaseSpeed() {
         if (!hasFlag(PlayerFlag_SetMaxSpeed)) {
-            baseSpeed = vocation->getBaseSpeed() + (2 * (level - 1));
+            baseSpeed = vocation->getBaseSpeed() + 2 * (level - 1);
         } else {
             baseSpeed = PLAYER_MAX_SPEED;
         }

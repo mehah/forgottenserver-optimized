@@ -23,22 +23,22 @@
 #include "depotchest.h"
 #include "tools.h"
 
-DepotChest::DepotChest(uint16_t type) :
+DepotChest::DepotChest(const uint16_t type) :
     Container(type), maxDepotItems(1500) {}
 
-ReturnValue DepotChest::queryAdd(int32_t index, const Thing& thing, uint32_t count,
-        uint32_t flags, Creature* actor/* = nullptr*/) const
+ReturnValue DepotChest::queryAdd(const int32_t index, const Thing& thing, const uint32_t count,
+                                 const uint32_t flags, Creature* actor/* = nullptr*/) const
 {
     const Item* item = thing.getItem();
     if (item == nullptr) {
         return RETURNVALUE_NOTPOSSIBLE;
     }
 
-    bool skipLimit = hasBitSet(FLAG_NOLIMIT, flags);
+    const bool skipLimit = hasBitSet(FLAG_NOLIMIT, flags);
     if (!skipLimit) {
         int32_t addCount = 0;
 
-        if ((item->isStackable() && item->getItemCount() != count)) {
+        if (item->isStackable() && item->getItemCount() != count) {
             addCount = 1;
         }
 
@@ -58,7 +58,7 @@ ReturnValue DepotChest::queryAdd(int32_t index, const Thing& thing, uint32_t cou
     return Container::queryAdd(index, thing, count, flags, actor);
 }
 
-void DepotChest::postAddNotification(Thing* thing, const Cylinder* oldParent, int32_t index, cylinderlink_t)
+void DepotChest::postAddNotification(Thing* thing, const Cylinder* oldParent, const int32_t index, cylinderlink_t)
 {
     Cylinder* parent = getParent();
     if (parent != nullptr) {
@@ -66,7 +66,7 @@ void DepotChest::postAddNotification(Thing* thing, const Cylinder* oldParent, in
     }
 }
 
-void DepotChest::postRemoveNotification(Thing* thing, const Cylinder* newParent, int32_t index, cylinderlink_t)
+void DepotChest::postRemoveNotification(Thing* thing, const Cylinder* newParent, const int32_t index, cylinderlink_t)
 {
     Cylinder* parent = getParent();
     if (parent != nullptr) {

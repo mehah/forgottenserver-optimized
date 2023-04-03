@@ -41,12 +41,12 @@ public:
         return "login protocol";
     }
 
-    explicit ProtocolLogin(Connection_ptr connection) : Protocol(connection) {}
+    explicit ProtocolLogin(const Connection_ptr& connection) : Protocol(connection) {}
 
     void onRecvFirstMessage(NetworkMessage& msg) override;
 
 private:
-    void disconnectClient(const std::string& message, uint32_t version);
+    void disconnectClient(const std::string& message, uint32_t version) const;
 
 #if GAME_FEATURE_SESSIONKEY > 0
     void getCharacterList(const std::string& accountName, const std::string& password, const std::string& token, uint32_t version);

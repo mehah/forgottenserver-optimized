@@ -53,9 +53,9 @@ public:
         house = h;
     }
 
-    bool canUse(Player* player);
+    bool canUse(const Player* player) const;
 
-    bool trySleep(Player* player);
+    bool trySleep(const Player* player);
     bool sleep(Player* player);
     void wakeUp(Player* player);
 

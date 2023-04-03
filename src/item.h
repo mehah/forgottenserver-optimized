@@ -26,6 +26,7 @@
 #include "items.h"
 #include "luascript.h"
 #include "tools.h"
+#include <memory>
 #include <typeinfo>
 
 #include <boost/variant.hpp>
@@ -139,14 +140,14 @@ public:
         return getStrAttr(ITEM_ATTRIBUTE_TEXT);
     }
 
-    void setDate(int32_t n) {
+    void setDate(const int32_t n) {
         setIntAttr(ITEM_ATTRIBUTE_DATE, n);
     }
     void resetDate() {
         removeAttribute(ITEM_ATTRIBUTE_DATE);
     }
     time_t getDate() const {
-        return static_cast<time_t>(getIntAttr(ITEM_ATTRIBUTE_DATE));
+        return getIntAttr(ITEM_ATTRIBUTE_DATE);
     }
 
     void setWriter(const std::string& writer) {
@@ -159,64 +160,63 @@ public:
         return getStrAttr(ITEM_ATTRIBUTE_WRITER);
     }
 
-    void setActionId(uint16_t n) {
+    void setActionId(const uint16_t n) {
         setIntAttr(ITEM_ATTRIBUTE_ACTIONID, n);
     }
     uint16_t getActionId() const {
         return static_cast<uint16_t>(getIntAttr(ITEM_ATTRIBUTE_ACTIONID));
     }
 
-    void setUniqueId(uint16_t n) {
+    void setUniqueId(const uint16_t n) {
         setIntAttr(ITEM_ATTRIBUTE_UNIQUEID, n);
     }
     uint16_t getUniqueId() const {
         return static_cast<uint16_t>(getIntAttr(ITEM_ATTRIBUTE_UNIQUEID));
     }
 
-    void setCharges(uint16_t n) {
+    void setCharges(const uint16_t n) {
         setIntAttr(ITEM_ATTRIBUTE_CHARGES, n);
     }
     uint16_t getCharges() const {
         return static_cast<uint16_t>(getIntAttr(ITEM_ATTRIBUTE_CHARGES));
     }
 
-    void setFluidType(uint16_t n) {
+    void setFluidType(const uint16_t n) {
         setIntAttr(ITEM_ATTRIBUTE_FLUIDTYPE, n);
     }
     uint16_t getFluidType() const {
         return static_cast<uint16_t>(getIntAttr(ITEM_ATTRIBUTE_FLUIDTYPE));
     }
 
-    void setOwner(uint32_t owner) {
+    void setOwner(const uint32_t owner) {
         setIntAttr(ITEM_ATTRIBUTE_OWNER, owner);
     }
     uint32_t getOwner() const {
         return getIntAttr(ITEM_ATTRIBUTE_OWNER);
     }
 
-    void setCorpseOwner(uint32_t corpseOwner) {
+    void setCorpseOwner(const uint32_t corpseOwner) {
         setIntAttr(ITEM_ATTRIBUTE_CORPSEOWNER, corpseOwner);
     }
     uint32_t getCorpseOwner() const {
         return getIntAttr(ITEM_ATTRIBUTE_CORPSEOWNER);
     }
 
-    void setDuration(int32_t time) {
+    void setDuration(const int32_t time) {
         setIntAttr(ITEM_ATTRIBUTE_DURATION, std::max<int32_t>(0, time));
     }
-    void setDurationTimestamp(int64_t timestamp) {
+    void setDurationTimestamp(const int64_t timestamp) {
         setIntAttr(ITEM_ATTRIBUTE_DURATION_TIMESTAMP, timestamp);
     }
     int32_t getDuration() const {
-        ItemDecayState_t decayState = getDecaying();
+        const ItemDecayState_t decayState = getDecaying();
         if (decayState == DECAYING_TRUE || decayState == DECAYING_STOPPING) {
             return std::max<int32_t>(0, static_cast<int32_t>(getIntAttr(ITEM_ATTRIBUTE_DURATION_TIMESTAMP) - OTSYS_TIME()));
-        } else {
-            return getIntAttr(ITEM_ATTRIBUTE_DURATION);
         }
+        return getIntAttr(ITEM_ATTRIBUTE_DURATION);
     }
 
-    void setDecaying(ItemDecayState_t decayState) {
+    void setDecaying(const ItemDecayState_t decayState) {
         setIntAttr(ITEM_ATTRIBUTE_DECAYSTATE, decayState);
         if (decayState == DECAYING_FALSE) {
             removeAttribute(ITEM_ATTRIBUTE_DURATION_TIMESTAMP);
@@ -228,7 +228,7 @@ public:
 
     struct CustomAttribute
     {
-        typedef boost::variant<boost::blank, std::string, int64_t, double, bool> VariantAttribute;
+        using VariantAttribute = boost::variant<boost::blank, std::string, int64_t, double, bool>;
         VariantAttribute value;
 
         CustomAttribute() : value(boost::blank()) {}
@@ -277,7 +277,7 @@ public:
         {
             lua_State* L;
 
-            explicit PushLuaVisitor(lua_State* L) : boost::static_visitor<>(), L(L) {}
+            explicit PushLuaVisitor(lua_State* L) : static_visitor<>(), L(L) {}
 
             void operator()(const boost::blank&) const {
                 lua_pushnil(L);
@@ -287,7 +287,7 @@ public:
                 LuaScriptInterface::pushString(L, v);
             }
 
-            void operator()(bool v) const {
+            void operator()(const bool v) const {
                 LuaScriptInterface::pushBoolean(L, v);
             }
 
@@ -301,14 +301,14 @@ public:
         };
 
         void pushToLua(lua_State* L) const {
-            boost::apply_visitor(PushLuaVisitor(L), value);
+            apply_visitor(PushLuaVisitor(L), value);
         }
 
         struct SerializeVisitor : public boost::static_visitor<>
         {
             PropWriteStream& propWriteStream;
 
-            explicit SerializeVisitor(PropWriteStream& propWriteStream) : boost::static_visitor<>(), propWriteStream(propWriteStream) {}
+            explicit SerializeVisitor(PropWriteStream& propWriteStream) : static_visitor<>(), propWriteStream(propWriteStream) {}
 
             void operator()(const boost::blank&) const {
             }
@@ -325,7 +325,7 @@ public:
 
         void serialize(PropWriteStream& propWriteStream) const {
             propWriteStream.write<uint8_t>(static_cast<uint8_t>(value.which()));
-            boost::apply_visitor(SerializeVisitor(propWriteStream), value);
+            apply_visitor(SerializeVisitor(propWriteStream), value);
         }
 
         bool unserialize(PropStream& propStream) {
@@ -382,7 +382,7 @@ public:
     };
 
 private:
-    bool hasAttribute(itemAttrTypes type) const {
+    bool hasAttribute(const itemAttrTypes type) const {
         return (type & static_cast<itemAttrTypes>(attributeBits)) != 0;
     }
     void removeAttribute(itemAttrTypes type);
@@ -392,7 +392,7 @@ private:
     static double emptyDouble;
     static bool emptyBool;
 
-    typedef std::unordered_map<std::string, CustomAttribute> CustomAttributeMap;
+    using CustomAttributeMap = std::unordered_map<std::string, CustomAttribute>;
 
     struct Attribute
     {
@@ -407,52 +407,52 @@ private:
         //non-copyable
         Attribute& operator=(const Attribute& other) = delete;
 
-        Attribute(itemAttrTypes type) : type(type) {
-            memset(&value, 0, sizeof(value));
+        explicit Attribute(const itemAttrTypes type) : type(type) {
+            memset(&value, 0, sizeof value);
         }
         Attribute(const Attribute& i) {
             type = i.type;
-            if (ItemAttributes::isIntAttrType(type)) {
+            if (isIntAttrType(type)) {
                 value.integer = i.value.integer;
-            } else if (ItemAttributes::isStrAttrType(type)) {
+            } else if (isStrAttrType(type)) {
                 value.string = new std::string(*i.value.string);
-            } else if (ItemAttributes::isCustomAttrType(type)) {
+            } else if (isCustomAttrType(type)) {
                 value.custom = new CustomAttributeMap(*i.value.custom);
             } else {
-                memset(&value, 0, sizeof(value));
+                memset(&value, 0, sizeof value);
             }
         }
         Attribute(Attribute&& attribute) noexcept : value(attribute.value), type(attribute.type) {
-            memset(&attribute.value, 0, sizeof(value));
+            memset(&attribute.value, 0, sizeof value);
             attribute.type = ITEM_ATTRIBUTE_NONE;
         }
         Attribute& operator=(Attribute&& other) noexcept {
             if (this != &other) {
-                if (ItemAttributes::isStrAttrType(type)) {
+                if (isStrAttrType(type)) {
                     delete value.string;
-                } else if (ItemAttributes::isCustomAttrType(type)) {
+                } else if (isCustomAttrType(type)) {
                     delete value.custom;
                 }
 
                 value = other.value;
                 type = other.type;
 
-                memset(&other.value, 0, sizeof(value));
+                memset(&other.value, 0, sizeof value);
                 other.type = ITEM_ATTRIBUTE_NONE;
             }
             return *this;
         }
         ~Attribute() {
-            if (ItemAttributes::isStrAttrType(type)) {
+            if (isStrAttrType(type)) {
                 delete value.string;
-            } else if (ItemAttributes::isCustomAttrType(type)) {
+            } else if (isCustomAttrType(type)) {
                 delete value.custom;
             }
         }
     };
 
     std::vector<Attribute> attributes;
-    std::underlying_type<itemAttrTypes>::type attributeBits = 0;
+    std::underlying_type_t<itemAttrTypes> attributeBits = 0;
 
     const std::string& getStrAttr(itemAttrTypes type) const;
     void setStrAttr(itemAttrTypes type, const std::string& value);
@@ -473,12 +473,12 @@ private:
     }
 
     template<typename R>
-    void setCustomAttribute(int64_t key, R value) {
+    void setCustomAttribute(const int64_t key, R value) {
         std::string tmp = std::to_string(key);
         setCustomAttribute(tmp, value);
     }
 
-    void setCustomAttribute(int64_t key, CustomAttribute& value) {
+    void setCustomAttribute(const int64_t key, CustomAttribute& value) {
         std::string tmp = std::to_string(key);
         setCustomAttribute(tmp, value);
     }
@@ -504,29 +504,29 @@ private:
         getAttr(ITEM_ATTRIBUTE_CUSTOM).value.custom->insert(std::make_pair(std::move(key), std::move(value)));
     }
 
-    const CustomAttribute* getCustomAttribute(int64_t key) {
-        std::string tmp = std::to_string(key);
+    const CustomAttribute* getCustomAttribute(const int64_t key) {
+        const std::string tmp = std::to_string(key);
         return getCustomAttribute(tmp);
     }
 
     const CustomAttribute* getCustomAttribute(const std::string& key) {
         if (const CustomAttributeMap* customAttrMap = getCustomAttributeMap()) {
-            auto it = customAttrMap->find(asLowerCaseString(key));
+            const auto it = customAttrMap->find(asLowerCaseString(key));
             if (it != customAttrMap->end()) {
-                return &(it->second);
+                return &it->second;
             }
         }
         return nullptr;
     }
 
-    bool removeCustomAttribute(int64_t key) {
-        std::string tmp = std::to_string(key);
+    bool removeCustomAttribute(const int64_t key) {
+        const std::string tmp = std::to_string(key);
         return removeCustomAttribute(tmp);
     }
 
     bool removeCustomAttribute(const std::string& key) {
         if (CustomAttributeMap* customAttrMap = getCustomAttributeMap()) {
-            auto it = customAttrMap->find(asLowerCaseString(key));
+            const auto it = customAttrMap->find(asLowerCaseString(key));
             if (it != customAttrMap->end()) {
                 customAttrMap->erase(it);
                 return true;
@@ -536,8 +536,8 @@ private:
     }
 
 public:
-    static bool isIntAttrType(itemAttrTypes type) {
-        std::underlying_type<itemAttrTypes>::type checkTypes = 0;
+    static bool isIntAttrType(const itemAttrTypes type) {
+        std::underlying_type_t<itemAttrTypes> checkTypes = 0;
         checkTypes |= ITEM_ATTRIBUTE_ACTIONID;
         checkTypes |= ITEM_ATTRIBUTE_UNIQUEID;
         checkTypes |= ITEM_ATTRIBUTE_DATE;
@@ -558,8 +558,8 @@ public:
         checkTypes |= ITEM_ATTRIBUTE_DURATION_TIMESTAMP;
         return (type & static_cast<itemAttrTypes>(checkTypes)) != 0;
     }
-    static bool isStrAttrType(itemAttrTypes type) {
-        std::underlying_type<itemAttrTypes>::type checkTypes = 0;
+    static bool isStrAttrType(const itemAttrTypes type) {
+        std::underlying_type_t<itemAttrTypes> checkTypes = 0;
         checkTypes |= ITEM_ATTRIBUTE_DESCRIPTION;
         checkTypes |= ITEM_ATTRIBUTE_TEXT;
         checkTypes |= ITEM_ATTRIBUTE_WRITER;
@@ -568,7 +568,8 @@ public:
         checkTypes |= ITEM_ATTRIBUTE_PLURALNAME;
         return (type & static_cast<itemAttrTypes>(checkTypes)) != 0;
     }
-    inline static bool isCustomAttrType(itemAttrTypes type) {
+
+    static bool isCustomAttrType(const itemAttrTypes type) {
         return (type & ITEM_ATTRIBUTE_CUSTOM) != 0;
     }
 
@@ -583,28 +584,28 @@ class Item : virtual public Thing
 {
 public:
     //Factory member to create item of right type based on type
-    static Item* CreateItem(const uint16_t type, uint16_t count = 0);
-    static Container* CreateItemAsContainer(const uint16_t type, uint16_t size);
+    static Item* CreateItem(uint16_t type, uint16_t count = 0);
+    static Container* CreateItemAsContainer(uint16_t type, uint16_t size);
     static Item* CreateItem(PropStream& propStream);
     static Item* CreateItem_legacy(PropStream& propStream);
     static Items items;
 
     // Constructor for items
-    Item(const uint16_t type, uint16_t count = 0);
+    explicit Item(uint16_t type, uint16_t count = 0);
     Item(const Item& i);
     virtual Item* clone() const;
 
-    virtual ~Item() = default;
+    ~Item() override = default;
 
     // non-assignable
     Item& operator=(const Item&) = delete;
 
     bool equals(const Item* otherItem) const;
 
-    Item* getItem() override final {
+    Item* getItem() final {
         return this;
     }
-    const Item* getItem() const override final {
+    const Item* getItem() const final {
         return this;
     }
     virtual Teleport* getTeleport() {
@@ -644,35 +645,36 @@ public:
         return nullptr;
     }
 
-    const std::string& getStrAttr(itemAttrTypes type) const {
+    const std::string& getStrAttr(const itemAttrTypes type) const {
         if (!attributes) {
             return ItemAttributes::emptyString;
         }
         return attributes->getStrAttr(type);
     }
-    void setStrAttr(itemAttrTypes type, const std::string& value) {
+    void setStrAttr(const itemAttrTypes type, const std::string& value) {
         getAttributes()->setStrAttr(type, value);
     }
 
-    int64_t getIntAttr(itemAttrTypes type) const {
+    int64_t getIntAttr(const itemAttrTypes type) const {
         if (!attributes) {
             return 0;
         }
         return attributes->getIntAttr(type);
     }
-    void setIntAttr(itemAttrTypes type, int64_t value) {
+    void setIntAttr(const itemAttrTypes type, const int64_t value) {
         getAttributes()->setIntAttr(type, value);
     }
-    void increaseIntAttr(itemAttrTypes type, int64_t value) {
+    void increaseIntAttr(const itemAttrTypes type, const int64_t value) {
         getAttributes()->increaseIntAttr(type, value);
     }
 
-    void removeAttribute(itemAttrTypes type) {
+    void removeAttribute(const itemAttrTypes type) const
+    {
         if (attributes) {
             attributes->removeAttribute(type);
         }
     }
-    bool hasAttribute(itemAttrTypes type) const {
+    bool hasAttribute(const itemAttrTypes type) const {
         if (!attributes) {
             return false;
         }
@@ -688,7 +690,7 @@ public:
         getAttributes()->setCustomAttribute(key, value);
     }
 
-    const ItemAttributes::CustomAttribute* getCustomAttribute(int64_t key) const {
+    const ItemAttributes::CustomAttribute* getCustomAttribute(const int64_t key) const {
         if (!attributes) {
             return nullptr;
         }
@@ -702,14 +704,16 @@ public:
         return attributes->getCustomAttribute(key);
     }
 
-    bool removeCustomAttribute(int64_t key) {
+    bool removeCustomAttribute(const int64_t key) const
+    {
         if (!attributes) {
             return false;
         }
         return attributes->removeCustomAttribute(key);
     }
 
-    bool removeCustomAttribute(const std::string& key) {
+    bool removeCustomAttribute(const std::string& key) const
+    {
         if (!attributes) {
             return false;
         }
@@ -726,27 +730,30 @@ public:
     void setText(const std::string& text) {
         setStrAttr(ITEM_ATTRIBUTE_TEXT, text);
     }
-    void resetText() {
+    void resetText() const
+    {
         removeAttribute(ITEM_ATTRIBUTE_TEXT);
     }
     const std::string& getText() const {
         return getStrAttr(ITEM_ATTRIBUTE_TEXT);
     }
 
-    void setDate(int32_t n) {
+    void setDate(const int32_t n) {
         setIntAttr(ITEM_ATTRIBUTE_DATE, n);
     }
-    void resetDate() {
+    void resetDate() const
+    {
         removeAttribute(ITEM_ATTRIBUTE_DATE);
     }
     time_t getDate() const {
-        return static_cast<time_t>(getIntAttr(ITEM_ATTRIBUTE_DATE));
+        return getIntAttr(ITEM_ATTRIBUTE_DATE);
     }
 
     void setWriter(const std::string& writer) {
         setStrAttr(ITEM_ATTRIBUTE_WRITER, writer);
     }
-    void resetWriter() {
+    void resetWriter() const
+    {
         removeAttribute(ITEM_ATTRIBUTE_WRITER);
     }
     const std::string& getWriter() const {
@@ -774,7 +781,7 @@ public:
         return static_cast<uint16_t>(getIntAttr(ITEM_ATTRIBUTE_UNIQUEID));
     }
 
-    void setCharges(uint16_t n) {
+    void setCharges(const uint16_t n) {
         setIntAttr(ITEM_ATTRIBUTE_CHARGES, n);
     }
     uint16_t getCharges() const {
@@ -784,7 +791,7 @@ public:
         return static_cast<uint16_t>(getIntAttr(ITEM_ATTRIBUTE_CHARGES));
     }
 
-    void setFluidType(uint16_t n) {
+    void setFluidType(const uint16_t n) {
         setIntAttr(ITEM_ATTRIBUTE_FLUIDTYPE, n);
     }
     uint16_t getFluidType() const {
@@ -794,7 +801,7 @@ public:
         return static_cast<uint16_t>(getIntAttr(ITEM_ATTRIBUTE_FLUIDTYPE));
     }
 
-    void setOwner(uint32_t owner) {
+    void setOwner(const uint32_t owner) {
         setIntAttr(ITEM_ATTRIBUTE_OWNER, owner);
     }
     uint32_t getOwner() const {
@@ -804,7 +811,7 @@ public:
         return getIntAttr(ITEM_ATTRIBUTE_OWNER);
     }
 
-    void setCorpseOwner(uint32_t corpseOwner) {
+    void setCorpseOwner(const uint32_t corpseOwner) {
         setIntAttr(ITEM_ATTRIBUTE_CORPSEOWNER, corpseOwner);
     }
     uint32_t getCorpseOwner() const {
@@ -814,22 +821,21 @@ public:
         return getIntAttr(ITEM_ATTRIBUTE_CORPSEOWNER);
     }
 
-    void setDuration(int32_t time) {
+    void setDuration(const int32_t time) {
         setIntAttr(ITEM_ATTRIBUTE_DURATION, std::max<int32_t>(0, time));
     }
-    void setDurationTimestamp(int64_t timestamp) {
+    void setDurationTimestamp(const int64_t timestamp) {
         setIntAttr(ITEM_ATTRIBUTE_DURATION_TIMESTAMP, timestamp);
     }
     int32_t getDuration() const {
-        ItemDecayState_t decayState = getDecaying();
+        const ItemDecayState_t decayState = getDecaying();
         if (decayState == DECAYING_TRUE || decayState == DECAYING_STOPPING) {
             return std::max<int32_t>(0, static_cast<int32_t>(getIntAttr(ITEM_ATTRIBUTE_DURATION_TIMESTAMP) - OTSYS_TIME()));
-        } else {
-            return getIntAttr(ITEM_ATTRIBUTE_DURATION);
         }
+        return getIntAttr(ITEM_ATTRIBUTE_DURATION);
     }
 
-    void setDecaying(ItemDecayState_t decayState) {
+    void setDecaying(const ItemDecayState_t decayState) {
         setIntAttr(ITEM_ATTRIBUTE_DECAYSTATE, decayState);
         if (decayState == DECAYING_FALSE) {
             removeAttribute(ITEM_ATTRIBUTE_DURATION_TIMESTAMP);
@@ -847,7 +853,7 @@ public:
     static std::string getNameDescription(const ItemType& it, const Item* item = nullptr, int32_t subType = -1, bool addArticle = true);
     static std::string getWeightDescription(const ItemType& it, uint32_t weight, uint32_t count = 1);
 
-    std::string getDescription(int32_t lookDistance) const override final;
+    std::string getDescription(int32_t lookDistance) const final;
     std::string getNameDescription() const;
     std::string getWeightDescription() const;
 
@@ -858,11 +864,11 @@ public:
 
     virtual void serializeAttr(PropWriteStream& propWriteStream) const;
 
-    bool isPushable() const override final {
+    bool isPushable() const final {
         return isMoveable();
     }
-    int32_t getThrowRange() const override final {
-        return (isPickupable() ? 15 : 2);
+    int32_t getThrowRange() const final {
+        return isPickupable() ? 15 : 2;
     }
 
     uint16_t getID() const {
@@ -978,7 +984,7 @@ public:
         return items[id].isPodium;
     }
     bool isWrapable() const {
-        return (items[id].wrapableTo != 0);
+        return items[id].wrapableTo != 0;
     }
     bool hasWalkStack() const {
         return items[id].walkStack;
@@ -990,7 +996,8 @@ public:
         }
         return items[id].name;
     }
-    const std::string getPluralName() const {
+
+    std::string getPluralName() const {
         if (hasAttribute(ITEM_ATTRIBUTE_PLURALNAME)) {
             return getStrAttr(ITEM_ATTRIBUTE_PLURALNAME);
         }
@@ -1007,11 +1014,11 @@ public:
     uint16_t getItemCount() const {
         return count;
     }
-    void setItemCount(uint8_t n) {
+    void setItemCount(const uint8_t n) {
         count = n;
     }
 
-    static uint32_t countByType(const Item* i, int32_t subType) {
+    static uint32_t countByType(const Item* i, const int32_t subType) {
         if (subType == -1 || subType == i->getSubType()) {
             return i->getItemCount();
         }
@@ -1026,7 +1033,7 @@ public:
     void setUniqueId(uint16_t n);
 
     void setDefaultDuration() {
-        uint32_t duration = getDefaultDuration();
+        const uint32_t duration = getDefaultDuration();
         if (duration != 0) {
             setDuration(duration);
         }
@@ -1051,7 +1058,7 @@ public:
     bool isLoadedFromMap() const {
         return loadedFromMap;
     }
-    void setLoadedFromMap(bool value) {
+    void setLoadedFromMap(const bool value) {
         loadedFromMap = value;
     }
     bool isCleanable() const {
@@ -1062,7 +1069,7 @@ public:
 
     std::unique_ptr<ItemAttributes>& getAttributes() {
         if (!attributes) {
-            attributes.reset(new ItemAttributes());
+            attributes = std::make_unique<ItemAttributes>();
         }
         return attributes;
     }

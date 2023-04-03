@@ -28,7 +28,7 @@
 bool Outfits::loadFromXml()
 {
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file("data/XML/outfits.xml");
+    const pugi::xml_parse_result result = doc.load_file("data/XML/outfits.xml");
     if (!result) {
         printXMLError("Error - Outfits::loadFromXml", "data/XML/outfits.xml", result);
         return false;
@@ -45,7 +45,7 @@ bool Outfits::loadFromXml()
             continue;
         }
 
-        uint16_t type = pugi::cast<uint16_t>(attr.value());
+        const auto type = pugi::cast<uint16_t>(attr.value());
         if (type > PLAYERSEX_LAST) {
             std::cout << "[Warning - Outfits::loadFromXml] Invalid outfit type " << type << "." << std::endl;
             continue;
@@ -70,7 +70,7 @@ bool Outfits::loadFromXml()
     return true;
 }
 
-const Outfit* Outfits::getOutfitByLookType(PlayerSex_t sex, uint16_t lookType) const
+const Outfit* Outfits::getOutfitByLookType(const PlayerSex_t sex, const uint16_t lookType) const
 {
     for (const Outfit& outfit : outfits[sex]) {
         if (outfit.lookType == lookType) {

@@ -24,7 +24,7 @@
 
 #include "pugicast.h"
 
-std::string Mission::getDescription(Player* player) const
+std::string Mission::getDescription(const Player* player) const
 {
     int32_t value;
     player->getStorageValue(storageID, value);
@@ -35,7 +35,7 @@ std::string Mission::getDescription(Player* player) const
 
         for (const auto& missionState : states) {
             player->getStorageValue(missionState.second, value);
-            replaceString(desc, (std::string("|STATE") + std::to_string(missionState.first) + std::string("|")), std::to_string(std::max<int32_t>(value, 0)));
+            replaceString(desc, std::string("|STATE") + std::to_string(missionState.first) + std::string("|"), std::to_string(std::max<int32_t>(value, 0)));
         }
 
         replaceString(desc, "\\n", "\n");
@@ -64,7 +64,7 @@ std::string Mission::getDescription(Player* player) const
     return "An error has occurred, please contact a gamemaster.";
 }
 
-bool Mission::isStarted(Player* player) const
+bool Mission::isStarted(const Player* player) const
 {
     if (!player) {
         return false;
@@ -86,7 +86,7 @@ bool Mission::isStarted(Player* player) const
     return true;
 }
 
-bool Mission::isCompleted(Player* player) const
+bool Mission::isCompleted(const Player* player) const
 {
     if (!player) {
         return false;
@@ -156,7 +156,7 @@ bool Quests::reload()
 bool Quests::loadFromXml()
 {
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file("data/XML/quests.xml");
+    const pugi::xml_parse_result result = doc.load_file("data/XML/quests.xml");
     if (!result) {
         printXMLError("Error - Quests::loadFromXml", "data/XML/quests.xml", result);
         return false;
@@ -186,7 +186,7 @@ bool Quests::loadFromXml()
 
             if (mainDescription.empty()) {
                 for (auto missionStateNode : missionNode.children()) {
-                    int32_t missionId = pugi::cast<int32_t>(missionStateNode.attribute("id").value());
+                    auto missionId = pugi::cast<int32_t>(missionStateNode.attribute("id").value());
                     mission.descriptions.emplace(missionId, missionStateNode.attribute("description").as_string());
                 }
             } else {
@@ -265,7 +265,7 @@ const Mission* Quests::getMissionByID(uint16_t id)
 }
 #endif
 
-Quest* Quests::getQuestByID(uint16_t id)
+Quest* Quests::getQuestByID(const uint16_t id)
 {
     for (Quest& quest : quests) {
         if (quest.id == id) {
@@ -288,7 +288,7 @@ uint16_t Quests::getQuestsCount(Player* player) const
 
 bool Quests::isQuestStorage(const uint32_t key, const int32_t value, const int32_t oldValue) const
 {
-    auto qit = cachedLogQuests.find(key);
+    const auto qit = cachedLogQuests.find(key);
     if (qit != cachedLogQuests.end()) {
         for (const Quest* quest : qit->second) {
             if (quest->getStartStorageValue() == value) {
@@ -297,7 +297,7 @@ bool Quests::isQuestStorage(const uint32_t key, const int32_t value, const int32
         }
     }
 
-    auto mit = cachedLogMissions.find(key);
+    const auto mit = cachedLogMissions.find(key);
     if (mit != cachedLogMissions.end()) {
         for (const Mission* mission : mit->second) {
             if (mission->getStorageId() == key && value >= mission->getStartStorageValue() && value <= mission->getEndStorageValue()) {

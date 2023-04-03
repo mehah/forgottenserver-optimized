@@ -23,8 +23,6 @@
 #include "databasetasks.h"
 #include "tasks.h"
 
-extern Dispatcher g_dispatcher;
-
 void DatabaseTasks::threadMain()
 {
     std::unique_lock<std::mutex> taskLockUnique(taskLock, std::defer_lock);
@@ -67,7 +65,7 @@ void DatabaseTasks::addTask(std::string query, std::function<void(DBResult_ptr, 
     }
 }
 
-void DatabaseTasks::runTask(const DatabaseTask& task)
+void DatabaseTasks::runTask(const DatabaseTask& task) const
 {
     bool success;
     DBResult_ptr result;

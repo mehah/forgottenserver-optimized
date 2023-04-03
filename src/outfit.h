@@ -25,7 +25,7 @@
 
 struct Outfit
 {
-    Outfit(std::string name, uint16_t lookType, bool premium, bool unlocked) :
+    Outfit(std::string name, const uint16_t lookType, const bool premium, const bool unlocked) :
         name(std::move(name)), lookType(lookType), premium(premium), unlocked(unlocked) {}
 
     std::string name;
@@ -36,7 +36,7 @@ struct Outfit
 
 struct ProtocolOutfit
 {
-    ProtocolOutfit(const std::string& name, uint16_t lookType, uint8_t addons) :
+    ProtocolOutfit(const std::string& name, const uint16_t lookType, const uint8_t addons) :
         name(name), lookType(lookType), addons(addons) {}
 
     const std::string& name;
@@ -55,7 +55,7 @@ public:
     bool loadFromXml();
 
     const Outfit* getOutfitByLookType(PlayerSex_t sex, uint16_t lookType) const;
-    const std::vector<Outfit>& getOutfits(PlayerSex_t sex) const {
+    const std::vector<Outfit>& getOutfits(const PlayerSex_t sex) const {
         return outfits[sex];
     }
 

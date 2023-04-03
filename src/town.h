@@ -26,7 +26,7 @@
 class Town
 {
 public:
-    explicit Town(uint32_t id) : id(id) {}
+    explicit Town(const uint32_t id) : id(id) {}
 
     const Position& getTemplePosition() const {
         return templePosition;
@@ -35,7 +35,7 @@ public:
         return name;
     }
 
-    void setTemplePos(Position pos) {
+    void setTemplePos(const Position pos) {
         templePosition = pos;
     }
     void setName(std::string name) {
@@ -75,8 +75,8 @@ public:
         return nullptr;
     }
 
-    Town* getTown(uint32_t townId) {
-        auto it = townMap.find(townId);
+    Town* getTown(const uint32_t townId) {
+        const auto it = townMap.find(townId);
         if (it == townMap.end()) {
             return nullptr;
         }

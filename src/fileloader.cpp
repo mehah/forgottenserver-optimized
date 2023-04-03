@@ -28,7 +28,7 @@ namespace OTB {
     Loader::Loader(const std::string& fileName, const Identifier& acceptedIdentifier) :
         fileContents(fileName)
     {
-        constexpr auto minimalSize = sizeof(Identifier) + sizeof(Node::START) + sizeof(Node::type) + sizeof(Node::END);
+        constexpr auto minimalSize = sizeof(Identifier) + sizeof Node::START + sizeof Node::type + sizeof Node::END;
         if (fileContents.size() <= minimalSize) {
             throw InvalidOTBFormat{};
         }
@@ -54,13 +54,13 @@ namespace OTB {
         if (static_cast<uint8_t>(*it) != Node::START) {
             throw InvalidOTBFormat{};
         }
-        root.type = *(++it);
+        root.type = *++it;
         root.propsBegin = ++it;
         NodeStack parseStack;
         parseStack.push_back(&root);
 
-        for (auto end = fileContents.end(); it != end; ++it) {
-            uint8_t nodeType = static_cast<uint8_t>(*it);
+        for (const auto end = fileContents.end(); it != end; ++it) {
+            const auto nodeType = static_cast<uint8_t>(*it);
             if (nodeType == Node::START) {
                 auto& currentNode = getCurrentNode(parseStack);
                 if (currentNode.children.empty()) {
@@ -72,7 +72,7 @@ namespace OTB {
                     throw InvalidOTBFormat{};
                 }
                 child.type = *it;
-                child.propsBegin = it + sizeof(Node::type);
+                child.propsBegin = it + sizeof Node::type;
                 parseStack.push_back(&child);
             } else if (nodeType == Node::END) {
                 auto& currentNode = getCurrentNode(parseStack);
@@ -95,7 +95,7 @@ namespace OTB {
 
     bool Loader::getProps(const Node& node, PropStream& props)
     {
-        size_t size = std::distance(node.propsBegin, node.propsEnd);
+        const size_t size = std::distance(node.propsBegin, node.propsEnd);
         if (size == 0) {
             return false;
         }
@@ -104,11 +104,11 @@ namespace OTB {
         }
         bool lastEscaped = false;
 
-        auto escapedPropEnd = std::copy_if(node.propsBegin, node.propsEnd, propBuffer.begin(), [&lastEscaped](const char& byte) {
+        const auto escapedPropEnd = std::copy_if(node.propsBegin, node.propsEnd, propBuffer.begin(), [&lastEscaped](const char& byte) {
             lastEscaped = byte == static_cast<char>(Node::ESCAPE) && !lastEscaped;
             return !lastEscaped;
         });
-        props.init(&propBuffer[0], std::distance(propBuffer.begin(), escapedPropEnd));
+        props.init(propBuffer.data(), std::distance(propBuffer.begin(), escapedPropEnd));
         return true;
     }
 } //namespace OTB

@@ -21,8 +21,6 @@
 #ifndef FS_WAITLIST_H_7E4299E552E44F10BC4F4E50BF3D7241
 #define FS_WAITLIST_H_7E4299E552E44F10BC4F4E50BF3D7241
 
-#include "player.h"
-
 struct WaitListInfo;
 
 class WaitingList
@@ -30,7 +28,7 @@ class WaitingList
 public:
     static WaitingList& getInstance();
 
-    bool clientLogin(const Player* player, std::size_t& currentSlot);
+    bool clientLogin(const Player* player, std::size_t& currentSlot) const;
     static int64_t getTime(std::size_t slot);
 
 private:

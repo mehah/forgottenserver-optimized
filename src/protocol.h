@@ -28,7 +28,7 @@
 class Protocol : public std::enable_shared_from_this<Protocol>
 {
 public:
-    explicit Protocol(Connection_ptr connection) : connection(connection) {}
+    explicit Protocol(const Connection_ptr& connection) : connection(connection) {}
     virtual ~Protocol();
 
     // non-copyable
@@ -66,15 +66,15 @@ public:
         return outputBuffer;
     }
 
-    void send(OutputMessage_ptr msg) const {
-        if (auto connection = getConnection()) {
+    void send(const OutputMessage_ptr msg) const {
+        if (const auto connection = getConnection()) {
             connection->send(msg);
         }
     }
 
 protected:
     void disconnect() const {
-        if (auto connection = getConnection()) {
+        if (const auto connection = getConnection()) {
             connection->close();
         }
     }
@@ -82,16 +82,16 @@ protected:
         encryptionEnabled = true;
     }
     void setXTEAKey(const uint32_t* key) {
-        memcpy(this->key, key, sizeof(*key) * 4);
+        memcpy(this->key, key, sizeof * key * 4);
     }
-    void setChecksumMethod(ChecksumMethods_t method) {
+    void setChecksumMethod(const ChecksumMethods_t method) {
         checksumMethod = method;
     }
     void enableCompression();
 
     static bool RSA_decrypt(NetworkMessage& msg);
 
-    void setRawMessages(bool value) {
+    void setRawMessages(const bool value) {
         rawMessages = value;
     }
 
@@ -100,7 +100,7 @@ protected:
 private:
     void XTEA_encrypt(OutputMessage& msg) const;
     bool XTEA_decrypt(NetworkMessage& msg) const;
-    bool compression(OutputMessage& msg);
+    bool compression(OutputMessage& msg) const;
 
     friend class Connection;
 
@@ -111,7 +111,7 @@ private:
     uint32_t key[4] = {};
     uint32_t serverSequenceNumber = 0;
     uint32_t clientSequenceNumber = 0;
-    std::underlying_type<ChecksumMethods_t>::type checksumMethod = CHECKSUM_METHOD_NONE;
+    std::underlying_type_t<ChecksumMethods_t> checksumMethod = CHECKSUM_METHOD_NONE;
     bool encryptionEnabled = false;
     bool rawMessages = false;
     bool compreesionEnabled = false;

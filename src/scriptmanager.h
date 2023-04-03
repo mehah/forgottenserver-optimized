@@ -36,7 +36,7 @@ public:
         return instance;
     }
 
-    bool loadScriptSystems();
+    static bool loadScriptSystems();
 };
 
 #endif

@@ -24,11 +24,10 @@
 #include <condition_variable>
 #include "thread_holder_base.h"
 #include "database.h"
-#include "enums.h"
 
 struct DatabaseTask
 {
-    DatabaseTask(std::string&& query, std::function<void(DBResult_ptr, bool)>&& callback, bool store) :
+    DatabaseTask(std::string&& query, std::function<void(DBResult_ptr, bool)>&& callback, const bool store) :
         query(std::move(query)), callback(std::move(callback)), store(store) {}
 
     std::string query;
@@ -47,7 +46,7 @@ public:
 
     void threadMain();
 private:
-    void runTask(const DatabaseTask& task);
+    void runTask(const DatabaseTask& task) const;
 
     Database db;
     std::list<DatabaseTask> tasks;

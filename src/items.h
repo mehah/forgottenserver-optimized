@@ -21,6 +21,8 @@
 #ifndef FS_ITEMS_H_4E2221634ABA45FE85BA50F710669B3C
 #define FS_ITEMS_H_4E2221634ABA45FE85BA50F710669B3C
 
+#include <memory>
+
 #include "const.h"
 #include "enums.h"
 #include "itemloader.h"
@@ -41,7 +43,7 @@ enum SlotPositionBits : uint32_t
     SLOTP_AMMO = 1 << 9,
     SLOTP_DEPOT = 1 << 10,
     SLOTP_TWO_HAND = 1 << 11,
-    SLOTP_HAND = (SLOTP_LEFT | SLOTP_RIGHT)
+    SLOTP_HAND = SLOTP_LEFT | SLOTP_RIGHT
 };
 
 enum ItemTypes_t
@@ -222,61 +224,61 @@ public:
     ItemType& operator=(ItemType&& other) = default;
 
     bool isGroundTile() const {
-        return (group == ITEM_GROUP_GROUND);
+        return group == ITEM_GROUP_GROUND;
     }
     bool isContainer() const {
-        return (group == ITEM_GROUP_CONTAINER);
+        return group == ITEM_GROUP_CONTAINER;
     }
     bool isSplash() const {
-        return (group == ITEM_GROUP_SPLASH);
+        return group == ITEM_GROUP_SPLASH;
     }
     bool isFluidContainer() const {
-        return (group == ITEM_GROUP_FLUID);
+        return group == ITEM_GROUP_FLUID;
     }
     bool isFluid() const {
-        return (group == ITEM_GROUP_SPLASH || group == ITEM_GROUP_FLUID);
+        return group == ITEM_GROUP_SPLASH || group == ITEM_GROUP_FLUID;
     }
 
     bool isDoor() const {
-        return (type == ITEM_TYPE_DOOR);
+        return type == ITEM_TYPE_DOOR;
     }
     bool isMagicField() const {
-        return (type == ITEM_TYPE_MAGICFIELD);
+        return type == ITEM_TYPE_MAGICFIELD;
     }
     bool isTeleport() const {
-        return (type == ITEM_TYPE_TELEPORT);
+        return type == ITEM_TYPE_TELEPORT;
     }
     bool isKey() const {
-        return (type == ITEM_TYPE_KEY);
+        return type == ITEM_TYPE_KEY;
     }
     bool isDepot() const {
-        return (type == ITEM_TYPE_DEPOT);
+        return type == ITEM_TYPE_DEPOT;
     }
     bool isMailbox() const {
-        return (type == ITEM_TYPE_MAILBOX);
+        return type == ITEM_TYPE_MAILBOX;
     }
     bool isTrashHolder() const {
-        return (type == ITEM_TYPE_TRASHHOLDER);
+        return type == ITEM_TYPE_TRASHHOLDER;
     }
     bool isBed() const {
-        return (type == ITEM_TYPE_BED);
+        return type == ITEM_TYPE_BED;
     }
     bool isRune() const {
-        return (type == ITEM_TYPE_RUNE);
+        return type == ITEM_TYPE_RUNE;
     }
     bool isPickupable() const {
-        return (allowPickupable || pickupable);
+        return allowPickupable || pickupable;
     }
     bool isUseable() const {
-        return (useable);
+        return useable;
     }
     bool hasSubType() const {
-        return (isFluid() || stackable || charges != 0);
+        return isFluid() || stackable || charges != 0;
     }
 
     Abilities& getAbilities() {
         if (!abilities) {
-            abilities.reset(new Abilities());
+            abilities = std::make_unique<Abilities>();
         }
         return *abilities;
     }
@@ -410,7 +412,7 @@ public:
     bool loadFromOtb(const std::string& file);
     bool loadFromOtbLegacy(OTB::Loader& loader, const OTB::Node& rootNode);
 
-    const ItemType& operator[](size_t id) const {
+    const ItemType& operator[](const size_t id) const {
         return getItemType(id);
     }
     const ItemType& getItemType(size_t id) const;

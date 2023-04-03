@@ -36,7 +36,7 @@ public:
     void setKey(const char* pString, const char* qString, int base = 10);
     void decrypt(char* msg) const;
 
-    std::string base64Decrypt(const std::string& input);
+    static std::string base64Decrypt(const std::string& input);
     bool loadPEM(const std::string& filename);
 
 private:

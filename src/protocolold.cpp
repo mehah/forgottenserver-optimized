@@ -25,11 +25,9 @@
 
 #include "game.h"
 
-extern Game g_game;
-
-void ProtocolOld::disconnectClient(const std::string& message, uint16_t version)
+void ProtocolOld::disconnectClient(const std::string& message, const uint16_t version) const
 {
-    auto output = OutputMessagePool::getOutputMessage();
+    const auto output = OutputMessagePool::getOutputMessage();
     output->addByte(version >= 1076 ? 0x0B : 0x0A);
     output->addString(message);
     send(output);
@@ -45,7 +43,7 @@ void ProtocolOld::onRecvFirstMessage(NetworkMessage& msg)
     }
 
     /*uint16_t clientOS =*/ msg.get<uint16_t>();
-    uint16_t version = msg.get<uint16_t>();
+    const auto version = msg.get<uint16_t>();
     if (version >= 971) {
         msg.skipBytes(17);
     } else {
@@ -59,12 +57,12 @@ void ProtocolOld::onRecvFirstMessage(NetworkMessage& msg)
         return;
     }
 
-    if (!Protocol::RSA_decrypt(msg)) {
+    if (!RSA_decrypt(msg)) {
         disconnect();
         return;
     }
 
-    uint32_t key[4] = { msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>() };
+    const uint32_t key[4] = { msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>(), msg.get<uint32_t>() };
     enableXTEAEncryption();
     setXTEAKey(key);
 

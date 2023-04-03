@@ -428,7 +428,7 @@ bool Items::loadFromOtb(const std::string& file)
 
 bool Items::loadFromOtbLegacy(OTB::Loader& loader, const OTB::Node& rootNode)
 {
-    auto translateOTBSubfight = [](subfightOTB_t sf) {
+    auto translateOTBSubfight = [](const subfightOTB_t sf) {
         switch (sf) {
             case OTB_DIST_BOLT: return CONST_ANI_BOLT;
             case OTB_DIST_ARROW: return CONST_ANI_ARROW;
@@ -449,7 +449,7 @@ bool Items::loadFromOtbLegacy(OTB::Loader& loader, const OTB::Node& rootNode)
         }
     };
 
-    auto translateOTBSlot = [](slotsOTB_t st) {
+    auto translateOTBSlot = [](const slotsOTB_t st) {
         switch (st) {
             case OTB_SLOT_HEAD: return SLOTP_HEAD;
             case OTB_SLOT_BODY: return SLOTP_ARMOR;
@@ -943,7 +943,7 @@ bool Items::loadFromOtbLegacy(OTB::Loader& loader, const OTB::Node& rootNode)
 bool Items::loadFromXml()
 {
     pugi::xml_document doc;
-    pugi::xml_parse_result result = doc.load_file(("data/items/" + std::to_string(CLIENT_VERSION) + "/items.xml").c_str());
+    const pugi::xml_parse_result result = doc.load_file(("data/items/" + std::to_string(CLIENT_VERSION) + "/items.xml").c_str());
     if (!result) {
         printXMLError("Error - Items::loadFromXml", "data/items/" + std::to_string(CLIENT_VERSION) + "/items.xml", result);
         return false;
@@ -968,8 +968,8 @@ bool Items::loadFromXml()
             continue;
         }
 
-        uint16_t id = pugi::cast<uint16_t>(fromIdAttribute.value());
-        uint16_t toId = pugi::cast<uint16_t>(toIdAttribute.value());
+        auto id = pugi::cast<uint16_t>(fromIdAttribute.value());
+        const auto toId = pugi::cast<uint16_t>(toIdAttribute.value());
         while (id <= toId) {
             parseItemNode(itemNode, id++);
         }
@@ -982,7 +982,7 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
 {
     // Auto detect fluid ids
     if (id >= items.size()) {
-        uint16_t fid = (id % 10000);
+        uint16_t fid = id % 10000;
         if (fid > 0 && fid < 100) {
             id = fid;
 
@@ -1531,7 +1531,7 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
                 }
 
                 case ITEM_PARSE_ABSORBPERCENTALL: {
-                    int16_t value = pugi::cast<int16_t>(valueAttribute.value());
+                    auto value = pugi::cast<int16_t>(valueAttribute.value());
                     for (auto& i : abilities.absorbPercent) {
                         i += value;
                     }
@@ -1539,7 +1539,7 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
                 }
 
                 case ITEM_PARSE_ABSORBPERCENTELEMENTS: {
-                    int16_t value = pugi::cast<int16_t>(valueAttribute.value());
+                    auto value = pugi::cast<int16_t>(valueAttribute.value());
                     abilities.absorbPercent[combatTypeToIndex(COMBAT_ENERGYDAMAGE)] += value;
                     abilities.absorbPercent[combatTypeToIndex(COMBAT_FIREDAMAGE)] += value;
                     abilities.absorbPercent[combatTypeToIndex(COMBAT_EARTHDAMAGE)] += value;
@@ -1548,7 +1548,7 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
                 }
 
                 case ITEM_PARSE_ABSORBPERCENTMAGIC: {
-                    int16_t value = pugi::cast<int16_t>(valueAttribute.value());
+                    auto value = pugi::cast<int16_t>(valueAttribute.value());
                     abilities.absorbPercent[combatTypeToIndex(COMBAT_ENERGYDAMAGE)] += value;
                     abilities.absorbPercent[combatTypeToIndex(COMBAT_FIREDAMAGE)] += value;
                     abilities.absorbPercent[combatTypeToIndex(COMBAT_EARTHDAMAGE)] += value;
@@ -1774,7 +1774,7 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
                 }
 
                 case ITEM_PARSE_MALETRANSFORMTO: {
-                    uint16_t value = pugi::cast<uint16_t>(valueAttribute.value());
+                    auto value = pugi::cast<uint16_t>(valueAttribute.value());
                     it.transformToOnUse[PLAYERSEX_MALE] = value;
                     ItemType& other = getItemType(value);
                     if (other.transformToFree == 0) {
@@ -1788,7 +1788,7 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
                 }
 
                 case ITEM_PARSE_FEMALETRANSFORMTO: {
-                    uint16_t value = pugi::cast<uint16_t>(valueAttribute.value());
+                    auto value = pugi::cast<uint16_t>(valueAttribute.value());
                     it.transformToOnUse[PLAYERSEX_FEMALE] = value;
 
                     ItemType& other = getItemType(value);
@@ -1868,7 +1868,7 @@ void Items::parseItemNode(const pugi::xml_node& itemNode, uint16_t id)
     }
 }
 
-ItemType& Items::getItemType(size_t id)
+ItemType& Items::getItemType(const size_t id)
 {
     if (id < items.size()) {
         return items[id];
@@ -1876,7 +1876,7 @@ ItemType& Items::getItemType(size_t id)
     return items.front();
 }
 
-const ItemType& Items::getItemType(size_t id) const
+const ItemType& Items::getItemType(const size_t id) const
 {
     if (id < items.size()) {
         return items[id];
@@ -1884,7 +1884,7 @@ const ItemType& Items::getItemType(size_t id) const
     return items.front();
 }
 
-const ItemType& Items::getItemIdByClientId(uint16_t spriteId) const
+const ItemType& Items::getItemIdByClientId(const uint16_t spriteId) const
 {
     if (spriteId < reverseItemMap.size()) {
         return getItemType(reverseItemMap[spriteId]);

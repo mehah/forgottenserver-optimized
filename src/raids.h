@@ -33,7 +33,7 @@ enum RaidState_t : uint8_t
 
 struct MonsterSpawn
 {
-    MonsterSpawn(std::string name, uint32_t minAmount, uint32_t maxAmount) :
+    MonsterSpawn(std::string name, const uint32_t minAmount, const uint32_t maxAmount) :
         name(std::move(name)), minAmount(minAmount), maxAmount(maxAmount) {}
 
     // non-copyable
@@ -79,7 +79,8 @@ public:
         return started;
     }
 
-    Raid* getRunning() {
+    Raid* getRunning() const
+    {
         return running;
     }
     void setRunning(Raid* newRunning) {
@@ -91,7 +92,7 @@ public:
     uint64_t getLastRaidEnd() const {
         return lastRaidEnd;
     }
-    void setLastRaidEnd(uint64_t newLastRaidEnd) {
+    void setLastRaidEnd(const uint64_t newLastRaidEnd) {
         lastRaidEnd = newLastRaidEnd;
     }
 
@@ -115,7 +116,7 @@ private:
 class Raid
 {
 public:
-    Raid(std::string name, uint32_t interval, uint32_t marginTime, bool repeat) :
+    Raid(std::string name, const uint32_t interval, const uint32_t marginTime, const bool repeat) :
         name(std::move(name)), margin(marginTime), interval(interval), repeat(repeat) {}
     ~Raid();
 
@@ -149,8 +150,8 @@ public:
     void executeRaidEvent(RaidEvent* raidEvent);
     void resetRaid();
 
-    RaidEvent* getNextRaidEvent();
-    void setState(RaidState_t newState) {
+    RaidEvent* getNextRaidEvent() const;
+    void setState(const RaidState_t newState) {
         state = newState;
     }
     const std::string& getName() const {

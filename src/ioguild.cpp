@@ -24,12 +24,12 @@
 #include "guild.h"
 #include "ioguild.h"
 
-Guild* IOGuild::loadGuild(uint32_t guildId)
+Guild* IOGuild::loadGuild(const uint32_t guildId)
 {
     std::stringExtended query(128);
     query << "SELECT `name` FROM `guilds` WHERE `id` = " << guildId << " LIMIT 1";
     if (DBResult_ptr result = g_database.storeQuery(query)) {
-        Guild* guild = new Guild(guildId, std::move(result->getString("name")));
+        const auto guild = new Guild(guildId, std::move(result->getString("name")));
 
         query.clear();
         query << "SELECT `id`, `name`, `level` FROM `guild_ranks` WHERE `guild_id` = " << guildId;
@@ -49,25 +49,25 @@ uint32_t IOGuild::getGuildIdByName(const std::string& name)
     std::stringExtended query(escapedName.length() + static_cast<size_t>(64));
     query << "SELECT `id` FROM `guilds` WHERE `name` = " << escapedName << " LIMIT 1";
 
-    DBResult_ptr result = g_database.storeQuery(query);
+    const DBResult_ptr result = g_database.storeQuery(query);
     if (!result) {
         return 0;
     }
     return result->getNumber<uint32_t>("id");
 }
 
-void IOGuild::getWarList(uint32_t guildId, GuildWarVector& guildWarVector)
+void IOGuild::getWarList(const uint32_t guildId, GuildWarVector& guildWarVector)
 {
     std::stringExtended query(140);
     query << "SELECT `guild1`, `guild2` FROM `guild_wars` WHERE (`guild1` = " << guildId << " OR `guild2` = " << guildId << ") AND `ended` = 0 AND `status` = 1";
 
-    DBResult_ptr result = g_database.storeQuery(query);
+    const DBResult_ptr result = g_database.storeQuery(query);
     if (!result) {
         return;
     }
 
     do {
-        uint32_t guild1 = result->getNumber<uint32_t>("guild1");
+        auto guild1 = result->getNumber<uint32_t>("guild1");
         if (guildId != guild1) {
             guildWarVector.push_back(guild1);
         } else {

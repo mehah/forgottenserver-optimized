@@ -57,7 +57,7 @@ class MoveEvents final : public BaseEvents
 {
 public:
     MoveEvents();
-    ~MoveEvents();
+    ~MoveEvents() override;
 
     // non-copyable
     MoveEvents(const MoveEvents&) = delete;
@@ -66,31 +66,31 @@ public:
     uint32_t onCreatureMove(Creature* creature, const Tile* tile, MoveEvent_t eventType);
     uint32_t onPlayerEquip(Player* player, Item* item, slots_t slot, bool isCheck);
     uint32_t onPlayerDeEquip(Player* player, Item* item, slots_t slot);
-    uint32_t onItemMove(Item* item, Tile* tile, bool isAdd);
+    uint32_t onItemMove(Item* item, const Tile* tile, bool isAdd);
 
-    MoveEvent* getEvent(Item* item, MoveEvent_t eventType);
+    MoveEvent* getEvent(const Item* item, MoveEvent_t eventType);
 
-    bool registerLuaEvent(MoveEvent_ptr& event);
-    bool registerLuaFunction(MoveEvent_ptr& event);
-    void clear(bool fromLua) override final;
+    bool registerLuaEvent(const MoveEvent_ptr& event);
+    bool registerLuaFunction(const MoveEvent_ptr& event);
+    void clear(bool fromLua) override;
 
 private:
     using MoveListMap = std::map<uint16_t, MoveEventList>;
     using MovePosListMap = std::map<Position, MoveEventList>;
-    void clearMap(MoveListMap& map, bool fromLua);
-    void clearPosMap(MovePosListMap& map, bool fromLua);
+    static void clearMap(MoveListMap& map, bool fromLua);
+    static void clearPosMap(MovePosListMap& map, bool fromLua);
 
     LuaScriptInterface& getScriptInterface() override;
     std::string getScriptBaseName() const override;
     Event_ptr getEvent(const std::string& nodeName) override;
     bool registerEvent(Event_ptr event, const pugi::xml_node& node) override;
 
-    void addEvent(MoveEvent_ptr moveEvent, uint16_t id, MoveListMap& map);
-    void addEvent(MoveEvent_ptr moveEvent, const Position& pos, MovePosListMap& map);
+    static void addEvent(MoveEvent_ptr moveEvent, uint16_t id, MoveListMap& map);
+    static void addEvent(MoveEvent_ptr moveEvent, const Position& pos, MovePosListMap& map);
 
     MoveEvent* getEvent(const Tile* tile, MoveEvent_t eventType);
 
-    MoveEvent* getEvent(Item* item, MoveEvent_t eventType, slots_t slot);
+    MoveEvent* getEvent(const Item* item, MoveEvent_t eventType, slots_t slot);
 
     MoveListMap uniqueIdMap;
     MoveListMap actionIdMap;
@@ -115,7 +115,7 @@ public:
     bool configureEvent(const pugi::xml_node& node) override;
     bool loadFunction(const pugi::xml_attribute& attr, bool isScripted) override;
 
-    uint32_t fireStepEvent(Creature* creature, Item* item, const Position& pos);
+    uint32_t fireStepEvent(Creature* creature, Item* item, const Position& pos) const;
     uint32_t fireAddRemItem(Item* item, Item* tileItem, const Position& pos);
     uint32_t fireEquip(Player* player, Item* item, slots_t slot, bool isCheck);
 
@@ -124,9 +124,9 @@ public:
     }
 
     //scripting
-    bool executeStep(Creature* creature, Item* item, const Position& pos);
-    bool executeEquip(Player* player, Item* item, slots_t slot, bool isCheck);
-    bool executeAddRemItem(Item* item, Item* tileItem, const Position& pos);
+    bool executeStep(Creature* creature, Item* item, const Position& pos) const;
+    bool executeEquip(Player* player, Item* item, slots_t slot, bool isCheck) const;
+    bool executeAddRemItem(Item* item, Item* tileItem, const Position& pos) const;
     //
 
     //onEquip information
@@ -152,7 +152,7 @@ public:
         return vocEquipMap;
     }
     void addVocEquipMap(const std::string& vocName) {
-        int32_t vocationId = g_vocations.getVocationId(vocName);
+        const int32_t vocationId = g_vocations.getVocationId(vocName);
         if (vocationId != -1) {
             vocEquipMap[vocationId] = true;
         }
@@ -160,7 +160,7 @@ public:
     bool getTileItem() const {
         return tileItem;
     }
-    void setTileItem(bool b) {
+    void setTileItem(const bool b) {
         tileItem = b;
     }
     std::vector<uint16_t>& getItemIdRange() {
@@ -187,31 +187,32 @@ public:
     void addPosList(Position pos) {
         posList.emplace_back(pos);
     }
-    void setSlot(uint32_t s) {
+    void setSlot(const uint32_t s) {
         slot = s;
     }
-    uint32_t getRequiredLevel() {
+    uint32_t getRequiredLevel() const
+    {
         return reqLevel;
     }
-    void setRequiredLevel(uint32_t level) {
+    void setRequiredLevel(const uint32_t level) {
         reqLevel = level;
     }
-    uint32_t getRequiredMagLevel() {
+    uint32_t getRequiredMagLevel() const
+    {
         return reqMagLevel;
     }
-    void setRequiredMagLevel(uint32_t level) {
+    void setRequiredMagLevel(const uint32_t level) {
         reqMagLevel = level;
     }
-    bool needPremium() {
+    bool needPremium() const
+    {
         return premium;
     }
-    void setNeedPremium(bool b) {
+    void setNeedPremium(const bool b) {
         premium = b;
     }
-    uint32_t getWieldInfo() {
-        return wieldInfo;
-    }
-    void setWieldInfo(WieldInfo_t info) {
+
+    void setWieldInfo(const WieldInfo_t info) {
         wieldInfo |= info;
     }
 

@@ -22,7 +22,6 @@
 #define FS_SCRIPTS_H
 
 #include "luascript.h"
-#include "enums.h"
 
 class Scripts
 {
@@ -30,7 +29,7 @@ public:
     Scripts();
     ~Scripts();
 
-    bool loadScripts(std::string folderName, bool isLib, bool reload);
+    bool loadScripts(const std::string& folderName, bool isLib, bool reload);
     LuaScriptInterface& getScriptInterface() {
         return scriptInterface;
     }

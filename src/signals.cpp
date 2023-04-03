@@ -38,9 +38,6 @@
 #include "events.h"
 #include "databasetasks.h"
 
-extern DatabaseTasks g_databaseTasks;
-extern Dispatcher g_dispatcher;
-
 extern ConfigManager g_config;
 extern Actions* g_actions;
 extern Monsters g_monsters;
@@ -48,16 +45,16 @@ extern TalkActions* g_talkActions;
 extern MoveEvents* g_moveEvents;
 extern Spells* g_spells;
 extern Weapons* g_weapons;
-extern Game g_game;
+
 extern CreatureEvents* g_creatureEvents;
 extern GlobalEvents* g_globalEvents;
 extern Events* g_events;
 extern Chat* g_chat;
 extern LuaEnvironment g_luaEnvironment;
 
-using ErrorCode = boost::system::error_code;
+using ErrorCode = std::error_code;
 
-Signals::Signals(boost::asio::io_service& service) :
+Signals::Signals(asio::io_service& service) :
     set(service)
 {
     set.add(SIGINT);
@@ -77,7 +74,7 @@ Signals::Signals(boost::asio::io_service& service) :
 
 void Signals::asyncWait()
 {
-    set.async_wait([this](ErrorCode err, int signal) {
+    set.async_wait([this](const ErrorCode err, const int signal) {
         if (err) {
             std::cerr << "Signal handling error: " << err.message() << std::endl;
             return;
@@ -90,7 +87,7 @@ void Signals::asyncWait()
 // On Windows this function does not need to be signal-safe,
 // as it is called in a new thread.
 // https://github.com/otland/forgottenserver/pull/2473
-void Signals::dispatchSignalHandler(int signal)
+void Signals::dispatchSignalHandler(const int signal)
 {
     switch (signal) {
         case SIGINT: //Shuts the server down

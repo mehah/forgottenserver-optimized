@@ -55,7 +55,7 @@ public:
     char getSeparator() const {
         return separator;
     }
-    void setSeparator(char sep) {
+    void setSeparator(const char sep) {
         separator = sep;
     }
 
@@ -75,7 +75,7 @@ class TalkActions final : public BaseEvents
 {
 public:
     TalkActions();
-    ~TalkActions();
+    ~TalkActions() override;
 
     // non-copyable
     TalkActions(const TalkActions&) = delete;
@@ -84,7 +84,7 @@ public:
     TalkActionResult_t playerSaySpell(Player* player, SpeakClasses type, const std::string& words) const;
 
     bool registerLuaEvent(TalkAction_ptr& event);
-    void clear(bool fromLua) override final;
+    void clear(bool fromLua);
 
 private:
     LuaScriptInterface& getScriptInterface() override;

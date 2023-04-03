@@ -29,7 +29,7 @@ public:
     explicit DepotChest(uint16_t type);
 
     //serialization
-    void setMaxDepotItems(uint32_t maxitems) {
+    void setMaxDepotItems(const uint32_t maxitems) {
         maxDepotItems = maxitems;
     }
 

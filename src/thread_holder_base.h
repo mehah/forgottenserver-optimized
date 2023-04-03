@@ -29,7 +29,8 @@ template <typename Derived>
 class ThreadHolder
 {
 public:
-    ThreadHolder() {}
+    ThreadHolder() = default;
+
     void start() {
         setState(THREAD_STATE_RUNNING);
         thread = std::thread(&Derived::threadMain, static_cast<Derived*>(this));
@@ -45,7 +46,7 @@ public:
         }
     }
 protected:
-    void setState(ThreadState newState) {
+    void setState(const ThreadState newState) {
         threadState.store(newState, std::memory_order_relaxed);
     }
 

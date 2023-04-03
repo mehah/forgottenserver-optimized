@@ -27,7 +27,7 @@
 class Vocation
 {
 public:
-    explicit Vocation(uint16_t id) : id(id) {}
+    explicit Vocation(const uint16_t id) : id(id) {}
 
     const std::string& getVocName() const {
         return name;
@@ -87,10 +87,10 @@ public:
         return fromVocation;
     }
 
-    float meleeDamageMultiplier = 1.0f;
-    float distDamageMultiplier = 1.0f;
-    float defenseMultiplier = 1.0f;
-    float armorMultiplier = 1.0f;
+    float meleeDamageMultiplier = 1.0F;
+    float distDamageMultiplier = 1.0F;
+    float defenseMultiplier = 1.0F;
+    float armorMultiplier = 1.0F;
 
 private:
     friend class Vocations;
