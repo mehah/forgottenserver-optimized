@@ -2616,6 +2616,9 @@ void LuaScriptInterface::registerFunctions()
     registerMethod("Creature", "getLight", luaCreatureGetLight);
     registerMethod("Creature", "setLight", luaCreatureSetLight);
 
+    registerMethod("Creature", "getShader", luaCreatureGetShader);
+    registerMethod("Creature", "setShader", luaCreatureSetShader);
+
     registerMethod("Creature", "getSpeed", luaCreatureGetSpeed);
     registerMethod("Creature", "getBaseSpeed", luaCreatureGetBaseSpeed);
     registerMethod("Creature", "changeSpeed", luaCreatureChangeSpeed);
@@ -16979,5 +16982,34 @@ int LuaScriptInterface::luaCreatureRemoveAttchedEffect(lua_State* L)
 
     uint16_t effectId = getNumber<uint16_t>(L, 2);
     g_game.addAttchedEffect(creature, effectId);
+    return 1;
+}
+
+int LuaScriptInterface::luaCreatureGetShader(lua_State* L)
+{
+    // creature:getShader()
+    const auto* creature = getUserdata<const Creature>(L, 1);
+    if (creature) {
+        pushString(L, creature->getShader());
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+
+int LuaScriptInterface::luaCreatureSetShader(lua_State* L)
+{
+    // creature:setShader(shaderName)
+    auto* creature = getUserdata<Creature>(L, 1);
+    if (!creature) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    creature->setShader(getString(L, 2));
+    g_game.sendCreatureShader(creature, creature->getShader());
+
+    pushBoolean(L, true);
     return 1;
 }

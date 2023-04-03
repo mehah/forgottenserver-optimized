@@ -1027,6 +1027,12 @@ public:
         }
     }
 
+    void sendShader(const Creature * creature, const std::string & shaderName) {
+        if (client) {
+            client->sendShader(creature, shaderName);
+        }
+    }
+
     //event methods
     void onUpdateTileItem(const Tile * tile, const Position & pos, const Item * oldItem,
                                   const ItemType & oldType, const Item * newItem, const ItemType & newType) override;
@@ -1839,6 +1845,6 @@ private:
     friend class Actions;
     friend class IOLoginData;
     friend class ProtocolGame;
-};
+    };
 
 #endif

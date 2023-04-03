@@ -29,6 +29,10 @@ function onLogin(player)
         player:setVocation(vocation:getDemotion())
     end
 
+    if player:getGroup():getAccess() then
+        player:setShader("Outfit - Rainbow")
+    end
+
     -- Events
     player:registerEvent('PlayerDeath')
     player:registerEvent('DropLoot')

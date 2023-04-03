@@ -5547,6 +5547,8 @@ void ProtocolGame::AddCreature(const Creature * creature, const bool known, cons
 #if CLIENT_VERSION >= 854
     playermsg.addByte(player->canWalkthroughEx(creature) ? 0x00 : 0x01);
 #endif
+
+    playermsg.addString(player->getShader());
 }
 
 void ProtocolGame::AddPlayerStats() const
@@ -6623,5 +6625,13 @@ void ProtocolGame::sendRemoveAttchedEffect(const Creature * creature, uint16_t e
     playermsg.addByte(0x35);
     playermsg.add<uint32_t>(creature->getID());
     playermsg.add<uint16_t>(effectId);
+    writeToOutputBuffer(playermsg);
+}
+
+void ProtocolGame::sendShader(const Creature * creature, const std::string & shaderName) {
+    playermsg.reset();
+    playermsg.addByte(0x36);
+    playermsg.add<uint32_t>(creature->getID());
+    playermsg.addString(shaderName);
     writeToOutputBuffer(playermsg);
 }

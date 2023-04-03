@@ -802,6 +802,9 @@ private:
     static int luaCreatureGetLight(lua_State* L);
     static int luaCreatureSetLight(lua_State* L);
 
+    static int luaCreatureGetShader(lua_State* L);
+    static int luaCreatureSetShader(lua_State* L);
+
     static int luaCreatureGetSpeed(lua_State* L);
     static int luaCreatureGetBaseSpeed(lua_State* L);
     static int luaCreatureChangeSpeed(lua_State* L);

@@ -446,6 +446,7 @@ private:
 
     void sendAddAttchedEffect(const Creature* creature, uint16_t effectId);
     void sendRemoveAttchedEffect(const Creature* creature, uint16_t effectId);
+    void sendShader(const Creature* creature, const std::string& shaderName);
 
     //Help functions
 

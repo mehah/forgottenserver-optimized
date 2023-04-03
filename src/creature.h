@@ -481,6 +481,9 @@ public:
     bool getPathTo(const Position& targetPos, std::vector<Direction>& dirList, const FindPathParams& fpp) const;
     bool getPathTo(const Position& targetPos, std::vector<Direction>& dirList, int32_t minTargetDist, int32_t maxTargetDist, bool fullPathSearch = true, bool clearSight = true, int32_t maxSearchDist = 0) const;
 
+    std::string getShader() const { return shader; }
+    void setShader(const std::string& shaderName) { shader = shaderName; }
+
     void incrementReferenceCounter() {
         ++referenceCounter;
     }
@@ -510,6 +513,8 @@ protected:
 
     using CountMap = std::map<uint32_t, CountBlock_t>;
     CountMap damageMap;
+
+    std::string shader;
 
     std::vector<Creature*> summons;
     CreatureEventList eventsList;
