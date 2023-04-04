@@ -29,7 +29,7 @@ function onLogin(player)
         player:setVocation(vocation:getDemotion())
     end
 
-    if player:getGroup():getAccess() then
+    if player:getGroup():getAccess() and player:getAccountType() >= ACCOUNT_TYPE_GAMEMASTER then
         player:setShader("Outfit - Rainbow")
     end
 

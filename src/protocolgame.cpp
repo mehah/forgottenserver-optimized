@@ -5548,7 +5548,7 @@ void ProtocolGame::AddCreature(const Creature * creature, const bool known, cons
     playermsg.addByte(player->canWalkthroughEx(creature) ? 0x00 : 0x01);
 #endif
 
-    playermsg.addString(player->getShader());
+    playermsg.addString(creature->getShader());
 }
 
 void ProtocolGame::AddPlayerStats() const

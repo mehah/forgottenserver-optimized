@@ -6925,10 +6925,10 @@ void Game::removeAttchedEffect(const Creature* creature, uint16_t effectId)
     }
 }
 
-void Game::sendCreatureShader(const Creature* creature, const std::string& shaderName) {
+void Game::updateCreatureShader(const Creature* creature) {
     SpectatorVector spectators;
     map.getSpectators(spectators, creature->getPosition(), false, true);
     for (Creature* spectator : spectators) {
-        spectator->getPlayer()->sendShader(creature, shaderName);
+        spectator->getPlayer()->sendShader(creature, creature->getShader());
     }
 }

@@ -17008,7 +17008,7 @@ int LuaScriptInterface::luaCreatureSetShader(lua_State* L)
     }
 
     creature->setShader(getString(L, 2));
-    g_game.sendCreatureShader(creature, creature->getShader());
+    g_game.updateCreatureShader(creature);
 
     pushBoolean(L, true);
     return 1;

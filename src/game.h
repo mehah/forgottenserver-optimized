@@ -548,7 +548,7 @@ public:
 
     void addAttchedEffect(const Creature* creature, uint16_t effectId);
     void removeAttchedEffect(const Creature* creature, uint16_t effectId);
-    void sendCreatureShader(const Creature* creature, const std::string& shaderName);
+    void updateCreatureShader(const Creature* creature);
 
     void updateCreatureData(const Creature* creature) const;
 
