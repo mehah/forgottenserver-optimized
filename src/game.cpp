@@ -6932,3 +6932,49 @@ void Game::updateCreatureShader(const Creature* creature) {
         spectator->getPlayer()->sendShader(creature, creature->getShader());
     }
 }
+
+void Game::refreshItem(const Item* item) {
+    if (!item || !item->getParent())
+        return;
+
+    const auto parent = item->getParent();
+
+    if (const auto creature = parent->getCreature()) {
+        if (const auto player = creature->getPlayer()) {
+            int32_t index = creature->getPlayer()->getThingIndex(item);
+            if (index > -1)
+                player->sendInventoryItem(static_cast<slots_t>(index), item);
+        }
+
+        return;
+    }
+
+    if (const auto container = parent->getContainer()) {
+        int32_t index = container->getThingIndex(item);
+        if (index > -1) {
+            SpectatorVector spectators;
+            g_game.map.getSpectators(spectators, container->getPosition(), false, true, 2, 2, 2, 2);
+
+            //send to client
+            for (auto spectator : spectators) {
+                spectator->getPlayer()->sendUpdateContainerItem(container, index, item);
+            }
+        }
+
+        return;
+    }
+
+    if (const auto tile = parent->getTile()) {
+
+        SpectatorVector spectators;
+        g_game.map.getSpectators(spectators, tile->getPosition(), true, true);
+
+        //send to client
+        for (auto spectator : spectators) {
+            if (const Player* tmpPlayer = spectator->getPlayer()) {
+                tmpPlayer->sendUpdateTileItem(tile, tile->getPosition(), item);
+            }
+        }
+        return;
+    }
+}

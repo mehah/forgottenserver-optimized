@@ -747,6 +747,10 @@ private:
     static int luaItemHasProperty(lua_State* L);
     static int luaItemIsLoadedFromMap(lua_State* L);
 
+    static int luaItemHasShader(lua_State* L);
+    static int luaItemGetShader(lua_State* L);
+    static int luaItemSetShader(lua_State* L);
+
     // Container
     static int luaContainerCreate(lua_State* L);
 

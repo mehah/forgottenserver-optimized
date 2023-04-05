@@ -5984,8 +5984,7 @@ void ProtocolGame::AddItem(const Item * item)
     }
 #endif
 
-    auto shader = item->getCustomAttribute("shader");
-    playermsg.addString(shader ? shader->getString() : "");
+    playermsg.addString(item->getShader());
 }
 
 void ProtocolGame::parseExtendedOpcode(NetworkMessage & msg) const

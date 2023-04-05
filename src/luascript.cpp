@@ -2558,6 +2558,10 @@ void LuaScriptInterface::registerFunctions()
     registerMethod("Item", "hasProperty", luaItemHasProperty);
     registerMethod("Item", "isLoadedFromMap", luaItemIsLoadedFromMap);
 
+    registerMethod("Item", "setShader", luaItemSetShader);
+    registerMethod("Item", "getShader", luaItemGetShader);
+    registerMethod("Item", "hasShader", luaItemHasShader);
+
     // Container
     registerClass("Container", "Item", luaContainerCreate);
     registerMetaMethod("Container", "__eq", luaUserdataCompare);
@@ -7170,6 +7174,48 @@ int LuaScriptInterface::luaItemIsLoadedFromMap(lua_State* L)
     } else {
         lua_pushnil(L);
     }
+    return 1;
+}
+
+int LuaScriptInterface::luaItemHasShader(lua_State* L)
+{
+    // item:getShader()
+    const auto* item = getUserdata<const Item>(L, 1);
+    if (item) {
+        pushBoolean(L, item->hasShader());
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+
+int LuaScriptInterface::luaItemGetShader(lua_State* L)
+{
+    // item:getShader()
+    const auto* item = getUserdata<const Item>(L, 1);
+    if (item) {
+        pushString(L, item->getShader());
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+
+int LuaScriptInterface::luaItemSetShader(lua_State* L)
+{
+    // item:setShader(shaderName)
+    auto* item = getUserdata<Item>(L, 1);
+    if (!item) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    item->setShader(getString(L, 2));
+    g_game.refreshItem(item);
+
+    pushBoolean(L, true);
     return 1;
 }
 
