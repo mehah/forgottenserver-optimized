@@ -2558,6 +2558,10 @@ void LuaScriptInterface::registerFunctions()
     registerMethod("Item", "hasProperty", luaItemHasProperty);
     registerMethod("Item", "isLoadedFromMap", luaItemIsLoadedFromMap);
 
+    registerMethod("Item", "setShader", luaItemSetShader);
+    registerMethod("Item", "getShader", luaItemGetShader);
+    registerMethod("Item", "hasShader", luaItemHasShader);
+
     // Container
     registerClass("Container", "Item", luaContainerCreate);
     registerMetaMethod("Container", "__eq", luaUserdataCompare);
@@ -2616,6 +2620,9 @@ void LuaScriptInterface::registerFunctions()
     registerMethod("Creature", "getLight", luaCreatureGetLight);
     registerMethod("Creature", "setLight", luaCreatureSetLight);
 
+    registerMethod("Creature", "getShader", luaCreatureGetShader);
+    registerMethod("Creature", "setShader", luaCreatureSetShader);
+
     registerMethod("Creature", "getSpeed", luaCreatureGetSpeed);
     registerMethod("Creature", "getBaseSpeed", luaCreatureGetBaseSpeed);
     registerMethod("Creature", "changeSpeed", luaCreatureChangeSpeed);
@@ -2660,6 +2667,9 @@ void LuaScriptInterface::registerFunctions()
     registerMethod("Creature", "move", luaCreatureMove);
 
     registerMethod("Creature", "getZone", luaCreatureGetZone);
+
+    registerMethod("Creature", "attachEffectById", LuaScriptInterface::luaCreatureAttachEffectById);
+    registerMethod("Creature", "detachEffectById", LuaScriptInterface::luaCreatureDetachEffectById);
 
     // Player
     registerClass("Player", "Creature", luaPlayerCreate);
@@ -7164,6 +7174,48 @@ int LuaScriptInterface::luaItemIsLoadedFromMap(lua_State* L)
     } else {
         lua_pushnil(L);
     }
+    return 1;
+}
+
+int LuaScriptInterface::luaItemHasShader(lua_State* L)
+{
+    // item:getShader()
+    const auto* item = getUserdata<const Item>(L, 1);
+    if (item) {
+        pushBoolean(L, item->hasShader());
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+
+int LuaScriptInterface::luaItemGetShader(lua_State* L)
+{
+    // item:getShader()
+    const auto* item = getUserdata<const Item>(L, 1);
+    if (item) {
+        pushString(L, item->getShader());
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+
+int LuaScriptInterface::luaItemSetShader(lua_State* L)
+{
+    // item:setShader(shaderName)
+    auto* item = getUserdata<Item>(L, 1);
+    if (!item) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    item->setShader(getString(L, 2));
+    g_game.refreshItem(item);
+
+    pushBoolean(L, true);
     return 1;
 }
 
@@ -16949,4 +17001,68 @@ void LuaEnvironment::executeTimerEvent(const uint32_t eventIndex)
     for (const auto parameter : timerEventDesc.parameters) {
         luaL_unref(luaState, LUA_REGISTRYINDEX, parameter);
     }
+}
+
+int LuaScriptInterface::luaCreatureAttachEffectById(lua_State* L)
+{
+    // creature:attachEffectById(effectId, [temporary])
+    Creature* creature = getUserdata<Creature>(L, 1);
+    if (!creature) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    uint16_t id = getNumber<uint16_t>(L, 2);
+    bool temp = getBoolean(L, 3, false);
+
+    if (temp)
+        g_game.sendAttachedEffect(creature, id);
+    else
+        creature->attachEffectById(id);
+
+    return 1;
+}
+
+int LuaScriptInterface::luaCreatureDetachEffectById(lua_State* L)
+{
+    // creature:detachEffectById(effectId)
+    Creature* creature = getUserdata<Creature>(L, 1);
+    if (!creature) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    uint16_t id = getNumber<uint16_t>(L, 2);
+    creature->detachEffectById(id);
+
+    return 1;
+}
+
+int LuaScriptInterface::luaCreatureGetShader(lua_State* L)
+{
+    // creature:getShader()
+    const auto* creature = getUserdata<const Creature>(L, 1);
+    if (creature) {
+        pushString(L, creature->getShader());
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+
+int LuaScriptInterface::luaCreatureSetShader(lua_State* L)
+{
+    // creature:setShader(shaderName)
+    auto* creature = getUserdata<Creature>(L, 1);
+    if (!creature) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    creature->setShader(getString(L, 2));
+    g_game.updateCreatureShader(creature);
+
+    pushBoolean(L, true);
+    return 1;
 }

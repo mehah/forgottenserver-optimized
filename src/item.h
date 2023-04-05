@@ -1097,6 +1097,25 @@ public:
         return !parent || parent->isRemoved();
     }
 
+    void setShader(const std::string& shaderName) {
+        if (shaderName.empty()) {
+            removeCustomAttribute("shader");
+            return;
+        }
+
+        ItemAttributes::CustomAttribute val;
+        val.set<std::string>(shaderName);
+
+        std::string key = "shader";
+        setCustomAttribute(key, val);
+    }
+
+    bool hasShader() const { return getCustomAttribute("shader") != nullptr; }
+    std::string getShader() const {
+        auto shader = getCustomAttribute("shader");
+        return shader ? shader->getString() : "";
+    }
+
 protected:
     Cylinder* parent = nullptr;
 

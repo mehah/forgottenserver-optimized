@@ -747,6 +747,10 @@ private:
     static int luaItemHasProperty(lua_State* L);
     static int luaItemIsLoadedFromMap(lua_State* L);
 
+    static int luaItemHasShader(lua_State* L);
+    static int luaItemGetShader(lua_State* L);
+    static int luaItemSetShader(lua_State* L);
+
     // Container
     static int luaContainerCreate(lua_State* L);
 
@@ -802,6 +806,9 @@ private:
     static int luaCreatureGetLight(lua_State* L);
     static int luaCreatureSetLight(lua_State* L);
 
+    static int luaCreatureGetShader(lua_State* L);
+    static int luaCreatureSetShader(lua_State* L);
+
     static int luaCreatureGetSpeed(lua_State* L);
     static int luaCreatureGetBaseSpeed(lua_State* L);
     static int luaCreatureChangeSpeed(lua_State* L);
@@ -846,6 +853,9 @@ private:
     static int luaCreatureMove(lua_State* L);
 
     static int luaCreatureGetZone(lua_State* L);
+
+    static int luaCreatureAttachEffectById(lua_State* L);
+    static int luaCreatureDetachEffectById(lua_State* L);
 
     // Player
     static int luaPlayerCreate(lua_State* L);

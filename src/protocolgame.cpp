@@ -453,7 +453,7 @@ void ProtocolGame::onRecvFirstMessage(NetworkMessage& msg)
 #else
     g_dispatcher.addTask(std::bind(&ProtocolGame::login, getThis(), std::move(accountName), std::move(password), std::move(characterName), operatingSystem, TFCoperatingSystem));
 #endif
-    }
+}
 
 void ProtocolGame::onConnect()
 {
@@ -849,7 +849,7 @@ void ProtocolGame::checkCreatureAsKnown(const uint32_t id, bool& known, uint32_t
     } else {
         removedKnown = 0;
     }
-    }
+}
 
 bool ProtocolGame::canSee(const Creature * c) const
 {
@@ -4673,7 +4673,7 @@ void ProtocolGame::sendAddCreature(const Creature * creature, const Position & p
     sendMarketStatistics();
 #endif
     player->sendIcons();
-        }
+}
 
 void ProtocolGame::sendMoveCreature(const Creature * creature, const Position & newPos, const int32_t newStackPos, const Position & oldPos, const int32_t oldStackPos, const bool teleport)
 {
@@ -5547,6 +5547,11 @@ void ProtocolGame::AddCreature(const Creature * creature, const bool known, cons
 #if CLIENT_VERSION >= 854
     playermsg.addByte(player->canWalkthroughEx(creature) ? 0x00 : 0x01);
 #endif
+
+    playermsg.addString(creature->getShader());
+    playermsg.addByte(static_cast<uint8_t>(creature->getAttachedEffectList().size()));
+    for (const uint16_t id : creature->getAttachedEffectList())
+        playermsg.add<uint16_t>(id);
 }
 
 void ProtocolGame::AddPlayerStats() const
@@ -5981,6 +5986,8 @@ void ProtocolGame::AddItem(const Item * item)
         playermsg.addByte(podiumVisible ? static_cast<uint8_t>(podiumVisible->getInt()) : 0x01);
     }
 #endif
+
+    playermsg.addString(item->getShader());
 }
 
 void ProtocolGame::parseExtendedOpcode(NetworkMessage & msg) const
@@ -6605,4 +6612,28 @@ uint8_t ProtocolGame::translateMessageClassToClient(MessageClasses messageType)
         default: return MESSAGE_NONE;
     }
 #endif
+}
+
+void ProtocolGame::sendAttachedEffect(const Creature * creature, uint16_t effectId) {
+    playermsg.reset();
+    playermsg.addByte(0x34);
+    playermsg.add<uint32_t>(creature->getID());
+    playermsg.add<uint16_t>(effectId);
+    writeToOutputBuffer(playermsg);
+}
+
+void ProtocolGame::sendDetachEffect(const Creature * creature, uint16_t effectId) {
+    playermsg.reset();
+    playermsg.addByte(0x35);
+    playermsg.add<uint32_t>(creature->getID());
+    playermsg.add<uint16_t>(effectId);
+    writeToOutputBuffer(playermsg);
+}
+
+void ProtocolGame::sendShader(const Creature * creature, const std::string & shaderName) {
+    playermsg.reset();
+    playermsg.addByte(0x36);
+    playermsg.add<uint32_t>(creature->getID());
+    playermsg.addString(shaderName);
+    writeToOutputBuffer(playermsg);
 }

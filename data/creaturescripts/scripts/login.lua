@@ -29,6 +29,13 @@ function onLogin(player)
         player:setVocation(vocation:getDemotion())
     end
 
+    if player:getGroup():getAccess() and player:getAccountType() >= ACCOUNT_TYPE_GAMEMASTER then
+        player:setShader("Outfit - Rainbow")
+        player:attachEffectById(7)
+        player:attachEffectById(8)
+        player:attachEffectById(9, true) -- Temporary Effect
+    end
+
     -- Events
     player:registerEvent('PlayerDeath')
     player:registerEvent('DropLoot')

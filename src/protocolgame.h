@@ -444,6 +444,10 @@ private:
     void sendModalWindow(const ModalWindow& modalWindow);
 #endif
 
+    void sendAttachedEffect(const Creature* creature, uint16_t effectId);
+    void sendDetachEffect(const Creature* creature, uint16_t effectId);
+    void sendShader(const Creature* creature, const std::string& shaderName);
+
     //Help functions
 
     // translate a tile to clientreadable format

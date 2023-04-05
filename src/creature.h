@@ -481,6 +481,9 @@ public:
     bool getPathTo(const Position& targetPos, std::vector<Direction>& dirList, const FindPathParams& fpp) const;
     bool getPathTo(const Position& targetPos, std::vector<Direction>& dirList, int32_t minTargetDist, int32_t maxTargetDist, bool fullPathSearch = true, bool clearSight = true, int32_t maxSearchDist = 0) const;
 
+    std::string getShader() const { return shader; }
+    void setShader(const std::string& shaderName) { shader = shaderName; }
+
     void incrementReferenceCounter() {
         ++referenceCounter;
     }
@@ -489,6 +492,10 @@ public:
             delete this;
         }
     }
+
+    void attachEffectById(uint16_t id);
+    void detachEffectById(uint16_t id);
+    const std::vector<uint16_t> getAttachedEffectList() const { return attachedEffectList; }
 
 protected:
     virtual bool useCacheMap() const {
@@ -510,6 +517,8 @@ protected:
 
     using CountMap = std::map<uint32_t, CountBlock_t>;
     CountMap damageMap;
+
+    std::string shader;
 
     std::vector<Creature*> summons;
     CreatureEventList eventsList;
@@ -548,6 +557,8 @@ protected:
 
     Direction direction = DIRECTION_SOUTH;
     Skulls_t skull = SKULL_NONE;
+
+    std::vector<uint16_t> attachedEffectList;
 
     bool localMapCache[mapWalkHeight][mapWalkWidth] = { { false } };
     bool isInternalRemoved = false;
