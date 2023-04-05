@@ -31,6 +31,9 @@ function onLogin(player)
 
     if player:getGroup():getAccess() and player:getAccountType() >= ACCOUNT_TYPE_GAMEMASTER then
         player:setShader("Outfit - Rainbow")
+        player:attachEffectById(7)
+        player:attachEffectById(8)
+        player:attachEffectById(9, true) -- Temporary Effect
     end
 
     -- Events

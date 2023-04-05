@@ -6912,7 +6912,7 @@ void Game::sendAttachedEffect(const Creature* creature, uint16_t effectId)
     SpectatorVector spectators;
     map.getSpectators(spectators, creature->getPosition(), false, true);
     for (Creature* spectator : spectators) {
-        spectator->getPlayer()->sendDetachEffect(creature, effectId);
+        spectator->getPlayer()->sendAttachedEffect(creature, effectId);
     }
 }
 
