@@ -3,6 +3,33 @@ forgottenserver
 
 The Forgotten Server is a free and open-source MMORPG server emulator written in C++. It is a fork of the [OpenTibia Server](https://github.com/opentibia/server) project. To connect to the server, you can use [OTClient](https://github.com/edubart/otclient), [OpenTibiaUnity](https://github.com/slavidodo/OpenTibia-Unity) or [The Forgotten Client](https://github.com/SaiyansKing/The-Forgotten-Client)(work in progress).
 
+### Features
+
+- Attached Effect Support
+- Shader Support
+
+#### sample
+```lua
+item:setShader(<shader name>)
+creature:setShader(<shader name>)
+creature:attachEffectById(<effect id>, <temporary>(true | false)) -- Temporary = does not save in character
+```
+
+##### note: use storage to save a permanent effect on the player.
+```lua
+-- Sample
+local EFFECT_STORAGE = 80000
+
+player:setStorageValue(EFFECT_STORAGE, 7)
+.
+.
+.
+local effectId = player:getStorageValue(EFFECT_STORAGE)
+if effectId ~= nil then
+creature:attachEffectById(effectId)
+end
+```
+
 ### Getting Started
 
 * [Compiling](https://github.com/otland/forgottenserver/wiki/Compiling)
