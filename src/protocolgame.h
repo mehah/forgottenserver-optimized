@@ -444,8 +444,8 @@ private:
     void sendModalWindow(const ModalWindow& modalWindow);
 #endif
 
-    void sendAddAttchedEffect(const Creature* creature, uint16_t effectId);
-    void sendRemoveAttchedEffect(const Creature* creature, uint16_t effectId);
+    void sendAttachedEffect(const Creature* creature, uint16_t effectId);
+    void sendDetachEffect(const Creature* creature, uint16_t effectId);
     void sendShader(const Creature* creature, const std::string& shaderName);
 
     //Help functions

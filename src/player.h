@@ -1015,15 +1015,15 @@ public:
     }
 #endif
 
-    void sendAddAttchedEffect(const Creature * creature, uint16_t effectId) {
+    void sendAttachedEffect(const Creature * creature, uint16_t effectId) {
         if (client) {
-            client->sendAddAttchedEffect(creature, effectId);
+            client->sendAttachedEffect(creature, effectId);
         }
     }
 
-    void sendRemoveAttchedEffect(const Creature * creature, uint16_t effectId) {
+    void sendDetachEffect(const Creature * creature, uint16_t effectId) {
         if (client) {
-            client->sendRemoveAttchedEffect(creature, effectId);
+            client->sendDetachEffect(creature, effectId);
         }
     }
 
@@ -1845,6 +1845,6 @@ private:
     friend class Actions;
     friend class IOLoginData;
     friend class ProtocolGame;
-    };
+};
 
 #endif

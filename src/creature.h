@@ -493,6 +493,10 @@ public:
         }
     }
 
+    void attachEffectById(uint16_t id);
+    void detachEffectById(uint16_t id);
+    const std::vector<uint16_t> getAttachedEffectList() const { return attachedEffectList; }
+
 protected:
     virtual bool useCacheMap() const {
         return false;
@@ -553,6 +557,8 @@ protected:
 
     Direction direction = DIRECTION_SOUTH;
     Skulls_t skull = SKULL_NONE;
+
+    std::vector<uint16_t> attachedEffectList;
 
     bool localMapCache[mapWalkHeight][mapWalkWidth] = { { false } };
     bool isInternalRemoved = false;

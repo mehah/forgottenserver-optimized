@@ -6907,21 +6907,21 @@ bool Game::reload(const ReloadTypes_t reloadType)
     }
 }
 
-void Game::addAttchedEffect(const Creature* creature, uint16_t effectId)
+void Game::sendAttachedEffect(const Creature* creature, uint16_t effectId)
 {
     SpectatorVector spectators;
     map.getSpectators(spectators, creature->getPosition(), false, true);
     for (Creature* spectator : spectators) {
-        spectator->getPlayer()->sendAddAttchedEffect(creature, effectId);
+        spectator->getPlayer()->sendDetachEffect(creature, effectId);
     }
 }
 
-void Game::removeAttchedEffect(const Creature* creature, uint16_t effectId)
+void Game::sendDetachEffect(const Creature* creature, uint16_t effectId)
 {
     SpectatorVector spectators;
     map.getSpectators(spectators, creature->getPosition(), false, true);
     for (Creature* spectator : spectators) {
-        spectator->getPlayer()->sendRemoveAttchedEffect(creature, effectId);
+        spectator->getPlayer()->sendDetachEffect(creature, effectId);
     }
 }
 

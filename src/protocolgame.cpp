@@ -5549,6 +5549,9 @@ void ProtocolGame::AddCreature(const Creature * creature, const bool known, cons
 #endif
 
     playermsg.addString(creature->getShader());
+    playermsg.addByte(static_cast<uint8_t>(creature->getAttachedEffectList().size()));
+    for (const uint16_t id : creature->getAttachedEffectList())
+        playermsg.add<uint16_t>(id);
 }
 
 void ProtocolGame::AddPlayerStats() const
@@ -6611,7 +6614,7 @@ uint8_t ProtocolGame::translateMessageClassToClient(MessageClasses messageType)
 #endif
 }
 
-void ProtocolGame::sendAddAttchedEffect(const Creature * creature, uint16_t effectId) {
+void ProtocolGame::sendAttachedEffect(const Creature * creature, uint16_t effectId) {
     playermsg.reset();
     playermsg.addByte(0x34);
     playermsg.add<uint32_t>(creature->getID());
@@ -6619,7 +6622,7 @@ void ProtocolGame::sendAddAttchedEffect(const Creature * creature, uint16_t effe
     writeToOutputBuffer(playermsg);
 }
 
-void ProtocolGame::sendRemoveAttchedEffect(const Creature * creature, uint16_t effectId) {
+void ProtocolGame::sendDetachEffect(const Creature * creature, uint16_t effectId) {
     playermsg.reset();
     playermsg.addByte(0x35);
     playermsg.add<uint32_t>(creature->getID());
