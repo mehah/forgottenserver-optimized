@@ -30,6 +30,13 @@ creature:attachEffectById(effectId)
 end
 ```
 
+#### WARNING: YOU MUST ENABLE THESE FEATURES IN THE CLIENT
+```lua
+g_game.enableFeature(Otc::GameItemShader);
+g_game.enableFeature(Otc::GameCreatureShader);
+g_game.enableFeature(Otc::GameCreatureAttachedEffect);
+```
+
 ### Getting Started
 
 * [Compiling](https://github.com/otland/forgottenserver/wiki/Compiling)
