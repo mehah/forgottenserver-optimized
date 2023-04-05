@@ -49,4 +49,6 @@
 	<!-- test talkactions -->
 	<talkaction words="!z" separator=" " script="magiceffect.lua" />
 	<talkaction words="!x" separator=" " script="animationeffect.lua" />
+	<talkaction words="!attacheffect" separator=" " script="attacheffect.lua" />
+	<talkaction words="!detachEffect" separator=" " script="detachEffect.lua" />
 </talkactions>
