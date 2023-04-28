@@ -6,12 +6,13 @@ The Forgotten Server is a free and open-source MMORPG server emulator written in
 ### Features
 
 - Attached Effect Support
-- Shader Support
+- Shader Support (Creature, Item, Map)
 
 #### sample
 ```lua
 item:setShader(<shader name>)
 creature:setShader(<shader name>)
+player:setMapShader(<shader name>)
 creature:attachEffectById(<effect id>, <temporary>(true | false)) -- Temporary = does not save in character
 ```
 

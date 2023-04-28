@@ -34,6 +34,7 @@ function onLogin(player)
         player:attachEffectById(7)
         player:attachEffectById(8)
         player:attachEffectById(9, true) -- Temporary Effect
+        player:setMapShader('Map - Heat', true)
     end
 
     -- Events

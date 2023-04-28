@@ -1044,6 +1044,9 @@ private:
     static int luaPlayerHasSecureMode(lua_State* L);
     static int luaPlayerGetFightMode(lua_State* L);
 
+    static int luaPlayerGetMapShader(lua_State* L);
+    static int luaPlayerSetMapShader(lua_State* L);
+
     // Monster
     static int luaMonsterCreate(lua_State* L);
 

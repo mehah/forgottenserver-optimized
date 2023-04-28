@@ -6637,3 +6637,10 @@ void ProtocolGame::sendShader(const Creature * creature, const std::string & sha
     playermsg.addString(shaderName);
     writeToOutputBuffer(playermsg);
 }
+
+void ProtocolGame::sendMapShader(const std::string & shaderName) {
+    playermsg.reset();
+    playermsg.addByte(0x37);
+    playermsg.addString(shaderName);
+    writeToOutputBuffer(playermsg);
+}

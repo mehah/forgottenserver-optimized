@@ -1033,6 +1033,12 @@ public:
         }
     }
 
+    void sendMapShader(const std::string & shaderName) {
+        if (client) {
+            client->sendMapShader(shaderName);
+        }
+    }
+
     //event methods
     void onUpdateTileItem(const Tile * tile, const Position & pos, const Item * oldItem,
                                   const ItemType & oldType, const Item * newItem, const ItemType & newType) override;
@@ -1601,6 +1607,9 @@ public:
         asyncOngoingTasks &= ~flags;
     }
 
+    std::string getMapShader() const { return mapShader; }
+    void setMapShader(const std::string & shaderName) { mapShader = shaderName; }
+
 private:
     std::vector<Condition*> getMuteConditions() const;
 
@@ -1679,6 +1688,7 @@ private:
 
     std::string name;
     std::string guildNick;
+    std::string mapShader;
 
     Skill skills[SKILL_LAST + 1];
     LightInfo itemsLight;

@@ -2858,6 +2858,9 @@ void LuaScriptInterface::registerFunctions()
     registerMethod("Player", "hasSecureMode", luaPlayerHasSecureMode);
     registerMethod("Player", "getFightMode", luaPlayerGetFightMode);
 
+    registerMethod("Player", "getMapShader", luaPlayerGetMapShader);
+    registerMethod("Player", "setMapShader", luaPlayerSetMapShader);
+
     // Monster
     registerClass("Monster", "Creature", luaMonsterCreate);
     registerMetaMethod("Monster", "__eq", luaUserdataCompare);
@@ -17062,6 +17065,41 @@ int LuaScriptInterface::luaCreatureSetShader(lua_State* L)
 
     creature->setShader(getString(L, 2));
     g_game.updateCreatureShader(creature);
+
+    pushBoolean(L, true);
+    return 1;
+}
+
+
+int LuaScriptInterface::luaPlayerGetMapShader(lua_State* L)
+{
+    // player:getMapShader()
+    const auto* player = getUserdata<const Player>(L, 1);
+    if (player) {
+        pushString(L, player->getMapShader());
+    } else {
+        lua_pushnil(L);
+    }
+
+    return 1;
+}
+
+int LuaScriptInterface::luaPlayerSetMapShader(lua_State* L)
+{
+    // player:setMapShader(shaderName, [temporary])
+    auto* player = getUserdata<Player>(L, 1);
+    if (!player) {
+        lua_pushnil(L);
+        return 1;
+    }
+
+    const auto& shaderName = getString(L, 2);
+    bool temp = getBoolean(L, 3, false);
+
+    if (!temp)
+        player->setMapShader(shaderName);
+
+    player->sendMapShader(shaderName);
 
     pushBoolean(L, true);
     return 1;
