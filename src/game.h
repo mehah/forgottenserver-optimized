@@ -408,6 +408,7 @@ public:
     void playerResetTrackedQuests(Player* player, std::vector<uint16_t>& quests);
 #endif
     void playerCloseNpcChannel(Player* player);
+	void playerSetTyping(uint32_t playerId, uint8_t typing);
     static void playerReceivePing(Player* player);
     static void playerReceivePingBack(const Player* player);
     void playerAutoWalk(uint32_t playerId, const std::vector<Direction>& listDir);
