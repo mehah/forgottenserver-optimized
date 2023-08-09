@@ -865,6 +865,12 @@ public:
             client->sendMoveCreature(creature, newPos, newStackPos, oldPos, oldStackPos, teleport);
         }
     }
+	void sendPlayerTyping(const Creature* creature, uint8_t typing)
+	{
+		if (client) {
+			client->sendPlayerTyping(creature, typing);
+		}
+	}
     void sendCreatureTurn(const Creature * creature) const
     {
         if (client && canSeeCreature(creature)) {

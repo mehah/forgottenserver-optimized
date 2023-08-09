@@ -540,6 +540,7 @@ void ProtocolGame::parsePacket(NetworkMessage & msg)
         case 0x28: parseStashAction(msg); break;
 #endif
         case 0x32: parseExtendedOpcode(msg); break; //otclient extended opcode
+	    case 0x38: parsePlayerTyping(msg); break; //player are typing or not
         case 0x64: parseAutoWalk(msg); break;
         case 0x65: g_game.playerMove(player, DIRECTION_NORTH); break;
         case 0x66: g_game.playerMove(player, DIRECTION_EAST); break;
@@ -900,6 +901,12 @@ bool ProtocolGame::canSee(const int32_t x, const int32_t y, const int32_t z) con
 }
 
 // Parse methods
+void ProtocolGame::parsePlayerTyping(NetworkMessage& msg)
+{
+	uint8_t typing = msg.getByte();
+	g_dispatcher.addTask([=, playerID = player->getID()]() { g_game.playerSetTyping(playerID, typing); });
+}
+
 void ProtocolGame::parseChannelInvite(NetworkMessage & msg) const
 {
     const std::string name = msg.getString();
@@ -1783,6 +1790,19 @@ void ProtocolGame::sendChannelEvent(const uint16_t channelId, const std::string 
     writeToOutputBuffer(playermsg);
 }
 #endif
+
+void ProtocolGame::sendPlayerTyping(const Creature* creature, uint8_t typing)
+{
+	if (!canSee(creature)) {
+		return;
+	}
+
+	NetworkMessage msg;
+	msg.addByte(0x38);
+	msg.add<uint32_t>(creature->getID());
+	msg.addByte(typing);
+	writeToOutputBuffer(msg);
+}
 
 void ProtocolGame::sendCreatureOutfit(const Creature * creature, const Outfit_t & outfit)
 {

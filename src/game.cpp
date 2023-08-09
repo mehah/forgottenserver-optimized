@@ -2612,6 +2612,21 @@ void Game::playerCloseNpcChannel(Player* player)
         }
     }
 }
+void Game::playerSetTyping(uint32_t playerId, uint8_t typing)
+{
+	Player* player = getPlayerByID(playerId);
+	if (!player) {
+		return;
+	}
+
+	SpectatorVec spectators;
+	map.getSpectators(spectators, player->getPosition());
+	for (Creature* spectator : spectators) {
+		if (Player* p = spectator->getPlayer()) {
+			p->sendPlayerTyping(player, typing);
+		}
+	}
+}
 
 void Game::playerReceivePing(Player* player)
 {
