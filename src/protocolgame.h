@@ -114,6 +114,7 @@ private:
     void onConnect() override;
 
     //Parse methods
+	void parsePlayerTyping(NetworkMessage& msg);
 #if GAME_FEATURE_QUEST_TRACKER > 0
     void parseTrackedQuestFlags(NetworkMessage& msg);
 #endif
@@ -386,6 +387,7 @@ private:
     void sendFightModes();
 #endif
 
+	void sendPlayerTyping(const Creature* creature, uint8_t typing);
     void sendCreatureLight(const Creature* creature);
     void sendWorldLight(LightInfo lightInfo);
 #if CLIENT_VERSION >= 1121
